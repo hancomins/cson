@@ -1,22 +1,30 @@
-# cson
+# cson introduction
   - JAVA 1.6 or higher environment is supported. 
   - API usage is similar to JSON-JAVA (https://github.com/stleary/JSON-java) 
   - Data structures that can be represented in JSON can be serialized(or deserialized) in binary format. The binary structure can have a smaller data size than the json string type, and has a performance advantage in parsing.
   - Supports [JSON5](https://json5.org/) format. Comments are parsed alongside the data..
   - Provides object serialization and deserialization using Java annotations. In addition to this, Collection and Map can also be used for JSON type serialization and deserialization.
   - Provides a way to access specific values in a CSON object. This is similar to XPath for XML.
-  
 
-## Usage (gradle)
+# cson 소개  (Korean)
+  - JAVA 1.6 이상의 환경을 지원합니다.
+  - API 사용법은 JSON-JAVA(https://github.com/stleary/JSON-java)와 유사합니다.
+  - JSON으로 표현할 수 있는 데이터 구조를 바이너리 형식으로 직렬화(또는 역직렬화)할 수 있습니다. 바이너리 구조는 json 문자열 형식보다 데이터 크기가 작을 수 있으며 구문 분석 성능에 이점이 있습니다.
+  - [JSON5](https://json5.org/) 형식을 지원합니다. 주석도 함께 파싱됩니다. 
+  - Java 어노테이션을 사용하여 객체 직렬화 및 역직렬화를 제공합니다. 이 외에도 JSON 형식의 직렬화 및 역직렬화에는 Collection 및 Map을 사용할 수도 있습니다.
+  - CSON 객체의 특정 값에 접근하는 방법을 제공합니다. 이는 XML용 XPath와 유사합니다.
+
+## Add dependency to your project (gradle)
+
 ```groovy
 dependencies {
-    implementation group: 'com.snoworca', name: 'cson', version: '0.0.1'
+    implementation group: 'io.github.clip-rnd', name: 'cson', version: '0.9.11'
 }
 ```
 
 
 ## Basic usage (JSON)
-* Pure JSON is the easiest to use. This usage method is the same as [JAVA-JSON](https://github.com/stleary/JSON-java).
+* Pure JSON is the default. And it performs the best. easiest to use. This usage method is the same as [JAVA-JSON](https://github.com/stleary/JSON-java).
    ```java
     CSONObject obj = new CSONObject();
     // You can change the format options. 
@@ -54,7 +62,7 @@ dependencies {
     ```
    
 ## JSON5 usage
-  * JSON5 is a superset of JSON that allows comments, trailing commas, and more. key names can be unquoted if they’re valid identifiers. Single and multi-line strings are allowed, as well as escaped newlines, tabs, and Unicode characters in strings and names.
+  * JSON5 is a superset of JSON that allows comments, trailing commas, and more. key names can be unquoted if they’re valid identifiers. Single and multi-line strings are allowed, as well as escaped newlines, tabs, and Unicode characters in strings and names. [JSON5 Document](https://json5.org/) 
     ```java
     CSONObject obj = new CSONObject(StringFormatOption.json5());
   
