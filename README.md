@@ -18,7 +18,16 @@
 
 ```groovy
 dependencies {
-    implementation group: 'io.github.clip-rnd', name: 'cson', version: '0.9.12'
+    implementation group: 'io.github.clipsoft-rnd', name: 'cson', version: '0.9.12'
+}
+```
+* If you cannot download the latest version of cson from gradle, find the repositories block and add the maven repository as follows.
+```groovy
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://repo1.maven.org/maven2/' 
+    }
 }
 ```
 
