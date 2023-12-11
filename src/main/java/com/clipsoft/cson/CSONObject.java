@@ -607,6 +607,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return def;
 	}
 
+
 	public CSONObject getObject(String key) {
 		Object obj = dataMap.get(key);
 		if(obj instanceof CSONObject) {

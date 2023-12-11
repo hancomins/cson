@@ -8,7 +8,7 @@ public abstract  class CSONElement {
 
 
 
-	private static StringFormatOption DefaultJSONOptions = StringFormatOption.json();
+	private static StringFormatOption DefaultJSONOptions = StringFormatOption.jsonPure();
 	private final static Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
 	private final static Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");
 	private CommentObject commentAfterElement = null;
