@@ -606,6 +606,9 @@ class JSONTokener {
             if(jsonOption.isLeadingZeroOmission() && string.charAt(length - 1) == '.') {
                 originalString = string;
                 string = string + "0";
+            } if(initial == '+') {
+                originalString = string;
+                string = string.substring(1);
             }
 
             try {

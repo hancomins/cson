@@ -62,16 +62,23 @@ public class CSONObjectTest {
 
         CSONObject csonObjectA = new CSONObject("{\"key\": \"va \\\" \\n \\r lue\"}", JSONOptions.json());
         System.out.println(csonObjectA.toString());
-        new CSONObject(csonObjectA.toString());
+        JSONObject jsonObjectA = new JSONObject(csonObjectA.toString(JSONOptions.json()));
+        new CSONObject(csonObjectA.toString(), JSONOptions.json());
 
         System.out.println("--------------------------------------------------");
 
         CSONObject csonObject = makeCSOObject();
         CSONObject csonObject2 = csonObject.clone();
         assertEquals(csonObject, csonObject2);
+        assertEquals(csonObject.toString(), csonObject2.toString());
+
         System.out.println(csonObject.toString());
         JSONObject jsonObject1 = new JSONObject(csonObject.toString(JSONOptions.json()));
         assertEquals(csonObject2,new CSONObject(csonObject.toString(JSONOptions.json())));
+
+
+
+        assertEquals(csonObject2.toString(),new CSONObject(csonObject.toString(JSONOptions.json())).toString());
         assertEquals(csonObject2,new CSONObject(csonObject.toBytes()));
     }
 

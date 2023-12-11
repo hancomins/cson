@@ -10,6 +10,7 @@ public class CharacterBuffer {
     public CharacterBuffer() {
     }
 
+    @Override
     public String toString() {
         return new String(chars, 0, length);
     }
@@ -36,6 +37,7 @@ public class CharacterBuffer {
     public int getLength() {
         return length;
     }
+
 
 
 

@@ -854,7 +854,8 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			else if(obj instanceof Double) writer.add((double)obj);
 			else if(obj instanceof String) writer.add((String)obj);
 			else if(obj instanceof byte[]) writer.add((byte[])obj);
-			else if(obj instanceof Boolean) writer.add((boolean)obj);
+			else if(obj instanceof BigDecimal) writer.add((BigDecimal)obj);
+			else  writer.add(obj.toString());
 		}
 
 		writer.closeArray();
@@ -890,6 +891,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			Object obj = list.get(i);
 			if(obj instanceof CSONArray) array.add(((CSONArray)obj).clone());
 			else if(obj instanceof CSONObject) array.add(((CSONObject)obj).clone());
+			else if(obj == NullValue.Instance) array.add(null);
 			else if(obj instanceof CharSequence) array.add(((CharSequence)obj).toString());
 			else if(obj instanceof byte[]) {
 				byte[] bytes = (byte[])obj;
@@ -927,10 +929,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		for(int i = 0, n = list.size(); i < n; ++i) {
 			Object compareValue = csonObject.list.get(i);
 			Object value = list.get(i);
-			if((value == null || value instanceof NullValue) && (compareValue != null && !(compareValue instanceof NullValue)) ) {
-				return false;
-			}
-			else if(value instanceof CharSequence && (!(compareValue instanceof CharSequence) || !value.toString().equals(compareValue.toString())) ) {
+			if(value instanceof CharSequence && (!(compareValue instanceof CharSequence) || !value.toString().equals(compareValue.toString())) ) {
 				return false;
 			}
 			else if(value instanceof Boolean && (!(compareValue instanceof Boolean) || (Boolean)value != (Boolean)compareValue)) {
@@ -955,6 +954,8 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 				return false;
 			}
 			else if(value instanceof byte[] && (!(compareValue instanceof byte[]) || !Arrays.equals((byte[])value, (byte[])compareValue))) {
+				return false;
+			} else if(value != compareValue) {
 				return false;
 			}
 		}

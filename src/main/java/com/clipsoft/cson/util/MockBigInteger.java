@@ -136,15 +136,10 @@ public class MockBigInteger extends Number implements Comparable<MockBigInteger>
         return i;
     }
 
-    public MockBigInteger(char[] val, int offset, int len, int radix) {
-        int cursor = 0, numDigits;
+
+    public MockBigInteger(char[] val,int offset, int len) {
+
         int lastIndex = offset + len - 1;
-
-        if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
-            throw new NumberFormatException("Radix out of range");
-        if (len == 0)
-            throw new NumberFormatException("Zero lengthRefBigInteger");
-
         while (offset < len && Character.isSpaceChar(val[offset])) {
             offset++;
             if (offset >= lastIndex) {
@@ -158,75 +153,75 @@ public class MockBigInteger extends Number implements Comparable<MockBigInteger>
                 throw new NumberFormatException("Zero lengthRefBigInteger");
             }
         }
-
-        len = lastIndex - offset + 1;
-
-
-
-
-
         int sign = 1;
-
-        int index1 = lastIndexOf(val, offset, len, '-');
-        int index2 = lastIndexOf(val, offset, len, '+');
-        if (index1 >= 0) {
-            if (index1 != 0 || index2 >= 0) {
-                throw new NumberFormatException("Illegal embedded sign character");
-            }
+        len = lastIndex - offset + 1;
+        if(val[offset] == '-') {
             sign = -1;
-            cursor = 1;
-        } else if (index2 >= 0) {
-            if (index2 != 0) {
-                throw new NumberFormatException("Illegal embedded sign character");
-            }
-            cursor = 1;
+            offset++;
+        } if(val[offset] == '+') {
+            sign = 1;
+            offset++;
         }
-        if (cursor == len)
-            throw new NumberFormatException("Zero lengthRefBigInteger");
 
-        while (cursor < len && Character.digit(val[cursor], radix) == 0) {
+
+        int cursor = offset, numDigits;
+
+        // Skip leading zeros and compute number of digits in magnitude
+        while (cursor < len && Character.digit(val[cursor], 10) == 0) {
             cursor++;
         }
-
         if (cursor == len) {
             signum = 0;
             mag = ZERO.mag;
             return;
         }
-
         numDigits = len - cursor;
         signum = sign;
-
-        long numBits = ((numDigits * bitsPerDigit[radix]) >>> 10) + 1;
-        if (numBits + 31 >= (1L << 32)) {
-            reportOverflow();
+        // Pre-allocate array of expected size
+        int numWords;
+        if (len < 10) {
+            numWords = 1;
+        } else {
+            long numBits = ((numDigits * bitsPerDigit[10]) >>> 10) + 1;
+            if (numBits + 31 >= (1L << 32)) {
+                reportOverflow();
+            }
+            numWords = (int) (numBits + 31) >>> 5;
         }
-        int numWords = (int) (numBits + 31) >>> 5;
         int[] magnitude = new int[numWords];
 
-        int firstGroupLen = numDigits % digitsPerInt[radix];
+        // Process first (potentially short) digit group
+        int firstGroupLen = numDigits % digitsPerInt[10];
         if (firstGroupLen == 0)
-            firstGroupLen = digitsPerInt[radix];
+            firstGroupLen = digitsPerInt[10];
+        magnitude[numWords - 1] = parseInt(val, cursor,  cursor += firstGroupLen);
 
-        magnitude[numWords - 1] = parseInt(val, cursor, firstGroupLen, radix);
-        cursor += digitsPerInt[radix];
-        if (magnitude[numWords - 1] < 0)
-            throw new NumberFormatException("Illegal digit");
-
-        int superRadix = intRadix[radix];
-        int groupVal = 0;
+        // Process remaining digit groups
         while (cursor < len) {
-            groupVal = parseInt(val, cursor, firstGroupLen, radix); //Integer.parseInt(group, radix);
-            cursor += digitsPerInt[radix];
-            if (groupVal < 0)
-                throw new NumberFormatException("Illegal digit");
-            destructiveMulAdd(magnitude, superRadix, groupVal);
+            int groupVal = parseInt(val, cursor, cursor += digitsPerInt[10]);
+            destructiveMulAdd(magnitude, intRadix[10], groupVal);
         }
         mag = trustedStripLeadingZeroInts(magnitude);
         if (mag.length >= MAX_MAG_LENGTH) {
             checkRange();
         }
     }
+
+    private int parseInt(char[] source, int start, int end) {
+        int result = Character.digit(source[start++], 10);
+        if (result == -1)
+            throw new NumberFormatException(new String(source));
+
+        for (int index = start; index < end; index++) {
+            int nextVal = Character.digit(source[index], 10);
+            if (nextVal == -1)
+                throw new NumberFormatException(new String(source));
+            result = 10*result + nextVal;
+        }
+
+        return result;
+    }
+
 
     public static int parseInt(char[] s, int beginIndex, int len, int radix)
             throws NumberFormatException {

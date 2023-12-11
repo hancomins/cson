@@ -49,6 +49,9 @@ class PureJSONParser {
             case 't':
                 dataStringBuilder.append('\t');
                 break;
+            case '"':
+                dataStringBuilder.append('"');
+                break;
             case '\\':
                 dataStringBuilder.append('\\');
                 break;
@@ -84,7 +87,7 @@ class PureJSONParser {
 
                 ++index;
                 //Mode currentMode = modeStack.peekLast();
-                if(c != '"' && (currentMode == Mode.String || currentMode == Mode.InKey)) {
+                if((c != '"' || isSpecialChar) && (currentMode == Mode.String || currentMode == Mode.InKey)) {
                     if(c == '\\') {
                         isSpecialChar = true;
                     } else if(isSpecialChar) {
@@ -92,7 +95,7 @@ class PureJSONParser {
                         appendSpecialChar(reader, dataStringBuilder, c);
                     }
                     else dataStringBuilder.append((char)c);
-                } else if(currentMode == Mode.Number && c != ',' && c != '}' && c != ']') {
+                } else if(currentMode == Mode.Number &&  (isSpecialChar ||  (c != ',' && c != '}' && c != ']'))) {
                     if(c == '.' || c == 'E' || c == 'e') {
                         isFloat = true;
                     }
@@ -147,19 +150,23 @@ class PureJSONParser {
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == ']'  || c == '}') {
-                    if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
-                        throw new CSONParseException("Unexpected character '" + c + "' at " + index);
-                    }
 
-                    if(currentMode == Mode.Number) {
+
+                    if(currentMode == Mode.WaitValue || currentMode == Mode.WaitKey) {
+
+                    }
+                    else if(currentMode == Mode.Number) {
                         char[] numberString = dataStringBuilder.getChars();
                         int len = dataStringBuilder.getLength();
                         processNumber(currentElement, numberString, len, key, index, isFloat);
                         key = null;
                         isFloat = false;
+                    } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
+
+                        throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                     }
 
-                    currentMode  =Mode.NextStoreSeparator;
+                    currentMode = Mode.NextStoreSeparator;
                     csonElements.removeLast();
                     if(csonElements.isEmpty()) {
                         return currentElement;

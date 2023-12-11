@@ -83,6 +83,16 @@ public class PureJsonTest {
     }
 
     @Test
+    public void NumberConversion() {
+        String testJSON = "[" +Long.MIN_VALUE  + ", -0" + ", 10.11]";
+        CSONArray csonArraryOrigin = new CSONArray(testJSON, StringFormatOption.jsonPure());
+
+        System.out.println(csonArraryOrigin.toString());
+
+
+    }
+
+    @Test
     public void dutyJSON() throws IOException {
         String testJSON = "{\n" +
                 "  \"user\": {\n" +

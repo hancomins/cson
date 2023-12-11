@@ -736,6 +736,7 @@ public class CSONObject extends CSONElement implements Cloneable {
             if (obj instanceof CSONArray) csonObject.put(key, ((CSONArray) obj).clone());
             else if (obj instanceof CSONObject) csonObject.put(key, ((CSONObject) obj).clone());
             else if (obj instanceof CharSequence) csonObject.put(key, ((CharSequence) obj).toString());
+			else if (obj == NullValue.Instance) csonObject.put(key,null);
             else if (obj instanceof byte[]) {
                 byte[] bytes = (byte[]) obj;
                 byte[] newBytes = new byte[bytes.length];

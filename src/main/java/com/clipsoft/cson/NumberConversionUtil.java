@@ -3,6 +3,7 @@ package com.clipsoft.cson;
 import com.clipsoft.cson.util.MockBigInteger;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 
 class NumberConversionUtil {
 
@@ -130,7 +131,9 @@ class NumberConversionUtil {
                 }
             }
 
-            MockBigInteger bi = new MockBigInteger(input, offset, len, 10);
+
+
+            MockBigInteger bi = new MockBigInteger(input, offset, len);
             if(bi.bitLength() <= 31){
                 return Integer.valueOf(bi.intValue());
             }

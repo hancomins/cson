@@ -159,16 +159,23 @@ public class CSONTest {
         }
 
         objectJsonArray = new JSONArray(objectJsonArray.toString());
+        System.out.println(objectJsonArray.toString());
         CSONArray objectCsonArray = new CSONArray(new CSONArray(objectJsonArray.toString()).toByteArray());
+
+
         assertEquals(objectJsonArray.length(), objectCsonArray.size());
         for(int i = 0, n = objectJsonArray.length(); i < n; ++i) {
+            System.out.println(i);
             JSONObject jao = objectJsonArray.getJSONObject(i);
             CSONObject cao = objectCsonArray.getObject(i);
+            System.out.println(jao.toString());
+            System.out.println(cao.toString());
+
             assertEquals(jao.getString("str"), cao.getString("str"));
             assertEquals(jao.optString("true"), cao.getString("true"));
             assertEquals(jao.getBoolean("true"), cao.getBoolean("true"));
             assertEquals(jao.getBoolean("false"), cao.getBoolean("false"));
-            assertEquals(jao.getInt("random"), cao.getInteger("random"));
+            assertEquals(jao.getLong("random"), cao.getLong("random"));
             assertEquals(Double.valueOf(jao.getDouble("float")),Double.valueOf(cao.getDouble("float")));
             assertEquals(Float.valueOf(jao.getFloat("float")),Float.valueOf(cao.getFloat("float")));
             assertEquals(jao.getInt("float"), cao.getInteger("float"));
