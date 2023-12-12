@@ -52,9 +52,6 @@ class PureJSONParser {
             case '"':
                 dataStringBuilder.append('"');
                 break;
-            case '\\':
-                dataStringBuilder.append('\\');
-                break;
             case 'u':
                 char[] hexChars = new char[4];
                 reader.read(hexChars);
@@ -62,6 +59,8 @@ class PureJSONParser {
                 int hexValue = Integer.parseInt(hexString, 16);
                 dataStringBuilder.append((char)hexValue);
                 break;
+            case '/':
+            case '\\':
             default:
                 dataStringBuilder.append((char)c);
                 break;
@@ -88,22 +87,23 @@ class PureJSONParser {
                 ++index;
                 //Mode currentMode = modeStack.peekLast();
                 if((c != '"' || isSpecialChar) && (currentMode == Mode.String || currentMode == Mode.InKey)) {
-                    if(c == '\\') {
-                        isSpecialChar = true;
-                    } else if(isSpecialChar) {
+                    if(isSpecialChar) {
                         isSpecialChar = false;
                         appendSpecialChar(reader, dataStringBuilder, c);
+                    } else if(c == '\\') {
+                        isSpecialChar = true;
                     }
                     else dataStringBuilder.append((char)c);
                 } else if(currentMode == Mode.Number &&  (isSpecialChar ||  (c != ',' && c != '}' && c != ']'))) {
                     if(c == '.' || c == 'E' || c == 'e') {
                         isFloat = true;
                     }
-                    if(c == '\\') {
-                        isSpecialChar = true;
-                    } else if(isSpecialChar) {
+                    if(isSpecialChar) {
                         isSpecialChar = false;
                         appendSpecialChar(reader, dataStringBuilder, c);
+                    }
+                    else if(c == '\\') {
+                        isSpecialChar = true;
                     }
                     else dataStringBuilder.append((char)c);
                 }

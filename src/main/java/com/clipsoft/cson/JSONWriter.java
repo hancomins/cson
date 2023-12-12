@@ -28,7 +28,11 @@ public class JSONWriter {
 	private String depthSpace = "  ";
 
 	private String keyQuote = "\"";
+	private char keyQuoteChar = '"';
 	private String valueQuote = "\"";
+	private char valueQuoteChar = '"';
+	private boolean isSpacialValueQuote = false;
+	private boolean isSpacialKeyQuote = false;
 
 
 
@@ -111,6 +115,7 @@ public class JSONWriter {
 			depthSpace = jsonOptions.getDepthSpace();
 		}
 
+
 		keyQuote = jsonOptions.getKeyQuote();
 		valueQuote = jsonOptions.getValueQuote();
 		if(!jsonOptions.isAllowUnquoted() && keyQuote.isEmpty()) {
@@ -119,11 +124,20 @@ public class JSONWriter {
 		if(!jsonOptions.isAllowSingleQuotes()) {
 			if(keyQuote.equals("'")) {
 				keyQuote = jsonOptions.isAllowUnquoted() ? "" : "\"";
+
 			}
 			if(valueQuote.equals("'")) {
 				valueQuote = "\"";
 			}
 		}
+		if(!"\"".equals(keyQuote)) {
+			isSpacialKeyQuote = true;
+		}
+		if(!"\"".equals(valueQuote)) {
+			isSpacialValueQuote = true;
+		}
+		keyQuoteChar = keyQuote.isEmpty() ? 0 : keyQuote.charAt(0);
+		valueQuoteChar = valueQuote.charAt(0);
 		isAllowLineBreak = jsonOptions.isAllowLineBreak();
 
 		isComment = jsonOptions.isAllowComments() && !jsonOptions.isSkipComments();
@@ -228,10 +242,12 @@ public class JSONWriter {
 
 	private void writeString(String quoteArg, String str) {
 		String quote = quoteArg;
+
 		if(isAllowLineBreak && str.contains("\\\n")) {
 			quote = "\"";
 		}
-		str = DataConverter.escapeJSONString(str, isAllowLineBreak);
+		char quoteChar = quote.isEmpty() ? '\0'  : quote.charAt(0);
+		str = DataConverter.escapeJSONString(str, isAllowLineBreak, quoteChar);
 		stringBuilder.append(quote);
 		stringBuilder.append(str);
 		stringBuilder.append(quote);
@@ -510,11 +526,13 @@ public class JSONWriter {
 			addNull();
 			return this;
 		}
+
 		checkAndAppendInArray();
 		writeString(valueQuote, value);
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
+
 
 	public JSONWriter add(byte[] value) {
 		if(value== null) {

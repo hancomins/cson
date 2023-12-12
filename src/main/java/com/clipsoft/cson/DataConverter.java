@@ -292,55 +292,55 @@ class DataConverter {
 	}
 	
 	@SuppressWarnings("ForLoopReplaceableByForEach")
-	static String escapeJSONString(String str, boolean allowLineBreak) {
+	static String escapeJSONString(String str, boolean allowLineBreak, char quote) {
 		if(str == null) return  null;
+		boolean isSpacialQuote = quote != 0 && quote != '"';
+		boolean isEmptyQuote = quote == 0;
 		char[] charArray = str.toCharArray();
 		StringBuilder builder = new StringBuilder();
 		char lastCh = 0;
 		boolean isLastLF = false;
 		for(int i = 0; i < charArray.length; ++i) {
 			char ch = charArray[i];
-			switch (ch) {
-			case '\n':
+			if (ch == '\n') {
 				if(allowLineBreak && lastCh == '\\') {
 					builder.append('\n');
 					isLastLF = true;
 				} else {
 					builder.append("\\n");
 				}
-				break;
-			case '\r':
+			} else if (ch == '\r') {
 				if(allowLineBreak && isLastLF) {
 					builder.append('\r');
 					isLastLF = false;
 				} else {
 					builder.append("\\r");
 				}
-				break;
-			case '\f':
+			} else if (ch == '\f') {
 				isLastLF = false;
 				builder.append("\\f");
-				break;
-			case '\t':
+			} else if (ch == '\t') {
 				isLastLF = false;
 				builder.append("\\t");
-				break;
-			case '\b':
+			} else if (ch == '\b') {
 				isLastLF = false;
 				builder.append("\\b");
-				break;
-			case '"':
+			} else if (ch == '"' && !isSpacialQuote) {
 				isLastLF = false;
 				builder.append("\\\"");
-				break;
-			case '\\':
+			} else if (ch == '\\') {
 				isLastLF = false;
-				builder.append("\\");
-				break;
-			default:
+				builder.append("\\\\");
+			} else if(!isEmptyQuote && ch == quote) {
+				isLastLF = false;
+				builder.append("\\").append(ch);
+			} else if(isEmptyQuote && ch == '\'') {
+				isLastLF = false;
+				builder.append("\\'");
+			}
+			else {
 				isLastLF = false;
 				builder.append(ch);
-				break;
 			}
 			lastCh = ch;
 		}

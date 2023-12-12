@@ -421,6 +421,8 @@ class JSONTokener {
     Object nextValue() throws CSONException {
         char c = this.nextClean();
         String string;
+        boolean isEscapeMode = false;
+
 
         switch (c) {
             case '"':
@@ -453,7 +455,17 @@ class JSONTokener {
         }
 
         StringBuilder sb = new StringBuilder();
-        while (c >= ' ' && ",:]}/\\\"[{;=#".indexOf(c) < 0) {
+        while (c >= ' ') {
+            if(c == '\\' && !isEscapeMode) {
+                isEscapeMode = true;
+                c = this.next();
+                continue;
+            } else if(!isEscapeMode && ",:]}/\"[{;=#".indexOf(c) > -1) {
+                break;
+            }
+            else {
+                isEscapeMode = false;
+            }
             sb.append(c);
             c = this.next();
         }

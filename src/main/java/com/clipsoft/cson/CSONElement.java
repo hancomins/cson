@@ -162,7 +162,9 @@ public abstract  class CSONElement {
 	public static byte[] base64StringToByteArray(String value) {
 		value = BASE64_PREFIX_REPLACE_PATTERN.matcher(value).replaceAll("");
 		return Base64.decode(value);
+
 	}
+
 	
 
 }

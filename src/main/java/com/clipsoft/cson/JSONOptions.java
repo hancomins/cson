@@ -85,6 +85,8 @@ public class JSONOptions implements StringFormatOption {
         public JSONOptions setKeyQuote(String keyQuote) {
             if(keyQuote == null)
                 throw new IllegalArgumentException("keyQuote can not be null");
+            if(keyQuote.length() > 1)
+                throw new IllegalArgumentException("keyQuote can not be more than one character");
             this.keyQuote = keyQuote;
             return this;
         }
@@ -97,6 +99,8 @@ public class JSONOptions implements StringFormatOption {
         public JSONOptions setValueQuote(String valueQuote) {
             if(valueQuote == null || valueQuote.isEmpty())
                 throw new IllegalArgumentException("valueQuote can not be null or empty");
+            if(valueQuote.length() > 1)
+                throw new IllegalArgumentException("valueQuote can not be more than one character");
             this.valueQuote = valueQuote;
             return this;
         }

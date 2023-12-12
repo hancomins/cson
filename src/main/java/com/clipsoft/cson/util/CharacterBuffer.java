@@ -10,20 +10,34 @@ public class CharacterBuffer {
     public CharacterBuffer() {
     }
 
+    public CharacterBuffer(int capacity) {
+        this.capacity = capacity;
+        chars = new char[capacity];
+    }
+
     @Override
     public String toString() {
         return new String(chars, 0, length);
     }
 
-    public void append(char c) {
+    public CharacterBuffer append(char c) {
         ensureCapacity(length + 1);
         chars[length++] = c;
+        return this;
     }
 
-    public void append(char[] c) {
+    public CharacterBuffer append(String s) {
+        ensureCapacity(length + s.length());
+        s.getChars(0, s.length(), chars, length);
+        length += s.length();
+        return this;
+    }
+
+    public CharacterBuffer append(char[] c) {
         ensureCapacity(length + c.length);
         System.arraycopy(c, 0, chars, length, c.length);
         length += c.length;
+        return this;
     }
 
     public void reset() {

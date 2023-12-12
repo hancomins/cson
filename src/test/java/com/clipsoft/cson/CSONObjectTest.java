@@ -58,6 +58,8 @@ public class CSONObjectTest {
     @Test
     public void cloneAndEqualsTest() throws  Exception {
 
+
+
         JSONObject jsonObject = new JSONObject("{\"key\": \"va \\\" \\n \\r lue\"}");
 
         CSONObject csonObjectA = new CSONObject("{\"key\": \"va \\\" \\n \\r lue\"}", JSONOptions.json());

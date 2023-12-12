@@ -133,11 +133,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 		else if(value instanceof Number) {
 			dataMap.put(key, value);
-		} else if(value instanceof String) {
-			dataMap.put(key, value);
 		} else if(value instanceof CharSequence) {
 			dataMap.put(key, value);
-		} else if(value instanceof CSONElement) {
+		}  else if(value instanceof CSONElement) {
 			if(value == this) {
 				value = CSONElement.clone((CSONElement) value);
 			}
