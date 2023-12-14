@@ -183,6 +183,24 @@ public class CSONTest {
     }
 
 
+    @Test
+    public void booleanInArray() {
+        CSONArray csonArray = new CSONArray();
+        csonArray.add(true);
+        csonArray.add(false);
+        csonArray.add(true);
+        assertEquals(csonArray.toString(), "[true,false,true]");
+
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("true", true);
+        assertEquals(csonObject.toString(), "{\"true\":true}");
+
+
+
+
+    }
+
+
 
 
 

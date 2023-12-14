@@ -853,6 +853,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			else if(obj instanceof Long) writer.add((long)obj);
 			else if(obj instanceof Double) writer.add((double)obj);
 			else if(obj instanceof String) writer.add((String)obj);
+			else if(obj instanceof Boolean) writer.add((boolean) obj);
 			else if(obj instanceof byte[]) writer.add((byte[])obj);
 			else if(obj instanceof BigDecimal) writer.add((BigDecimal)obj);
 			else  writer.add(obj.toString());

@@ -11,6 +11,10 @@ public interface StringFormatOption {
         return JSONOptions.json();
     }
 
+    public static JSONOptions jsonPretty() {
+        return JSONOptions.json().setPretty(true);
+    }
+
     public static JSONOptions json5() {
         return JSONOptions.json5();
     }
