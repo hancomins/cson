@@ -80,7 +80,6 @@ class PureJSONParser {
         try {
             int c;
             boolean isSpecialChar = false;
-            boolean isFloat = false;
 
             while((c = reader.read()) != -1) {
 
@@ -95,9 +94,6 @@ class PureJSONParser {
                     }
                     else dataStringBuilder.append((char)c);
                 } else if(currentMode == Mode.Number &&  (isSpecialChar ||  (c != ',' && c != '}' && c != ']'))) {
-                    if(c == '.' || c == 'E' || c == 'e') {
-                        isFloat = true;
-                    }
                     if(isSpecialChar) {
                         isSpecialChar = false;
                         appendSpecialChar(reader, dataStringBuilder, c);
@@ -158,9 +154,8 @@ class PureJSONParser {
                     else if(currentMode == Mode.Number) {
                         char[] numberString = dataStringBuilder.getChars();
                         int len = dataStringBuilder.getLength();
-                        processNumber(currentElement, numberString, len, key, index, isFloat);
+                        processNumber(currentElement, numberString, len, key, index);
                         key = null;
-                        isFloat = false;
                     } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
 
                         throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
@@ -179,9 +174,8 @@ class PureJSONParser {
                     if(currentMode == Mode.Number) {
                         char[] numberString = dataStringBuilder.getChars();
                         int len = dataStringBuilder.getLength();
-                        processNumber(currentElement, numberString, len, key, index, isFloat);
+                        processNumber(currentElement, numberString, len, key, index);
                         key = null;
-                        isFloat = false;
                     }
 
                     if(currentElement instanceof CSONArray) {
@@ -243,10 +237,26 @@ class PureJSONParser {
         }
     }
 
-    private static void processNumber(CSONElement currentElement, char[] numberString, int len, String key, int index, boolean isFloat) {
+    private static int trimLast(char[] numberString, int len) {
+        int lastIndex = len - 1;
+        while(lastIndex >= 0) {
+            char c = numberString[lastIndex];
+            if(Character.isWhitespace(c) || c == '\b' || c == '\f' || c == '\0' || c == 0xFEFF) {
+                --lastIndex;
+            } else {
+                break;
+            }
+        }
+        return lastIndex + 1;
+    }
+
+    private static void processNumber(CSONElement currentElement, char[] numberString, int len, String key, int index) {
         if(len == 0) {
             throw new CSONParseException("Unexpected character ',' at " + index);
         }
+
+        len = trimLast(numberString, len);
+
 
         if((numberString[0] == 'n' || numberString[0] == 'N') && (numberString[1] == 'u' || numberString[1] == 'U') && (numberString[2] == 'l' || numberString[2] == 'L')
                 && (numberString[3] == 'l' || numberString[3] == 'L') )//NULL.equalsIgnoreCase(numberString)) {
@@ -267,6 +277,7 @@ class PureJSONParser {
             } catch (NumberFormatException e) {
                     //throw new CSONParseException("Number format error value '" + numberString + "' at " + index, e);
                 putStringData(currentElement, new String(numberString, 0, len), key);
+                return;
             }
             if(booleanValue != null) {
                 putBooleanData(currentElement, booleanValue, key);

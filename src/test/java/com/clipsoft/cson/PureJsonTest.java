@@ -336,6 +336,12 @@ public class PureJsonTest {
                 "          \"color\":285955561\n" +
                 "      }" +
                 "    ]\n" +
+                " ,\"styleLineList2\":[\n" +
+                "      true" +
+                " \n]\n," +
+                "    \"styleLineList3\":[\n" +
+                "      \"ok\"" +
+                " \n]\n" +
                 "}";
 
         CSONObject csonObject = new CSONObject(testJSON, StringFormatOption.jsonPure());
