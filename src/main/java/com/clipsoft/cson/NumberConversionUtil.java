@@ -12,14 +12,14 @@ class NumberConversionUtil {
 
         int lastIndex = offset + len - 1;
         // trim
-        while (offset < len && Character.isSpaceChar(input[offset])) {
+        while (offset < len && Character.isWhitespace(input[offset])) {
             offset++;
             if (offset >= lastIndex) {
                 throw new NumberFormatException("Zero lengthRefBigInteger");
             }
         }
 
-        while(len > offset && Character.isSpaceChar(input[lastIndex])) {
+        while(len > offset && Character.isWhitespace(input[lastIndex])) {
             lastIndex--;
             if (lastIndex <= offset) {
                 throw new NumberFormatException("Zero lengthRefBigInteger");

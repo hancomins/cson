@@ -324,4 +324,30 @@ public class PureJsonTest {
         err = null;
 
     }
+
+
+    @Test
+    public void testPureJson2() {
+        String testJSON = "{\n" +
+                "    \"styleLineList\":[\n" +
+                "      {\n" +
+                "          \"style\":-1094297962,\n" +
+                "          \"width\":977899340\r,\n" +
+                "          \"color\":285955561\n" +
+                "      }" +
+                "    ]\n" +
+                "}";
+
+        CSONObject csonObject = new CSONObject(testJSON, StringFormatOption.jsonPure());
+        System.out.println(csonObject.toString());
+
+        CSONObject csonObject2 = new CSONObject(testJSON, StringFormatOption.json());
+
+        CSONObject csonObject3 = new CSONObject(testJSON, StringFormatOption.json5());
+
+        assertEquals(csonObject.toString(StringFormatOption.jsonPretty()), csonObject2.toString(StringFormatOption.jsonPretty()));
+        assertEquals(csonObject.toString(StringFormatOption.jsonPretty()), csonObject3.toString(StringFormatOption.jsonPretty()));
+
+
+    }
 }
