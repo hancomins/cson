@@ -3,9 +3,12 @@ package com.clipsoft.cson;
 
 
 
+import com.clipsoft.cson.serializer.CSONSerializer;
 import com.clipsoft.cson.util.NoSynchronizedStringReader;
+import com.sun.org.apache.xml.internal.serializer.Serializer;
 
 import java.io.Reader;
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.*;
@@ -149,16 +152,39 @@ public class CSONObject extends CSONElement implements Cloneable {
 				csonArray.put(Array.get(value, i));
 			}
 			dataMap.put(key, csonArray);
+		} else if(value instanceof Collection) {
+			CSONArray csonArray = new CSONArray();
+			int length = ((Collection<?>)value).size();
+			for(Object obj : (Collection<?>)value) {
+				csonArray.put(obj);
+			}
+			dataMap.put(key, csonArray);
+		}
+		else if(CSONSerializer.serializable(value.getClass())) {
+			CSONObject csonObject = CSONSerializer.toCSONObject(value);
+			dataMap.put(key, csonObject);
 		}
 		else if(isAllowRawValue()) {
 			dataMap.put(key, value);
 		} else if(isUnknownObjectToString()) {
 			dataMap.put(key, value + "");
 		}
-
-
-
 		return this;
+	}
+
+	public <T> T getObject(String key, Class<T> clazz) {
+		CSONObject csonObject = getObject(key);
+		return CSONSerializer.fromCSONObject(csonObject, clazz);
+	}
+
+	public <T> T optObject(String key, Class<T> clazz, T defaultObject) {
+		CSONObject obj = optObject(key);
+		if(obj == null) return defaultObject;
+		try {
+			return CSONSerializer.fromCSONObject(obj, clazz);
+		} catch (Exception ignored) {
+			return defaultObject;
+		}
 	}
 
 

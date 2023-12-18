@@ -10,6 +10,13 @@ public class CSONSerializer {
 
     private CSONSerializer() {}
 
+    public static boolean serializable(Class<?> clazz) {
+        if(TypeElements.getInstance().hasTypeInfo(clazz)) {
+            return true;
+        }
+        return clazz.getAnnotation(CSON.class) != null;
+    }
+
     public static CSONObject toCSONObject(Object obj) {
         Objects.requireNonNull(obj, "obj is null");
         Class<?> clazz = obj.getClass();

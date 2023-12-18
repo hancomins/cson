@@ -16,6 +16,10 @@ class TypeElements {
         return instance;
     }
 
+    boolean hasTypeInfo(Class<?> type) {
+        return typeInfoMap.containsKey(type);
+    }
+
     TypeElement getTypeInfo(Class<?> type) {
         TypeElement typeInfo = typeInfoMap.get(type);
         if(typeInfo == null) {

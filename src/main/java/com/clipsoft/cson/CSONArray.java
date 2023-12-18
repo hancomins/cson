@@ -2,7 +2,9 @@ package com.clipsoft.cson;
 
 
 
+import com.clipsoft.cson.serializer.CSONSerializer;
 import com.clipsoft.cson.util.NoSynchronizedStringReader;
+import com.sun.org.apache.xml.internal.serializer.Serializer;
 
 import java.io.Reader;
 import java.lang.reflect.Array;
@@ -322,6 +324,15 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 				array.add(Array.get(e, i));
 			}
 			return array;
+		} else if(e instanceof  Collection) {
+			CSONArray array = new CSONArray();
+			for(Object obj : (Collection<?>)e) {
+				//noinspection UseBulkOperation
+				array.add(obj);
+			}
+			return array;
+		} else if(CSONSerializer.serializable(e.getClass())) {
+			return CSONSerializer.toCSONObject(e);
 		}
 		else if(isAllowRawValue()) {
 			return e;
@@ -418,11 +429,32 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	
 	public CSONObject getObject(int index) {
 		try {
-			return DataConverter.toObject(list.get(index));
+			Object obj = list.get(index);
+			CSONObject csonObject = DataConverter.toObject(obj);
+			if(csonObject == null) {
+				throw new CSONIndexNotFoundException("index: " + index + ", value: " + obj);
+			}
+			return csonObject;
 		} catch (IndexOutOfBoundsException e) {
 			throw new CSONIndexNotFoundException(e);
 		}
 	}
+
+	public <T> T getObject(int index, Class<T> clazz) {
+		CSONObject csonObject = getObject(index);
+		return CSONSerializer.fromCSONObject(csonObject, clazz);
+	}
+
+	public <T> T optObject(int index, Class<T> clazz, T defaultObject) {
+		try {
+			CSONObject csonObject = optObject(index);
+			return CSONSerializer.fromCSONObject(csonObject, clazz);
+		} catch (Exception e) {
+			return defaultObject;
+		}
+
+	}
+
 	
 	public CSONObject optObject(int index) {
 		try {
@@ -690,7 +722,12 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 	@Override
 	public boolean addAll(@SuppressWarnings({"rawtypes", "RedundantSuppression"}) Collection c) {
-		return list.addAll(c);
+		for(Object obj : c) {
+			if(!add(obj)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@Override
