@@ -4,7 +4,6 @@ package com.clipsoft.cson;
 
 import com.clipsoft.cson.serializer.CSONSerializer;
 import com.clipsoft.cson.util.NoSynchronizedStringReader;
-import com.sun.org.apache.xml.internal.serializer.Serializer;
 
 import java.io.Reader;
 import java.lang.reflect.Array;
@@ -452,10 +451,9 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		} catch (Exception e) {
 			return defaultObject;
 		}
-
 	}
 
-	
+
 	public CSONObject optObject(int index) {
 		try {
 			return DataConverter.toObject(list.get(index));

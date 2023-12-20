@@ -5,10 +5,8 @@ package com.clipsoft.cson;
 
 import com.clipsoft.cson.serializer.CSONSerializer;
 import com.clipsoft.cson.util.NoSynchronizedStringReader;
-import com.sun.org.apache.xml.internal.serializer.Serializer;
 
 import java.io.Reader;
-import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.*;
