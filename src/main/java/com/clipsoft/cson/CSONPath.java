@@ -199,7 +199,7 @@ public class CSONPath {
             CSONObject csonObject = (CSONObject)csonElement;
             String name = pathItem.getName();
             if(pathItem.isArrayValue()) {
-                CSONArray childCsonArray = csonObject.optArray(name);
+                CSONArray childCsonArray = csonObject.optCSONArray(name);
                 if(childCsonArray == null) {
                     childCsonArray = new CSONArray();
                     childCsonArray.setAllowRawValue(csonElement.isAllowRawValue())
@@ -209,7 +209,7 @@ public class CSONPath {
 
                 return childCsonArray;
             } else {
-                CSONObject childCsonObject = csonObject.optObject(name);
+                CSONObject childCsonObject = csonObject.optCSONObject(name);
                 if(childCsonObject == null) {
                     childCsonObject = new CSONObject();
                     childCsonObject.setAllowRawValue(csonElement.isAllowRawValue())
@@ -222,7 +222,7 @@ public class CSONPath {
             CSONArray csonArray = (CSONArray)csonElement;
             int index = pathItem.getIndex();
             if(pathItem.isObject()) {
-                CSONObject childCsonObject = csonArray.optObject(index);
+                CSONObject childCsonObject = csonArray.optCSONObject(index);
                 if(childCsonObject == null) {
                     childCsonObject = new CSONObject();
                     childCsonObject.setAllowRawValue(csonElement.isAllowRawValue())
@@ -242,7 +242,7 @@ public class CSONPath {
                     return childAndChildCsonObject;
                 } else  {
                     if(pathItem.isArrayValue()) {
-                        CSONArray childChildCsonArray = childCsonObject.optArray(pathItem.getName());
+                        CSONArray childChildCsonArray = childCsonObject.optCSONArray(pathItem.getName());
                         if (childChildCsonArray == null) {
                             childChildCsonArray = new CSONArray();
                             childChildCsonArray.setAllowRawValue(csonElement.isAllowRawValue())
@@ -251,7 +251,7 @@ public class CSONPath {
                         }
                         return childChildCsonArray;
                     } else {
-                        CSONObject childAndChildCsonObject = childCsonObject.optObject(pathItem.getName());
+                        CSONObject childAndChildCsonObject = childCsonObject.optCSONObject(pathItem.getName());
                         if (childAndChildCsonObject == null) {
                             childAndChildCsonObject = new CSONObject();
                             childAndChildCsonObject.setAllowRawValue(csonElement.isAllowRawValue())
@@ -263,7 +263,7 @@ public class CSONPath {
                 }
             }
             else if(pathItem.isArrayValue()) {
-                CSONArray childCsonArray = csonArray.optArray(index);
+                CSONArray childCsonArray = csonArray.optCSONArray(index);
                 if(childCsonArray == null) {
                     childCsonArray = new CSONArray();
                     childCsonArray.setAllowRawValue(csonElement.isAllowRawValue())
@@ -286,7 +286,7 @@ public class CSONPath {
         if(pathItem.isInArray()) {
             if(pathItem.isObject()) {
                 int index = pathItem.getIndex();
-                CSONObject childCsonObject = ((CSONArray)csonElement).optObject(index);
+                CSONObject childCsonObject = ((CSONArray)csonElement).optCSONObject(index);
                 if(childCsonObject == null) {
                     childCsonObject = new CSONObject();
                     csonElement.setAllowRawValue(csonElement.isAllowRawValue())
@@ -330,7 +330,7 @@ public class CSONPath {
             if (pathItem.isEndPoint()) {
                 if (pathItem.isInArray()) {
                     if(pathItem.isObject()) {
-                        CSONObject endPointObject = ((CSONArray) parents).optObject(pathItem.getIndex());
+                        CSONObject endPointObject = ((CSONArray) parents).optCSONObject(pathItem.getIndex());
                         if(endPointObject == null) return null;
                         return endPointObject.opt(pathItem.getName());
                     }

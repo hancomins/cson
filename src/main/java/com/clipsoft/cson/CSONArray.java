@@ -16,6 +16,14 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	private ArrayList<Object> list = new ArrayList<>();
 	private ArrayList<CommentObject> commentObjectList = null;
 
+	public CSONArray setList(Collection<?> collection) {
+		for (Object obj : collection) {
+			if(!add(obj)) {
+				throw new CSONException("new CSONArray(Collection) error. can't put " + obj.getClass() + " to CSONArray.");
+			}
+		}
+		return this;
+	}
 
 
 	public CSONArray() {
@@ -388,8 +396,35 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			return null;
 		}
 	}
-	
+
+	/**
+	 * @deprecated use {@link #getCSONArray(int)} instead.
+	 */
+	@Deprecated
 	public CSONArray getArray(int index) {
+		return getCSONArray(index);
+	}
+
+	/**
+	 * @deprecated use {@link #optCSONArray(int)} instead.
+	 */
+	@Deprecated
+	public CSONArray optArray(int index) {
+		return optCSONArray(index);
+	}
+
+	/**
+	 * @deprecated use {@link #optCSONArray(int, CSONArray)} instead.
+	 */
+	@Deprecated
+	public CSONArray optArray(int index, CSONArray def) {
+		return optCSONArray(index, def);
+	}
+
+
+
+	
+	public CSONArray getCSONArray(int index) {
 		try {
 			return DataConverter.toArray(list.get(index));
 		} catch (IndexOutOfBoundsException e) {
@@ -398,7 +433,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		
 	}
 
-	public CSONArray optArray(int index, CSONArray def) {
+	public CSONArray optCSONArray(int index, CSONArray def) {
 		try {
 			return DataConverter.toArray(list.get(index));
 		} catch (IndexOutOfBoundsException e) {
@@ -406,12 +441,12 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		}
 	}
 
-	public CSONArray optArray(int index) {
-		return optArray(index, null);
+	public CSONArray optCSONArray(int index) {
+		return optCSONArray(index, null);
 	}
 
 	@SuppressWarnings("unused")
-	public CSONArray optArrayWrap(int index) {
+	public CSONArray optWrapCSONArray(int index) {
 		try {
 			Object object = list.get(index);
 			if (object instanceof CSONArray) {
@@ -426,7 +461,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 	}
 	
-	public CSONObject getObject(int index) {
+	public CSONObject getCSONObject(int index) {
 		try {
 			Object obj = list.get(index);
 			CSONObject csonObject = DataConverter.toObject(obj);
@@ -439,28 +474,55 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		}
 	}
 
-	public <T> T getObject(int index, Class<T> clazz) {
-		CSONObject csonObject = getObject(index);
-		return CSONSerializer.fromCSONObject(csonObject, clazz);
-	}
 
-	public <T> T optObject(int index, Class<T> clazz, T defaultObject) {
-		try {
-			CSONObject csonObject = optObject(index);
-			return CSONSerializer.fromCSONObject(csonObject, clazz);
-		} catch (Exception e) {
-			return defaultObject;
-		}
-	}
-
-
-	public CSONObject optObject(int index) {
+	public CSONObject optCSONObject(int index) {
 		try {
 			return DataConverter.toObject(list.get(index));
 		} catch (IndexOutOfBoundsException e) {
 			return null;
 		}
 	}
+
+	public CSONObject optCSONObject(int index, CSONObject def) {
+		try {
+			CSONObject csonObject = DataConverter.toObject(list.get(index));
+			if(csonObject == null) {
+				return def;
+			}
+			return csonObject;
+		} catch (IndexOutOfBoundsException e) {
+			return def;
+		}
+	}
+
+	/**
+	 * @deprecated use {@link #getCSONObject(int)} instead.
+	 */
+	public CSONObject getObject(int index) {
+		return getCSONObject(index);
+	}
+
+	/**
+	 * @deprecated use {@link #optCSONObject(int)} instead.
+	 */
+	public CSONObject optObject(int index) {
+		return optCSONObject(index);
+	}
+
+	public <T> T getObject(int index, Class<T> clazz) {
+		CSONObject csonObject = getCSONObject(index);
+		return CSONSerializer.fromCSONObject(csonObject, clazz);
+	}
+
+	public <T> T optObject(int index, Class<T> clazz, T defaultObject) {
+		try {
+			CSONObject csonObject = optCSONObject(index);
+			return CSONSerializer.fromCSONObject(csonObject, clazz);
+		} catch (Exception e) {
+			return defaultObject;
+		}
+	}
+
 
 
 
@@ -767,12 +829,12 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		
 		
 		public CSONArray getArray() {
-			return array.getArray(index++);
+			return array.getCSONArray(index++);
 		}
 
 		@SuppressWarnings("unused")
 		public CSONArray optArray() {
-			return array.optArray(index++);
+			return array.optCSONArray(index++);
 		}
 
 		@SuppressWarnings("unused")

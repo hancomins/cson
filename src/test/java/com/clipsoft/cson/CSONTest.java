@@ -45,18 +45,18 @@ public class CSONTest {
         }
 
         numberJsonArray = jsonObject.getJSONArray("AN");
-        CSONArray numberCsonArray = csonObject.getArray("AN");
+        CSONArray numberCsonArray = csonObject.getCSONArray("AN");
         assertEquals(numberJsonArray.length(), numberCsonArray.size());
         for(int i = 0, n = numberJsonArray.length(); i < n; ++i) {
             assertEquals(numberJsonArray.optString(i), numberCsonArray.optString(i));
         }
 
         objectJsonArray = jsonObject.getJSONArray("AO");
-        CSONArray objectCsonArray = csonObject.getArray("AO");
+        CSONArray objectCsonArray = csonObject.getCSONArray("AO");
         assertEquals(objectJsonArray.length(), objectCsonArray.size());
         for(int i = 0, n = objectJsonArray.length(); i < n; ++i) {
             JSONObject jao = objectJsonArray.getJSONObject(i);
-            CSONObject cao = objectCsonArray.getObject(i);
+            CSONObject cao = objectCsonArray.getCSONObject(i);
             assertEquals(jao.getString("str"), cao.getString("str"));
             assertEquals(jao.optString("true"), cao.getString("true"));
             assertEquals(jao.getBoolean("true"), cao.getBoolean("true"));
@@ -95,18 +95,18 @@ public class CSONTest {
         }
 
         numberJsonArray = jsonObject.getJSONArray("AN");
-        CSONArray numberCsonArray = csonObject.getArray("AN");
+        CSONArray numberCsonArray = csonObject.getCSONArray("AN");
         assertEquals(numberJsonArray.length(), numberCsonArray.size());
         for(int i = 0, n = numberJsonArray.length(); i < n; ++i) {
             assertEquals(numberJsonArray.optString(i), numberCsonArray.optString(i));
         }
 
         objectJsonArray = jsonObject.getJSONArray("AO");
-        CSONArray objectCsonArray = csonObject.getArray("AO");
+        CSONArray objectCsonArray = csonObject.getCSONArray("AO");
         assertEquals(objectJsonArray.length(), objectCsonArray.size());
         for(int i = 0, n = objectJsonArray.length(); i < n; ++i) {
             JSONObject jao = objectJsonArray.getJSONObject(i);
-            CSONObject cao = objectCsonArray.getObject(i);
+            CSONObject cao = objectCsonArray.getCSONObject(i);
             assertEquals(jao.getString("str"), cao.getString("str"));
             assertEquals(jao.optString("true"), cao.getString("true"));
             assertEquals(jao.getBoolean("true"), cao.getBoolean("true"));
@@ -167,7 +167,7 @@ public class CSONTest {
         for(int i = 0, n = objectJsonArray.length(); i < n; ++i) {
             System.out.println(i);
             JSONObject jao = objectJsonArray.getJSONObject(i);
-            CSONObject cao = objectCsonArray.getObject(i);
+            CSONObject cao = objectCsonArray.getCSONObject(i);
             System.out.println(jao.toString());
             System.out.println(cao.toString());
 

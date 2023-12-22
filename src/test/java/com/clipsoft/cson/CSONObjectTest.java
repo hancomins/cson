@@ -108,7 +108,7 @@ public class CSONObjectTest {
         assertEquals("stri \" \n\rng", compareCSONObject.getString("string"));
         assertArrayEquals(buffer, compareCSONObject.getByteArray("byte[]"));
 
-        CSONArray csonArray = compareCSONObject.getArray("array");
+        CSONArray csonArray = compareCSONObject.getCSONArray("array");
         assertEquals(1, csonArray.get(0));
         assertEquals(1.1f, (float) csonArray.get(1), 0.00001f);
         assertEquals(2.2, (double) csonArray.get(2), 0.00001);
@@ -158,7 +158,7 @@ public class CSONObjectTest {
         assertEquals("stri \" \n\rng", compareCSONObject.getString("string"));
         assertArrayEquals(buffer, compareCSONObject.getByteArray("byte[]"));
 
-        CSONArray csonArray = compareCSONObject.getArray("array");
+        CSONArray csonArray = compareCSONObject.getCSONArray("array");
         assertEquals(1, csonArray.get(0));
         assertEquals(1.1f, csonArray.getFloat(1), 0.00001f);
         assertEquals(2.2, csonArray.getDouble(2), 0.00001);

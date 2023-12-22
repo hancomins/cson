@@ -116,10 +116,28 @@ public class CSONObject extends CSONElement implements Cloneable {
 		super(ElementType.Object);
 	}
 
-	public CSONObject(JSONOptions jsonOptions) {
-		super(ElementType.Object);
-		this.defaultJSONOptions = jsonOptions;
+	public static CSONObject fromObject(Object obj) {
+		return CSONSerializer.toCSONObject(obj);
 	}
+
+	public static CSONObject fromObject(Object obj, StringFormatOption stringFormatOption) {
+		CSONObject csonObject = new CSONObject();
+		csonObject.setStringFormatOption(stringFormatOption);
+		return csonObject;
+	}
+
+	public static <T> T toObject(CSONObject csonObject, Class<T> clazz) {
+		return CSONSerializer.fromCSONObject(csonObject, clazz);
+	}
+
+	public static <T> T toObject(CSONObject csonObject, T object) {
+		return CSONSerializer.fromCSONObject(csonObject, object);
+	}
+
+
+
+
+
 
 	@SuppressWarnings("unused")
 	public boolean remove(String key) {
@@ -170,13 +188,13 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return this;
 	}
 
-	public <T> T getObject(String key, Class<T> clazz) {
-		CSONObject csonObject = getObject(key);
+	public <T> T getCSONObject(String key, Class<T> clazz) {
+		CSONObject csonObject = getCSONObject(key);
 		return CSONSerializer.fromCSONObject(csonObject, clazz);
 	}
 
-	public <T> T optObject(String key, Class<T> clazz, T defaultObject) {
-		CSONObject obj = optObject(key);
+	public <T> T optCSONObject(String key, Class<T> clazz, T defaultObject) {
+		CSONObject obj = optCSONObject(key);
 		if(obj == null) return defaultObject;
 		try {
 			return CSONSerializer.fromCSONObject(obj, clazz);
@@ -184,6 +202,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 			return defaultObject;
 		}
 	}
+
+
 
 
 	public String optString(String key) {
@@ -244,14 +264,14 @@ public class CSONObject extends CSONElement implements Cloneable {
 		for(String key : keys) {
 			Object value = csonObject.get(key);
 			if(value instanceof CSONObject) {
-				CSONObject childObject = optObject(key);
+				CSONObject childObject = optCSONObject(key);
 				if(childObject == null) {
 					childObject = new CSONObject();
 					put(key, childObject);
 				}
 				childObject.merge((CSONObject)value);
 			} else if(value instanceof CSONArray) {
-				CSONArray childArray = optArray(key);
+				CSONArray childArray = optCSONArray(key);
 				if(childArray == null) {
 					childArray = new CSONArray();
 					put(key, childArray);
@@ -581,7 +601,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	@SuppressWarnings("unused")
-	public CSONArray optWrapArray(String key) {
+	public CSONArray optWrapCSONArray(String key) {
 		Object obj = dataMap.get(key);
 		if(obj instanceof CSONArray) {
 			return (CSONArray)obj;
@@ -591,7 +611,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return new CSONArray().put(obj);
 	}
 
-	public CSONArray optArray(String key, CSONArray def) {
+	public CSONArray optCSONArray(String key, CSONArray def) {
 		Object obj = dataMap.get(key);
 		if(obj instanceof CSONArray) {
 			return (CSONArray)obj;
@@ -599,12 +619,13 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return def;
 	}
 
-	public CSONArray optArray(String key) {
-		return optArray(key, null);
+	public CSONArray optCSONArray(String key) {
+		return optCSONArray(key, null);
 	}
 
 
-	public CSONArray getArray(String key) {
+
+	public CSONArray getCSONArray(String key) {
 		Object obj = dataMap.get(key);
 		if(obj instanceof CSONArray) {
 			return (CSONArray)obj;
@@ -612,7 +633,40 @@ public class CSONObject extends CSONElement implements Cloneable {
 		throw new CSONIndexNotFoundException();
 	}
 
-	public CSONObject optObject(String key) {
+	/**
+	 * @deprecated use optWrapCSONArray instead of this method @see optWrapCSONArray
+	 */
+	@Deprecated
+	public CSONArray optWrapArrayf(String key) {
+		return optWrapCSONArray(key);
+	}
+
+	/**
+	 * @deprecated use optCSONArray instead of this method @see optCSONArray
+	 */
+	@Deprecated
+	public CSONArray optArray(String key, CSONArray def) {
+		return optCSONArray(key, def);
+	}
+
+	/**
+	 * @deprecated use optCSONArray instead of this method @see optCSONArray
+	 */
+	@Deprecated
+	public CSONArray optArray(String key) {
+		return optCSONArray(key, null);
+	}
+
+
+	/**
+	 * @deprecated use optCSONArray instead of this method @see optCSONArray
+	 */
+	@Deprecated
+	public CSONArray getArray(String key) {
+		return getCSONArray(key);
+	}
+
+	public CSONObject optCSONObject(String key) {
 		Object obj = dataMap.get(key);
 		if(obj instanceof CSONObject) {
 			return (CSONObject)obj;
@@ -621,7 +675,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 	@SuppressWarnings("unused")
-	public CSONObject optObject(String key, CSONObject def) {
+	public CSONObject optCSONObject(String key, CSONObject def) {
 		Object obj = dataMap.get(key);
 		if(obj instanceof CSONObject) {
 			return (CSONObject)obj;
@@ -630,13 +684,40 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
-	public CSONObject getObject(String key) {
+	public CSONObject getCSONObject(String key) {
 		Object obj = dataMap.get(key);
 		if(obj instanceof CSONObject) {
 			return (CSONObject)obj;
 		}
 		throw new CSONIndexNotFoundException(key);
 	}
+
+
+	/**
+	 * @deprecated use optCSONObject instead of this method @see optCSONObject
+	 */
+	@Deprecated
+	public CSONObject optObject(String key) {
+		return optCSONObject(key);
+	}
+
+	/**
+	 * @deprecated use optCSONObject instead of this method @see optCSONObject
+	 */
+	@Deprecated
+	@SuppressWarnings("unused")
+	public CSONObject optObject(String key, CSONObject def) {
+		return optCSONObject(key, def);
+	}
+
+	/**
+	 * @deprecated use getCSONObject instead of this method @see getCSONObject
+	 */
+	@Deprecated
+	public CSONObject getObject(String key) {
+		return getCSONObject(key);
+	}
+
 
 	@Override
 	public String toString() {

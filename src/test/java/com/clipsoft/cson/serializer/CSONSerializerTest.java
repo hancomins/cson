@@ -4,7 +4,6 @@ import com.clipsoft.cson.CSONArray;
 import com.clipsoft.cson.CSONObject;
 import com.clipsoft.cson.JSONOptions;
 import com.clipsoft.cson.StringFormatOption;
-import com.clipsoft.cson.*;
 import org.junit.Test;
 
 import java.util.*;
@@ -140,22 +139,22 @@ public class CSONSerializerTest {
         CSONObject csonObject = CSONSerializer.toCSONObject(testClassA);
         System.out.println(csonObject.toString(JSONOptions.json5()));
         assertEquals("A", csonObject.get("name"));
-        assertEquals(1, csonObject.getObject("value").get("int"));
-        assertEquals("B", csonObject.getObject("testB").get("name"));
-        assertEquals("BInB", csonObject.getObject("testB").getObject("testB").get("name"));
-        assertEquals("C", csonObject.getObject("testB").getObject("testB").getObject("testC").get("name"));
-        assertEquals(3.14f, csonObject.getObject("testB").getObject("testC").get("float"));
-        assertEquals(3.14f, csonObject.getObject("testB").getObject("testB").getObject("testC").get("pi"));
-        assertEquals(null, csonObject.getObject("testB").getObject("testB").getObject("testC").get("nullValue"));
+        assertEquals(1, csonObject.getCSONObject("value").get("int"));
+        assertEquals("B", csonObject.getCSONObject("testB").get("name"));
+        assertEquals("BInB", csonObject.getCSONObject("testB").getCSONObject("testB").get("name"));
+        assertEquals("C", csonObject.getCSONObject("testB").getCSONObject("testB").getCSONObject("testC").get("name"));
+        assertEquals(3.14f, csonObject.getCSONObject("testB").getCSONObject("testC").get("float"));
+        assertEquals(3.14f, csonObject.getCSONObject("testB").getCSONObject("testB").getCSONObject("testC").get("pi"));
+        assertEquals(null, csonObject.getCSONObject("testB").getCSONObject("testB").getCSONObject("testC").get("nullValue"));
 
 
         for(int i = 0; i < 10; i++) {
-            assertEquals(testClassA.strArray.get(i), csonObject.getArray("strArray").get(i));
+            assertEquals(testClassA.strArray.get(i), csonObject.getCSONArray("strArray").get(i));
         }
 
         for(int i = 0; i < testClassA.strArraySet.size(); i++) {
             LinkedList<Deque<String>> linkedList = testClassA.strArraySet.get(i);
-            CSONArray csonArray = csonObject.getArray("strArraySet").getArray(i);
+            CSONArray csonArray = csonObject.getCSONArray("strArraySet").getCSONArray(i);
             assertEquals(linkedList.size(), csonArray.size());
             Iterator<Object> csonArrayIter = csonArray.iterator();
             for(Deque<String> deque : linkedList) {
@@ -168,25 +167,25 @@ public class CSONSerializerTest {
             }
         }
 
-        assertEquals(testClassA.testBArray.size(), csonObject.getArray("testBArray").size());
+        assertEquals(testClassA.testBArray.size(), csonObject.getCSONArray("testBArray").size());
 
         for(int i = 0; i < testClassA.testBArray.size(); i++) {
             TestClassB testClassB = testClassA.testBArray.get(i);
-            CSONObject csonObject1 = csonObject.getArray("testBArray").getObject(i);
+            CSONObject csonObject1 = csonObject.getCSONArray("testBArray").getCSONObject(i);
             assertEquals(testClassB.name, csonObject1.get("name"));
             if(testClassB.testC == null) {
                 assertNull(csonObject1.get("testC"));
             } else {
-                assertEquals(testClassB.testC.name, csonObject1.getObject("testC").get("name"));
+                assertEquals(testClassB.testC.name, csonObject1.getCSONObject("testC").get("name"));
             }
         }
 
-        assertEquals(testClassA.testBInTestBArray.size(), csonObject.getArray("testBInTestBArray").size());
+        assertEquals(testClassA.testBInTestBArray.size(), csonObject.getCSONArray("testBInTestBArray").size());
 
         Iterator<ArrayList<TestClassB>> iter = testClassA.testBInTestBArray.iterator();
         for(int i = 0, n = testClassA.testBInTestBArray.size(); i< n; ++i) {
             ArrayList<TestClassB> testBInTestBArray = iter.next();
-            CSONArray csonArray = csonObject.getArray("testBInTestBArray").getArray(i);
+            CSONArray csonArray = csonObject.getCSONArray("testBInTestBArray").getCSONArray(i);
             assertEquals(testBInTestBArray.size(), csonArray.size());
             Iterator<Object> csonArrayIter = csonArray.iterator();
             for(TestClassB testClassB : testBInTestBArray) {
@@ -195,7 +194,7 @@ public class CSONSerializerTest {
                 if(testClassB.testC == null) {
                     assertNull(csonObject1.get("testC"));
                 } else {
-                    assertEquals(testClassB.testC.name, csonObject1.getObject("testC").get("name"));
+                    assertEquals(testClassB.testC.name, csonObject1.getCSONObject("testC").get("name"));
                 }
             }
 
@@ -245,13 +244,13 @@ public class CSONSerializerTest {
         CSONObject csonObject = CSONSerializer.toCSONObject(testClassNull);
         System.out.println(csonObject.toString(JSONOptions.json5()));
 
-        assertNotNull(csonObject.getObject("testClassB1").getObject("testC"));
-        assertEquals("nameC", csonObject.getObject("testClassB1").getObject("testC").getString("name"));
-        assertEquals(2000, csonObject.getObject("testClassB1").getObject("testC").getInt("int"));
-        assertEquals(2000, csonObject.getObject("testClassB1").getObject("testC").getInt("int"));
+        assertNotNull(csonObject.getCSONObject("testClassB1").getCSONObject("testC"));
+        assertEquals("nameC", csonObject.getCSONObject("testClassB1").getCSONObject("testC").getString("name"));
+        assertEquals(2000, csonObject.getCSONObject("testClassB1").getCSONObject("testC").getInt("int"));
+        assertEquals(2000, csonObject.getCSONObject("testClassB1").getCSONObject("testC").getInt("int"));
 
-        assertNull(csonObject.getObject("testClassB1").get("testClassA1"));
-        assertEquals(3.14f, csonObject.getObject("testClassB1").getObject("testClassA2").getObject("testB").getObject("testC").getFloat("float"));
+        assertNull(csonObject.getCSONObject("testClassB1").get("testClassA1"));
+        assertEquals(3.14f, csonObject.getCSONObject("testClassB1").getCSONObject("testClassA2").getCSONObject("testB").getCSONObject("testC").getFloat("float"));
 
 
         assertNull(csonObject.get("testClassA0"));
@@ -303,18 +302,18 @@ public class CSONSerializerTest {
         ArrayTestClass arrayTestClass = new ArrayTestClass();
         CSONObject csonObject = CSONSerializer.toCSONObject(arrayTestClass);
         System.out.println(csonObject.toString(JSONOptions.json5()));
-        assertEquals(11, csonObject.getArray("array").size());
-        assertEquals(10, csonObject.getArray("array").getInt(10));
+        assertEquals(11, csonObject.getCSONArray("array").size());
+        assertEquals(10, csonObject.getCSONArray("array").getInt(10));
 
-        assertEquals(11, csonObject.getArray("arrayInArray").size());
-        assertEquals(4, csonObject.getArray("arrayInArray").getArray(10).size());
-        assertEquals(3, csonObject.getArray("arrayInArray").getArray(10).getInt(3));
-        assertEquals(2, csonObject.getArray("arrayInArray").getArray(10).getInt(2));
+        assertEquals(11, csonObject.getCSONArray("arrayInArray").size());
+        assertEquals(4, csonObject.getCSONArray("arrayInArray").getCSONArray(10).size());
+        assertEquals(3, csonObject.getCSONArray("arrayInArray").getCSONArray(10).getInt(3));
+        assertEquals(2, csonObject.getCSONArray("arrayInArray").getCSONArray(10).getInt(2));
 
-        assertEquals("name", csonObject.getArray("arrayInArray").getArray(10).getObject(1).getString("name"));
-        assertEquals("item", csonObject.getArray("arrayInArray").getArray(10).getObject(0).getString("name"));
-        assertEquals("item", csonObject.getArray("arrayInArray").getArray(10).getObject(0).getObject("itemInItem").getString("name"));
-        assertEquals("1", csonObject.getArray("arrayInArray").getArray(10).getObject(0).getString("stringValue"));
+        assertEquals("name", csonObject.getCSONArray("arrayInArray").getCSONArray(10).getCSONObject(1).getString("name"));
+        assertEquals("item", csonObject.getCSONArray("arrayInArray").getCSONArray(10).getCSONObject(0).getString("name"));
+        assertEquals("item", csonObject.getCSONArray("arrayInArray").getCSONArray(10).getCSONObject(0).getCSONObject("itemInItem").getString("name"));
+        assertEquals("1", csonObject.getCSONArray("arrayInArray").getCSONArray(10).getCSONObject(0).getString("stringValue"));
 
 
 
@@ -360,7 +359,7 @@ public class CSONSerializerTest {
 
 
 
-        assertEquals(csonObject.getArray("key3").size(), 3);
+        assertEquals(csonObject.getCSONArray("key3").size(), 3);
 
         csonObject.put("key5", new String[]{"value3", "value4", null});
         assertEquals("comment1", new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentForKey("key1"));
@@ -547,8 +546,8 @@ public class CSONSerializerTest {
         
         CSONObject csonObject = CSONSerializer.toCSONObject(testClassX);
         System.out.println(csonObject.toString(JSONOptions.json5()));
-        assertEquals(27, csonObject.getObject("nickname").getInt("ageReal"));
-        assertEquals(29, csonObject.getObject("nickname").getInt("age"));
+        assertEquals(27, csonObject.getCSONObject("nickname").getInt("ageReal"));
+        assertEquals(29, csonObject.getCSONObject("nickname").getInt("age"));
         assertEquals(csonObject.getCommentOfKey("nickname"), "닉네임 오브젝트.");
         assertEquals(csonObject.getCommentAfterKey("nickname"), "닉네임 오브젝트 끝.");
 
