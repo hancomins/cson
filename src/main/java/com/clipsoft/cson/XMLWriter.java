@@ -24,6 +24,7 @@ public class XMLWriter {
             } else if (value instanceof CSONArray) {
 
             } else {
+
                 stringBuilder.append("\"").append(key).append("\"").append("=").append("\"").append(value).append("\"");
             }
         }
