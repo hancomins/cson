@@ -45,7 +45,8 @@ public class SerializeInCSONElementTest {
         assertEquals( "value", csonObject.getCSONObject("csonClass").getString("value"));
         assertEquals( millis + "", csonObject.getCSONObject("csonClass").getCSONObject("bundle").getString("value"));
 
-        CSONClass newObject = csonObject.getCSONObject("csonClass", CSONClass.class);
+        CSONClass newObject = csonObject.getObject("csonClass", CSONClass.class);
+
         assertEquals( "name", newObject.name);
         assertEquals( "value", newObject.value);
         assertEquals( millis + "", newObject.data);

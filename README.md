@@ -168,8 +168,9 @@ dependencies {
      users.idUserMap.put("qwrd", user1);
      users.idUserMap.put("ffff", user2);
 
-     CSONObject csonObject = CSONSerializer.toCSONObject(users);
-     csonObject.setStringFormatOption(StringFormatOption.json5());
+     CSONObject csonObject = CSONObject.fromObject(users, StringFormatOption.json5());
+     //CSONObject csonObject = CSONObject.fromObject(users);
+     //csonObject.setStringFormatOption(StringFormatOption.json5());
      System.out.println(csonObject);
      // Output
      /*
@@ -203,11 +204,11 @@ dependencies {
 
      // Deserialization 
      // Option 1.
-     Users parsedUsers = CSONSerializer.fromCSONObject(csonObject, Users.class);
+     Users parsedUsers = CSONObject.toObject(csonObject, Users.class);
 
      // Option 2. Can be used even without a default constructor.
      //Users parsedUsers = new Users();
-     //CSONSerializer.fromCSONObject(csonObject, parsedUsers);
+     //CSONObject.toObject(csonObject, parsedUsers);
      ```
    * However, there are some conditions.
      1. Should have a default constructor 'if possible'. It doesn’t matter if it’s private.
@@ -295,6 +296,39 @@ dependencies {
            ```
         8. Object serialization/deserialization also includes values from parent classes. 
         9. Arrays are not supported. Use collections. However, byte[] is converted to Base64 String.
+
+
+  * You can also import an object with a certain key value in a JSON object by converting it to a Java object.
+    ```java
+    String json5 = "{user: { name: 'John',  age: 25,  friends: [ 'Nancy', 'Mary', 'Tom', 'Jerry' ], addr: { city: 'seoul', zipCode: '06164'  } }}";
+    CSONObject user = new CSONObject(json5, JSONOptions.json5());
+    //User user = user.getObject("user", User.class);
+    // or
+    User user = user.optObject("user", User.class, null);
+    // 
+    ```
+  * If you put in CSONObject a Collection containing objects of a @CSON annotated class, it will be serialized as JSONArray data. However, the opposite case has not yet been implemented.
+    ```java
+    @CSON
+    public static class User {
+        @CSONValue
+        private String name;
+    
+        private User() {}
+        public User(String name) {
+            this.name = name;
+        }
+    }
+    
+    CSONObject obj = new CSONObject();
+    List<User> users = new ArrayList<>();
+    users.add(new User("John"));
+    users.add(new User("Mary"));
+    obj.put("users", users);
+    
+    System.out.println(obj);
+    // {"users":[{"name":"John"},{"name":"Mary"}]}
+    ```
           
 
 
