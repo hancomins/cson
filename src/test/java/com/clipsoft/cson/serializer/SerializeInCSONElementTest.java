@@ -2,9 +2,12 @@ package com.clipsoft.cson.serializer;
 
 import com.clipsoft.cson.CSONArray;
 import com.clipsoft.cson.CSONObject;
+import com.clipsoft.cson.StringFormatOption;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
 
@@ -18,9 +21,6 @@ public class SerializeInCSONElementTest {
 
         @CSONValue("bundle.value")
         String data;
-
-
-
     }
 
     @Test
@@ -74,8 +74,63 @@ public class SerializeInCSONElementTest {
         assertEquals( "value", csonObject.getCSONArray("csonClassList").getCSONObject(0).getString("value"));
         assertEquals( millis + "", csonObject.getCSONArray("csonClassList").getCSONObject(0).getCSONObject("bundle").getString("value"));
 
+    }
 
 
+    @Test
+    public void testGetList() {
+        CSONObject csonObject = new CSONObject();
+        CSONArray csonArray = new CSONArray();
+        for(int i = 0; i < 10; i++) {
+            csonArray.put((i % 2 == 0 ? "+" : "-") + i + "");
+        }
+        csonObject.put("list", csonArray);
+        List<Float> list=  csonObject.getList("list", Float.class);
+        for(int i = 0; i < 10; i++) {
+            assertEquals( (i % 2 == 0 ? "" : "-") + i + ".0", list.get(i).toString());
+        }
+    }
+
+    @Test
+    public void testGetBooleanList() {
+        CSONObject csonObject = new CSONObject();
+        CSONArray csonArray = new CSONArray();
+        for(int i = 0; i < 10; i++) {
+            csonArray.put((i % 2 == 0));
+        }
+        csonObject.put("list", csonArray);
+        List<Boolean> list=  csonObject.getList("list", Boolean.class);
+        for(int i = 0; i < 10; i++) {
+            assertEquals( (i % 2 == 0), list.get(i).booleanValue());
+        }
+    }
+
+    @Test
+    public void testGetObjectOfCSONClass() {
+        CSONObject csonObject = new CSONObject();
+        CSONArray csonArray = new CSONArray();
+        for(int i = 0; i < 10; i++) {
+            CSONClass csonClass = new CSONClass();
+            csonClass.name = "name" + i;
+            csonClass.value = "value" + i;
+            csonClass.data = i + "";
+            csonArray.put(csonClass);
+        }
+        csonObject.put("list", csonArray);
+        System.out.println(csonObject.toString());
+        List<CSONClass> list=  csonObject.getList("list", CSONClass.class);
+        for(int i = 0; i < 10; i++) {
+            assertEquals( "name" + i, list.get(i).name);
+            assertEquals( "value" + i, list.get(i).value);
+            assertEquals( i + "", list.get(i).data);
+        }
+
+        csonObject.setStringFormatOption(StringFormatOption.jsonPretty());
+        List<String> stringList=  csonObject.getList("list", String.class);
+        for(int i = 0; i < 10; i++) {
+            System.out.println(stringList.get(i));
+        }
 
     }
+
 }

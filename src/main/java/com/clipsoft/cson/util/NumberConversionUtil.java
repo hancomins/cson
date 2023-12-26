@@ -1,14 +1,17 @@
-package com.clipsoft.cson;
+package com.clipsoft.cson.util;
 
-import com.clipsoft.cson.util.MockBigInteger;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.util.Arrays;
 
-class NumberConversionUtil {
+public class NumberConversionUtil {
 
+    public static Number stringToNumber(String value) throws NumberFormatException {
+        char[] input = value.toCharArray();
+        return stringToNumber(input, 0, input.length);
+    }
 
-    static Number stringToNumber(char[] input, int offset, int len) throws NumberFormatException {
+    public static Number stringToNumber(char[] input, int offset, int len) throws NumberFormatException {
 
         int lastIndex = offset + len - 1;
         // trim
@@ -26,7 +29,7 @@ class NumberConversionUtil {
             }
         }
         len = lastIndex - offset + 1;
-        int end = offset + len;
+
 
         if( (input[offset] == 'i' || input[offset] == 'I') || (len > 1 && (input[offset + 1] == 'i' || input[offset + 1] == 'I'))) {
             String value = new String(input, offset, len);
@@ -38,30 +41,45 @@ class NumberConversionUtil {
         }
 
 
-        boolean isHex  = false;
-        if (input[0] == '.'){
-            input = new char[input.length + 1];
-            input[0] = '0';
-            System.arraycopy(input, 0, input, 1, input.length - 1);
+        if (input[offset] == '.'){
+            char[] newInput = new char[len + 1];
+            newInput[0] = '0';
+            System.arraycopy(input, offset, newInput, 1, len);
+            input = newInput;
             offset = 0;
             len = input.length;
         }
-        if (input.length > 2 && input[0] == '-' && input[1] == '.')  {
-            input = new char[input.length + 1];
-            input[0] = '-';
-            input[1] = '0';
-            System.arraycopy(input, 0, input, 2, input.length - 2);
+        else if (len > 1 && input[offset] == '+' && input[offset + 1] == '.')  {
+            input[offset] = '0';
+        }
+        else if (len > 1 && input[offset] == '-' && input[offset + 1] == '.')  {
+            char[] newInput = new char[len + 1];
+            newInput[0] = '-';
+            newInput[1] = '0';
+            System.arraycopy(input, offset + 1, newInput, 2, len - 1);
+            input = newInput;
             offset = 0;
             len = input.length;
         }
-        if(input.length > 2 && input[0] == '0' && input[1] == 'x') {
-            String val = new String(input, 2, input.length - 2);
+        else if(len > 2 && input[offset] == '0' && input[offset + 1] == 'x') {
+            String val = new String(input, offset + 2, len - 2);
             MockBigInteger bi = new MockBigInteger(val, 16);
             if(bi.bitLength() <= 31){
-                return Integer.valueOf(bi.intValue());
+                return bi.intValue();
             }
             if(bi.bitLength() <= 63){
-                return Long.valueOf(bi.longValue());
+                return bi.longValue();
+            }
+        }
+        else if (input[offset] == '+'){
+            if(len == 1) {
+                input[offset] = '0';
+            } else {
+                char[] newInput = new char[len - 1];
+                System.arraycopy(input, offset + 1, newInput, 0, len - 1);
+                input = newInput;
+                offset = 0;
+                len = input.length;
             }
         }
 
@@ -95,11 +113,11 @@ class NumberConversionUtil {
 
 
             // remove Leading Zeros Of Number
-            if (len == 1 && input[0] == '-') { return Double.valueOf(-0.0); }
-            boolean negativeFirstChar = input[0] == '-';
+            if (len == 1 && input[offset] == '-') { return Double.valueOf(-0.0); }
+            boolean negativeFirstChar = input[offset] == '-';
             int counter = offset + (negativeFirstChar ? 1:0);
 
-            while (counter < end) {
+            while (counter < len) {
                 if (input[counter] != '0'){
                     offset = counter;
                     if(negativeFirstChar) {
@@ -110,24 +128,25 @@ class NumberConversionUtil {
                 }
                 counter++;
             }
-            if(counter == end) {
+
+
+            if(counter == len && len != 1) {
                 input[offset] = '-';
                 input[offset + 1] = '0';
                 len = 2;
             }
-            end = offset + len;
 
-            initial = input[0];
-            if(initial == '0' && end > 1) {
-                char at1 = input[1];
+            initial = input[offset];
+            if(initial == '0' && len > 1) {
+                char at1 = input[offset + 1];
                 if(isNumericChar(at1)) {
-                    throw new NumberFormatException("val ["+input+"] is not a valid number.");
+                    throw new NumberFormatException("val ["+ Arrays.toString(input) +"] is not a valid number.");
                 }
-            } else if (initial == '-' && end > 2) {
-                char at1 = input[1];
-                char at2 = input[2];
+            } else if (initial == '-' && len > 2) {
+                char at1 = input[offset +1];
+                char at2 = input[offset +2];
                 if(at1 == '0' && isNumericChar(at2)) {
-                    throw new NumberFormatException("val ["+input+"] is not a valid number.");
+                    throw new NumberFormatException("val ["+ Arrays.toString(input) +"] is not a valid number.");
                 }
             }
 
@@ -135,21 +154,22 @@ class NumberConversionUtil {
 
             MockBigInteger bi = new MockBigInteger(input, offset, len);
             if(bi.bitLength() <= 31){
-                return Integer.valueOf(bi.intValue());
+                return bi.intValue();
             }
             if(bi.bitLength() <= 63){
-                return Long.valueOf(bi.longValue());
+                return bi.longValue();
             }
             return bi;
         }
-        throw new NumberFormatException("val ["+input+"] is not a valid number.");
+        throw new NumberFormatException("val ["+ Arrays.toString(input) +"] is not a valid number.");
     }
 
     private static boolean isNumericChar(char c) {
         return (c <= '9' && c >= '0');
     }
 
-    static boolean potentialNumber(String value){
+    @SuppressWarnings("unused")
+    public static boolean potentialNumber(String value){
         if (value == null || value.isEmpty()){
             return false;
         }

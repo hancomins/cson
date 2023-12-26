@@ -1,5 +1,5 @@
 # cson introduction
-  - JAVA 1.6 or higher environment is supported. 
+  - JAVA 1.8 or higher environment is supported. 
   - API usage is similar to JSON-JAVA (https://github.com/stleary/JSON-java) 
   - Data structures that can be represented in JSON can be serialized(or deserialized) in binary format. The binary structure can have a smaller data size than the json string type, and has a performance advantage in parsing.
   - Supports [JSON5](https://json5.org/) format. Comments are parsed alongside the data..
@@ -307,7 +307,7 @@ dependencies {
     User user = user.optObject("user", User.class, null);
     // 
     ```
-  * If you put in CSONObject a Collection containing objects of a @CSON annotated class, it will be serialized as JSONArray data. However, the opposite case has not yet been implemented.
+  * If you put in CSONObject a Collection containing objects of a @CSON annotated class, it will be serialized as JSONArray data. 
     ```java
     @CSON
     public static class User {
@@ -329,6 +329,23 @@ dependencies {
     System.out.println(obj);
     // {"users":[{"name":"John"},{"name":"Mary"}]}
     ```
+  * It is also possible to import a JSON Array as a List<T> object. However, Collection, Map, or primitive types cannot be used.
+    ```java
+    CSONObject obj = new CSONObject();
+    CSONArray users = new CSONArray();
+    for(int i = 0; i < 10; i++) {
+       CSONObject user = new CSONObject();
+       user.put("name", "name" + i);
+       users.put(user);
+    }
+    obj.put("users", users);
+    System.out.println(obj);
+    // {"users":[{"name":"name0"},{"name":"name1"},{"name":"name2"},{"name":"name3"},{"name":"name4"},{"name":"name5"},{"name":"name6"},{"name":"name7"},{"name":"name8"},{"name":"name9"}]}
+    // ...
+    // The last argument is the default value when deserialization fails.
+    List<User> users = obj.optList("users", User.class, null);
+    ```
+    
           
 
 

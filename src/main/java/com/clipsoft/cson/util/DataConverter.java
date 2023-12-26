@@ -1,32 +1,38 @@
-package com.clipsoft.cson;
+package com.clipsoft.cson.util;
 
+import com.clipsoft.cson.Base64;
+import com.clipsoft.cson.CSONArray;
+import com.clipsoft.cson.CSONObject;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-class DataConverter {
-	
+public class DataConverter {
 
 
-	static CSONArray toArray(Object value) {
+
+	public static CSONArray toArray(Object value) {
 		if(value instanceof CSONArray) {
 			return (CSONArray)value;
 		}
 		return null; 
 	}
-	
-	static CSONObject toObject(Object value) {
+
+	public static CSONObject toObject(Object value) {
 		if(value instanceof CSONObject) {
 			return (CSONObject)value;
 		}
 		return null; 
 	}
 
-	static int toInteger(Object value) {
+	public static int toInteger(Object value) {
 		return toInteger(value, 0);
 	}
 	
 	@SuppressWarnings("UnnecessaryUnboxing")
-	static int toInteger(Object value, int def) {
+	public static int toInteger(Object value, int def) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).intValue();
@@ -59,11 +65,11 @@ class DataConverter {
 		return null;
 	}
 
-	static short toShort(Object value) {
+	public static short toShort(Object value) {
 		return toShort(value, (short) 0);
 	}
 
-	static short toShort(Object value, short def) {
+	public static short toShort(Object value, short def) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).shortValue();
@@ -83,11 +89,11 @@ class DataConverter {
 		return def;
 	}
 
-	static byte toByte(Object value) {
+	public static byte toByte(Object value) {
 		return toByte(value, (byte) 0);
 	}
 
-	static byte toByte(Object value, byte def) {
+	public static byte toByte(Object value, byte def) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).byteValue();
@@ -108,12 +114,12 @@ class DataConverter {
 	}
 
 
-	static float toFloat(Object value) {
+	public static float toFloat(Object value) {
 		return toFloat(value, 0);
 	}
 	
 	@SuppressWarnings({"SameParameterValue", "UnnecessaryUnboxing"})
-	static float toFloat(Object value, float def) {
+	public static float toFloat(Object value, float def) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).floatValue();
@@ -135,12 +141,12 @@ class DataConverter {
 		return def;
 	}
 
-	static double toDouble(Object value) {
+	public static double toDouble(Object value) {
 		return toDouble(value, 0);
 	}
 	
 	@SuppressWarnings("SameParameterValue")
-	static double toDouble(Object value, double def) {
+	public static double toDouble(Object value, double def) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).doubleValue();
@@ -161,16 +167,61 @@ class DataConverter {
 		return def;
 	}
 
-	static long toLong(Object value) {
+	public static Number toBoxingNumberOfType(Object value, Class<? extends Number> type) {
+		if(value.getClass() == type) {
+			return (Number)value;
+		}
+		else if(value instanceof Number) {
+			Number number = (Number)value;
+			if(type == Integer.class) {
+				return number.intValue();
+			}
+			else if(type == Long.class) {
+				return number.longValue();
+			}
+			else if(type == Short.class) {
+				return number.shortValue();
+			}
+			else if(type == Byte.class) {
+				return number.byteValue();
+			}
+			else if(type == Float.class) {
+				return number.floatValue();
+			}
+			else if(type == Double.class) {
+				return number.doubleValue();
+			}
+			else if(type == BigDecimal.class) {
+				return new BigDecimal(number.toString());
+			} else if(type == BigInteger.class) {
+				return new BigInteger(number.toString());
+			}
+		}
+		else if(value instanceof String) {
+			try {
+				Number no = NumberConversionUtil.stringToNumber((String) value);
+				return toBoxingNumberOfType(no, type);
+			} catch (NumberFormatException ignored) {
+				return null;
+			}
+		}
+		return null;
+	}
+
+
+	public static long toLong(Object value) {
 		return toLong(value, 0L);
 	}
 	
 	
 	@SuppressWarnings("UnnecessaryUnboxing")
-	static long toLong(Object value, long def) {
+	public static long toLong(Object value, long def) {
 
 		try {
-			if (value instanceof Number) {
+			if(value instanceof Long) {
+				return (Long)value;
+			}
+			else if (value instanceof Number) {
 				return ((Number) value).longValue();
 			} else if (value instanceof Character) {
 				return ((Character) value).charValue();
@@ -190,11 +241,11 @@ class DataConverter {
 		return def;
 	}
 
-	static char toChar(Object value) {
+	public static char toChar(Object value) {
 		return toChar(value, '\0');
 	}
 	@SuppressWarnings("UnnecessaryUnboxing")
-	static char toChar(Object value, char def) {
+	public static char toChar(Object value, char def) {
 		if(value instanceof Number) {
 			return (char)((Number)value).shortValue();
 		}
@@ -212,19 +263,19 @@ class DataConverter {
 		} 
 		else if(value instanceof byte[] && ((byte[])value).length > 1 ) {
   			return (char) ByteBuffer.wrap((byte[])value).getShort();
-		} 
+		}
 		return def;
 	}
-	
-	
-	
-	static  String toString(Object value) {
+
+
+
+	public static  String toString(Object value) {
 		if(value == null  || value instanceof NullValue) return null;
 		if(value instanceof String) { 
 			return (String) value;
 		}
 		if(value instanceof Number) {
-			return ((Number)value).toString();
+			return value.toString();
 		}
 		else if(value instanceof byte[]) {
 			byte[] buffer = (byte[])value;
@@ -234,12 +285,12 @@ class DataConverter {
 		return value + "";
 	}
 
-	static  boolean toBoolean(Object value) {
+	public static  boolean toBoolean(Object value) {
 		return toBoolean(value, false);
 
 	}
-	
-	static  boolean toBoolean(Object value, boolean def) {
+
+	public static  boolean toBoolean(Object value, boolean def) {
 		try {
 			if (value instanceof Boolean) {
 				return ((Boolean) value);
@@ -290,63 +341,6 @@ class DataConverter {
 		return null;
 
 	}
-	
-	@SuppressWarnings("ForLoopReplaceableByForEach")
-	static String escapeJSONString(String str, boolean allowLineBreak, char quote) {
-		if(str == null) return  null;
-		boolean isSpacialQuote = quote != 0 && quote != '"';
-		boolean isEmptyQuote = quote == 0;
-		char[] charArray = str.toCharArray();
-		StringBuilder builder = new StringBuilder();
-		char lastCh = 0;
-		boolean isLastLF = false;
-		for(int i = 0; i < charArray.length; ++i) {
-			char ch = charArray[i];
-			if (ch == '\n') {
-				if(allowLineBreak && lastCh == '\\') {
-					builder.append('\n');
-					isLastLF = true;
-				} else {
-					builder.append("\\n");
-				}
-			} else if (ch == '\r') {
-				if(allowLineBreak && isLastLF) {
-					builder.append('\r');
-					isLastLF = false;
-				} else {
-					builder.append("\\r");
-				}
-			} else if (ch == '\f') {
-				isLastLF = false;
-				builder.append("\\f");
-			} else if (ch == '\t') {
-				isLastLF = false;
-				builder.append("\\t");
-			} else if (ch == '\b') {
-				isLastLF = false;
-				builder.append("\\b");
-			} else if (ch == '"' && !isSpacialQuote) {
-				isLastLF = false;
-				builder.append("\\\"");
-			} else if (ch == '\\') {
-				isLastLF = false;
-				builder.append("\\\\");
-			} else if(!isEmptyQuote && ch == quote) {
-				isLastLF = false;
-				builder.append("\\").append(ch);
-			} else if(isEmptyQuote && ch == '\'') {
-				isLastLF = false;
-				builder.append("\\'");
-			}
-			else {
-				isLastLF = false;
-				builder.append(ch);
-			}
-			lastCh = ch;
-		}
-		return builder.toString();
-		
-	}
-	
+
 	
 }

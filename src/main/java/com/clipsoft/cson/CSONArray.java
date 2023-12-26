@@ -3,7 +3,9 @@ package com.clipsoft.cson;
 
 
 import com.clipsoft.cson.serializer.CSONSerializer;
+import com.clipsoft.cson.util.DataConverter;
 import com.clipsoft.cson.util.NoSynchronizedStringReader;
+import com.clipsoft.cson.util.NullValue;
 
 import java.io.Reader;
 import java.lang.reflect.Array;
@@ -26,9 +28,24 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	}
 
 
+	public static CSONArray fromCollection(Collection<?> collection) {
+		return CSONSerializer.collectionToCSONArray(collection);
+	}
+
+	public static <T> Collection<T> toCollection(CSONArray csonArray, Class<T> clazz) {
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), false, null);
+	}
+
+	public static <T> Collection<T> toCollection(CSONArray csonArray, Class<T> clazz, boolean ignoreError) {
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), ignoreError, null);
+	}
+
+
 	public CSONArray() {
 		super(ElementType.Array);
 	}
+
+
 
 
 	public CSONArray(StringFormatOption stringFormatOption) {
@@ -72,14 +89,14 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		list.addAll(objects);
 	}
 
-	public CSONArray(byte[] buffer) {
+	public CSONArray(byte[] binary) {
 		super(ElementType.Array);
-		this.list = ((CSONArray) BinaryCSONParser.parse(buffer)).list;
+		this.list = ((CSONArray) BinaryCSONParser.parse(binary)).list;
 	}
 
-	public CSONArray(byte[] buffer,int offset, int len) {
+	public CSONArray(byte[] binary,int offset, int len) {
 		super(ElementType.Array);
-		this.list = ((CSONArray) BinaryCSONParser.parse(buffer, offset, len)).list;
+		this.list = ((CSONArray) BinaryCSONParser.parse(binary, offset, len)).list;
 	}
 	
 	@Override
@@ -176,7 +193,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	public CommentObject getCommentObject(int index, boolean createIfNotExists) {
 		if(commentObjectList == null) {
 			if(!createIfNotExists) return null;
-			commentObjectList = new ArrayList<>();
+			commentObjectList = new ArrayList<CommentObject>();
 		}
 		if(index >= commentObjectList.size()) {
 			if(!createIfNotExists) return null;
@@ -426,11 +443,15 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	
 	public CSONArray getCSONArray(int index) {
 		try {
-			return DataConverter.toArray(list.get(index));
+			Object value = list.get(index);
+			CSONArray csonArray = DataConverter.toArray(value);
+			if(csonArray == null) {
+				throw new CSONIndexNotFoundException("index: " + index + ", value: " + value);
+			}
+			return csonArray;
 		} catch (IndexOutOfBoundsException e) {
 			throw new CSONIndexNotFoundException(e);
 		}
-		
 	}
 
 	public CSONArray optCSONArray(int index, CSONArray def) {
@@ -502,6 +523,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		return getCSONObject(index);
 	}
 
+
 	/**
 	 * @deprecated use {@link #optCSONObject(int)} instead.
 	 */
@@ -520,6 +542,38 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			return CSONSerializer.fromCSONObject(csonObject, clazz);
 		} catch (Exception e) {
 			return defaultObject;
+		}
+	}
+
+
+	public <T> List<T> getList(int index, Class<T> valueType) {
+		CSONArray csonArray = getCSONArray(index);
+		return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), false, null);
+	}
+
+	public <T> List<T> optList(int index, Class<T> valueType) {
+		return optList(index, valueType, null);
+	}
+
+	@Override
+	public void setStringFormatOption(StringFormatOption defaultJSONOptions) {
+		super.setStringFormatOption(defaultJSONOptions);
+		for(Object obj : list) {
+			if(obj instanceof CSONElement) {
+				((CSONElement)obj).setStringFormatOption(defaultJSONOptions);
+			}
+		}
+	}
+
+	public <T> List<T> optList(int index, Class<T> valueType, T defaultValue) {
+		try {
+			CSONArray csonArray = optCSONArray(index);
+			if(csonArray == null) {
+				return null;
+			}
+			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), true, defaultValue);
+		} catch (Exception e) {
+			return null;
 		}
 	}
 
@@ -897,7 +951,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	}
 	
 	@SuppressWarnings("ForLoopReplaceableByForEach")
-	protected void write(BinaryCSONWriter writer) {
+	void write(BinaryCSONWriter writer) {
 		writer.openArray();
 		for(int i = 0, n = list.size(); i < n; ++i) {
 			Object obj = list.get(i);
@@ -1030,7 +1084,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			if(value instanceof CharSequence && (!(compareValue instanceof CharSequence) || !value.toString().equals(compareValue.toString())) ) {
 				return false;
 			}
-			else if(value instanceof Boolean && (!(compareValue instanceof Boolean) || (Boolean)value != (Boolean)compareValue)) {
+			else if(value instanceof Boolean && (!(compareValue instanceof Boolean) || value != compareValue)) {
 				return false;
 			}
 			else if(value instanceof Number) {
@@ -1045,10 +1099,10 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 					return false;
 				}
 			}
-			else if(value instanceof CSONArray && (!(compareValue instanceof CSONArray) || !((CSONArray)value).equals(compareValue))) {
+			else if(value instanceof CSONArray && (!(compareValue instanceof CSONArray) || !value.equals(compareValue))) {
 				return false;
 			}
-			else if(value instanceof CSONObject && (!(compareValue instanceof CSONObject) || !((CSONObject)value).equals(compareValue))) {
+			else if(value instanceof CSONObject && (!(compareValue instanceof CSONObject) || !value.equals(compareValue))) {
 				return false;
 			}
 			else if(value instanceof byte[] && (!(compareValue instanceof byte[]) || !Arrays.equals((byte[])value, (byte[])compareValue))) {

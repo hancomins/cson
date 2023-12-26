@@ -1,8 +1,7 @@
 package com.clipsoft.cson.serializer;
 
-import com.clipsoft.cson.CSONElement;
-import com.clipsoft.cson.CSONArray;
-import com.clipsoft.cson.CSONObject;
+import com.clipsoft.cson.*;
+import com.clipsoft.cson.util.DataConverter;
 
 import java.util.*;
 
@@ -191,6 +190,99 @@ public class CSONSerializer {
     }
 
 
+
+    public static <T> List<T> csonArrayToList(CSONArray csonArray, Class<T> valueType) {
+        return csonArrayToList(csonArray, valueType, null, false, null);
+    }
+
+    public static <T> List<T> csonArrayToList(CSONArray csonArray, Class<T> valueType, boolean ignoreError) {
+        return csonArrayToList(csonArray, valueType, null, ignoreError, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> csonArrayToList(CSONArray csonArray, Class<T> valueType, StringFormatOption stringFormatOption, boolean ignoreError, T defaultValue) {
+        Types types = Types.of(valueType);
+        if(valueType.isPrimitive()) {
+            if(ignoreError) {
+                return null;
+            }
+            throw new CSONSerializerException("valueType is primitive type. valueType=" + valueType.getName());
+        } else if(Collection.class.isAssignableFrom(valueType)) {
+            if(ignoreError) {
+                return null;
+            }
+            throw new CSONSerializerException("valueType is java.util.Collection type. Use a class that wraps your Collection.  valueType=" + valueType.getName());
+        }  else if(Map.class.isAssignableFrom(valueType)) {
+            if(ignoreError) {
+                return null;
+            }
+            throw new CSONSerializerException("valueType is java.util.Map type. Use a class that wraps your Map.  valueType=" + valueType.getName());
+        } else if(valueType.isArray() && Types.ByteArray != types) {
+            if(ignoreError) {
+                return null;
+            }
+            throw new CSONSerializerException("valueType is Array type. ArrayType cannot be used. valueType=" + valueType.getName());
+        }
+        ArrayList<T> result = new ArrayList<T>();
+        for(int i = 0, n = csonArray.size(); i < n; ++i) {
+            Object value = csonArray.get(i);
+            if(value == null) {
+                result.add(defaultValue);
+            }
+            else if(Number.class.isAssignableFrom(valueType)) {
+                try {
+                    Number no = DataConverter.toBoxingNumberOfType(value, (Class<? extends Number>) valueType);
+                    result.add((T) no);
+                } catch (NumberFormatException e) {
+                    if(ignoreError) {
+                        result.add(defaultValue);
+                        continue;
+                    }
+                    throw new CSONSerializerException("valueType is Number type. But value is not Number type. valueType=" + valueType.getName());
+                }
+            } else if(Boolean.class == valueType) {
+                if(value.getClass() == Boolean.class) {
+                    result.add((T)value);
+                } else {
+                    result.add("true".equals(value.toString()) ? (T)Boolean.TRUE : (T)Boolean.FALSE);
+                }
+            } else if(Character.class == valueType) {
+                try {
+                    if (value.getClass() == Character.class) {
+                        result.add((T) value);
+                    } else {
+                        result.add((T) (Character) DataConverter.toChar(value));
+                    }
+                } catch (NumberFormatException e) {
+                    if(ignoreError) {
+                        result.add(defaultValue);
+                        continue;
+                    }
+                    throw new CSONSerializerException("valueType is Character type. But value is not Character type. valueType=" + valueType.getName());
+                }
+            } else if(valueType == String.class) {
+                if(stringFormatOption != null && value instanceof CSONElement) {
+                    result.add((T)((CSONElement) value).toString(stringFormatOption));
+                } else {
+                    result.add((T) value.toString());
+                }
+            } else if(value instanceof CSONObject && CSONSerializer.serializable(valueType)) {
+                try {
+                    value = CSONSerializer.fromCSONObject((CSONObject) value, valueType);
+                } catch (CSONException e) {
+                    if(ignoreError) {
+                        result.add(defaultValue);
+                        continue;
+                    }
+                    throw e;
+                }
+                result.add((T)value);
+            }
+        }
+        return result;
+    }
+
+
     private static CSONObject mapObjectToCSONObject(Map<String, ?> map, Class<?> valueType) {
         CSONObject csonObject = new CSONObject();
         Set<? extends Map.Entry<String, ?>> entries = map.entrySet();
@@ -300,8 +392,7 @@ public class CSONSerializer {
             return rootObject;
         }
         int parentId = parentschemaField.getId();
-        Object parent = parentsMap.get(parentId);
-        return parent;
+        return parentsMap.get(parentId);
     }
 
 
@@ -331,6 +422,7 @@ public class CSONSerializer {
 
         Map finalTarget = target;
         if(Types.isSingleType(types)) {
+
             csonObject.keySet().forEach(key -> {
                 Object value = Utils.optFrom(csonObject, key, types);
                 finalTarget.put(key, value);

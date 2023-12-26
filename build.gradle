@@ -12,8 +12,8 @@ plugins {
 }
 
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 
 apply plugin: 'io.github.gradle-nexus.publish-plugin'

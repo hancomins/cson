@@ -1,5 +1,7 @@
 package com.clipsoft.cson;
 
+import com.clipsoft.cson.util.EscapeUtil;
+
 import java.math.BigDecimal;
 import java.util.ArrayDeque;
 
@@ -20,8 +22,8 @@ public class JSONWriter {
 	private final static int COMMENT_COMMA_AND_SLASH_STAR = 6;
 	private final static int COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE = 7;
 
-	private boolean isComment = false;
-	private boolean isAllowLineBreak = false;
+	private boolean isComment;
+	private boolean isAllowLineBreak;
 
 	private boolean isPretty = false;
 	private boolean isUnprettyArray = false;
@@ -36,7 +38,7 @@ public class JSONWriter {
 
 
 
-	private final ArrayDeque<CommentObject> keyValueCommentObjects = new ArrayDeque<>();
+	private final ArrayDeque<CommentObject> keyValueCommentObjects = new ArrayDeque<CommentObject>();
 
 
 	private final ArrayDeque<ObjectType> typeStack_ = new ArrayDeque<>();
@@ -247,7 +249,7 @@ public class JSONWriter {
 			quote = "\"";
 		}
 		char quoteChar = quote.isEmpty() ? '\0'  : quote.charAt(0);
-		str = DataConverter.escapeJSONString(str, isAllowLineBreak, quoteChar);
+		str = EscapeUtil.escapeJSONString(str, isAllowLineBreak, quoteChar);
 		stringBuilder.append(quote);
 		stringBuilder.append(str);
 		stringBuilder.append(quote);
@@ -597,7 +599,7 @@ public class JSONWriter {
 	public JSONWriter add(int value) {
 		checkAndAppendInArray();
 		stringBuilder.append(value);
-		writeAfterComment(COMMENT_SLASH_STAR);;
+		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 
@@ -605,7 +607,7 @@ public class JSONWriter {
 
 		checkAndAppendInArray();
 		stringBuilder.append(value);
-		writeAfterComment(COMMENT_SLASH_STAR);;
+		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 
@@ -613,7 +615,7 @@ public class JSONWriter {
 
 		checkAndAppendInArray();
 		stringBuilder.append(value);
-		writeAfterComment(COMMENT_SLASH_STAR);;
+		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 
@@ -621,7 +623,7 @@ public class JSONWriter {
 
 		checkAndAppendInArray();
 		stringBuilder.append(value ? "true" : "false");
-		writeAfterComment(COMMENT_SLASH_STAR);;
+		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 
@@ -633,21 +635,21 @@ public class JSONWriter {
 		stringBuilder.append(quote);
 		stringBuilder.append(value);
 		stringBuilder.append(quote);
-		writeAfterComment(COMMENT_SLASH_STAR);;
+		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 
 	public JSONWriter add(float value) {
 		checkAndAppendInArray();
 		writeFloat(value);
-		writeAfterComment(COMMENT_SLASH_STAR);;
+		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 
 	public JSONWriter add(double value) {
 		checkAndAppendInArray();
 		writeDouble(value);
-		writeAfterComment(COMMENT_SLASH_STAR);;
+		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 
@@ -693,7 +695,7 @@ public class JSONWriter {
 
 		if(typeStack_.isEmpty()) {
 			stringBuilder.append(']');
-			writeBeforeComment(COMMENT_BEFORE_KEY);;
+			writeBeforeComment(COMMENT_BEFORE_KEY);
 			return this;
 		}
 
@@ -701,7 +703,7 @@ public class JSONWriter {
 			removeStack();
 		}
 		stringBuilder.append(']');
-		writeAfterComment(COMMENT_SLASH_STAR);;
+		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 

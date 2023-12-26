@@ -4,7 +4,9 @@ package com.clipsoft.cson;
 
 
 import com.clipsoft.cson.serializer.CSONSerializer;
+import com.clipsoft.cson.util.DataConverter;
 import com.clipsoft.cson.util.NoSynchronizedStringReader;
+import com.clipsoft.cson.util.NullValue;
 
 import java.io.Reader;
 import java.lang.reflect.Array;
@@ -490,7 +492,15 @@ public class CSONObject extends CSONElement implements Cloneable {
 		if(keyValueCommentMap == null) {
 			keyValueCommentMap = new LinkedHashMap<>();
 		}
-        return keyValueCommentMap.computeIfAbsent(key, k -> new KeyValueCommentObject());
+        //return keyValueCommentMap.computeIfAbsent(key, k -> new KeyValueCommentObject());
+		// for java1.6
+		KeyValueCommentObject keyValueCommentObject = keyValueCommentMap.get(key);
+		//noinspection Java8MapApi
+		if(keyValueCommentObject == null) {
+			keyValueCommentObject = new KeyValueCommentObject();
+			keyValueCommentMap.put(key, keyValueCommentObject);
+		}
+		return keyValueCommentObject;
 	}
 
 
@@ -626,7 +636,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		if(obj instanceof CSONArray) {
 			return (CSONArray)obj;
 		}
-		throw new CSONIndexNotFoundException();
+		throw new CSONIndexNotFoundException("key: " + key + ", value: " + obj);
 	}
 
 	/**
@@ -685,7 +695,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		if(obj instanceof CSONObject) {
 			return (CSONObject)obj;
 		}
-		throw new CSONIndexNotFoundException(key);
+		throw new CSONIndexNotFoundException("key: " + key + ", value: " + obj);
 	}
 
 
@@ -712,6 +722,36 @@ public class CSONObject extends CSONElement implements Cloneable {
 	@Deprecated
 	public CSONObject getObject(String key) {
 		return getCSONObject(key);
+	}
+
+	public <T> List<T> getList(String key, Class<T> clazz) {
+		CSONArray csonArray = getCSONArray(key);
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), false, null);
+	}
+
+	public <T> List<T> optList(String key, Class<T> clazz) {
+		CSONArray csonArray = optCSONArray(key);
+		if(csonArray == null) return null;
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), true, null);
+	}
+
+
+	public <T> List<T> optList(String key, Class<T> clazz, T defaultValue) {
+		CSONArray csonArray = optCSONArray(key);
+		if(csonArray == null) return null;
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), true, defaultValue);
+	}
+
+
+	@Override
+	public void setStringFormatOption(StringFormatOption defaultJSONOptions) {
+		super.setStringFormatOption(defaultJSONOptions);
+		for(Entry<String, Object> entry : dataMap.entrySet()) {
+			Object obj = entry.getValue();
+			if(obj instanceof CSONElement) {
+				((CSONElement) obj).setStringFormatOption(defaultJSONOptions);
+			}
+		}
 	}
 
 

@@ -3,23 +3,25 @@ package com.clipsoft.cson;
 public interface StringFormatOption {
 
 
-    final static StringFormatOption PURE_JSON = () -> StringFormatType.PureJSON;
+
+    StringFormatOption PURE_JSON = () -> StringFormatType.PureJSON;
+
     StringFormatType getFormatType();
 
 
-    public static JSONOptions json() {
+    static JSONOptions json() {
         return JSONOptions.json();
     }
 
-    public static JSONOptions jsonPretty() {
+    static JSONOptions jsonPretty() {
         return JSONOptions.json().setPretty(true);
     }
 
-    public static JSONOptions json5() {
+    static JSONOptions json5() {
         return JSONOptions.json5();
     }
 
-    public static StringFormatOption jsonPure() {
+    static StringFormatOption jsonPure() {
         return PURE_JSON;
     }
 

@@ -109,9 +109,10 @@ public abstract  class CSONElement {
 	protected abstract void write(JSONWriter writer, boolean root);
 
 
+	public abstract String toString(StringFormatOption option);
 
 
-	public enum ElementType { Object, Array;};
+	public enum ElementType { Object, Array}
 
 	private CSONElement mParents = null;
 	private byte[] versionRaw = BinaryCSONDataType.VER_RAW;

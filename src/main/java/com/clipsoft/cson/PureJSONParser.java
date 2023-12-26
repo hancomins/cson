@@ -1,6 +1,7 @@
 package com.clipsoft.cson;
 
 import com.clipsoft.cson.util.CharacterBuffer;
+import com.clipsoft.cson.util.NumberConversionUtil;
 
 import java.io.IOException;
 import java.io.Reader;
