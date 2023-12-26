@@ -333,9 +333,9 @@ dependencies {
     ```java
     CSONObject obj = new CSONObject();
     CSONArray users = new CSONArray();
-    for(int i = 0; i < 10; i++) {
-       CSONObject user = new CSONObject();
-       user.put("name", "name" + i);
+    for(int i = 0; i < 10; i++) { 
+       // The User class created in the previous example.
+       User user = new User("name" + i);
        users.put(user);
     }
     obj.put("users", users);
