@@ -59,6 +59,8 @@ public class CSONSerializer {
                 List<SchemaValueAbs> parentschemaField = schemaNode.getParentSchemaFieldList();
                 int nullCount = parentschemaField.size();
 
+                CSONElement csonElementValue = null;
+
                 // 부모 필드들의 값을 가져온다.
                 for(SchemaValueAbs parentSchemaValueAbs : parentschemaField) {
                     int id = parentSchemaValueAbs.getId();
@@ -77,12 +79,21 @@ public class CSONSerializer {
                             parentObj = parentSchemaValueAbs.getValue(grandObj);
                         }
                     }
-                    if(parentObj != null) {
+                    if(parentObj instanceof CSONElement) {
+                        if(csonElementValue instanceof CSONObject && parentObj instanceof CSONObject) {
+                            ((CSONObject) csonElementValue).merge((CSONObject) parentObj);
+                        } else if(csonElementValue instanceof CSONArray && parentObj instanceof CSONArray) {
+                            ((CSONArray) csonElementValue).merge((CSONArray) parentObj);
+                        }  else {
+                            csonElementValue = (CSONElement) parentObj;
+                        }
+                        nullCount--;
+                    }
+                    else if(parentObj != null) {
                         parentObjMap.put(id, parentObj);
                         nullCount--;
                     }
                 }
-
 
                 if(!schemaNode.isBranchNode() && nullCount > 0) {
                     if(key instanceof String) {
@@ -98,22 +109,35 @@ public class CSONSerializer {
                     if(key instanceof String) {
                         CSONObject currentObject = ((CSONObject)csonElement);
                         CSONElement childElement = currentObject.optCSONObject((String) key);
-                        if(childElement == null) {
-                            childElement =  (schemaNode instanceof SchemaArrayNode) ? new CSONArray() : new CSONObject();
-                            currentObject.put((String) key, childElement);
-                            currentObject.setCommentForKey((String) key, schemaNode.getComment());
-                            currentObject.setCommentAfterKey((String) key, schemaNode.getAfterComment());
-                            csonElement = childElement;
+                        if (childElement == null) {
+                            if(csonElementValue != null) {
+                                currentObject.put((String) key, csonElementValue);
+                                csonElement = csonElementValue;
+                            } else {
+                                childElement = (schemaNode instanceof SchemaArrayNode) ? new CSONArray() : new CSONObject();
+                                currentObject.put((String) key, childElement);
+                                currentObject.setCommentForKey((String) key, schemaNode.getComment());
+                                currentObject.setCommentAfterKey((String) key, schemaNode.getAfterComment());
+                                csonElement = childElement;
+                            }
                         }
+
                     } else {
-                        assert csonElement instanceof CSONArray;
+                        if(!(csonElement instanceof CSONArray)) {
+                            throw new CSONSerializerException("Invalide path. '" + key + "' is not array index." +  "(csonElement is not CSONArray. csonElement=" + csonElement +  ")");
+                        }
                         CSONArray currentObject = ((CSONArray)csonElement);
                         CSONArray currentArray = ((CSONArray)csonElement);
                         CSONElement childElement = (CSONElement) currentArray.opt((Integer) key);
                         if(childElement == null) {
-                            childElement =  (schemaNode instanceof SchemaArrayNode) ? new CSONArray() : new CSONObject();
-                            currentObject.set((int)key, childElement);
-                            csonElement = childElement;
+                            if(csonElementValue != null) {
+                                currentObject.set((int)key, csonElementValue);
+                                csonElement = csonElementValue;
+                            } else {
+                                childElement = (schemaNode instanceof SchemaArrayNode) ? new CSONArray() : new CSONObject();
+                                currentObject.set((int) key, childElement);
+                                csonElement = childElement;
+                            }
                         }
                     }
                     objectSerializeDequeueItems.add(new ObjectSerializeDequeueItem(iter, schemaNode, csonElement));

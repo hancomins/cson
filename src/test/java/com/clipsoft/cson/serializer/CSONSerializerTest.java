@@ -1,9 +1,6 @@
 package com.clipsoft.cson.serializer;
 
-import com.clipsoft.cson.CSONArray;
-import com.clipsoft.cson.CSONObject;
-import com.clipsoft.cson.JSONOptions;
-import com.clipsoft.cson.StringFormatOption;
+import com.clipsoft.cson.*;
 import org.junit.Test;
 
 import java.util.*;
@@ -863,11 +860,35 @@ public class CSONSerializerTest {
        //CSONSerializer.fromCSONObject(csonObject, parsedUsers);
 
 
-
-
-
-
    }
+
+   @CSON
+    public static class CSONElementInClass {
+       @CSONValue
+       private CSONObject csonObject = new CSONObject();
+
+       @CSONValue("ok[3]")
+       private CSONObject csonObject2 = new CSONObject();
+    }
+
+    @Test
+    public void csonElementInClassTest() {
+        CSONElementInClass csonElementInClass = new CSONElementInClass();
+        csonElementInClass.csonObject.put("name", "name");
+        csonElementInClass.csonObject2.put("name2", "name2");
+        CSONObject csonObject = CSONSerializer.toCSONObject(csonElementInClass);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+
+
+
+        CSONElementInClass parsedCSONObject = CSONObject.toObject(new CSONObject(csonObject.toString()), CSONElementInClass.class);
+
+
+        System.out.println(parsedCSONObject.csonObject);
+
+    }
+
+
 
 
 }

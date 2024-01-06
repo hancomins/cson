@@ -1,5 +1,7 @@
 package com.clipsoft.cson.serializer;
 
+import com.clipsoft.cson.CSONElement;
+
 public interface ISchemaValue extends ISchemaNode {
 
     Object getValue(Object parent);
@@ -11,6 +13,9 @@ public interface ISchemaValue extends ISchemaNode {
 
 
     static void assertValueType(Class<?> valueType, String parentPath) {
+        if(CSONElement.class.isAssignableFrom(valueType)) {
+            return;
+        }
         Types type = Types.of(valueType);
         if(valueType.isArray() && type != Types.ByteArray) {
             if(parentPath != null) {

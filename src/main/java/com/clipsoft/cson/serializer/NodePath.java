@@ -53,6 +53,7 @@ public class NodePath {
         Set<String> fieldPaths = new HashSet<>();
         List<SchemaValueAbs> results = new ArrayList<>();
         Class<?> currentClass = clazz;
+
         while(currentClass != Object.class) {
             for(Field field : currentClass.getDeclaredFields()) {
                 SchemaValueAbs fieldRack = SchemaValueAbs.of(typeElement,field);

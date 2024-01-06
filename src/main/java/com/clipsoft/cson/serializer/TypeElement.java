@@ -1,10 +1,34 @@
 package com.clipsoft.cson.serializer;
 
 
+import com.clipsoft.cson.CSONArray;
+import com.clipsoft.cson.CSONObject;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 
 class TypeElement {
+
+
+    protected static final TypeElement CSON_OBJECT;
+
+    static {
+        try {
+            CSON_OBJECT = new TypeElement(CSONObject.class, CSONObject.class.getConstructor());
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected static final TypeElement CSON_ARRAY;
+
+    static {
+        try {
+            CSON_ARRAY = new TypeElement(CSONArray.class, CSONArray.class.getConstructor());
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private final Class<?> type;
     private final Constructor<?> constructor;
@@ -24,6 +48,13 @@ class TypeElement {
     }
 
     protected static TypeElement create(Class<?> type) {
+        if(CSONObject.class.isAssignableFrom(type)) {
+            return CSON_OBJECT;
+        }
+        if(CSONArray.class.isAssignableFrom(type)) {
+            return CSON_ARRAY;
+        }
+
         checkCSONAnnotation(type);
         Constructor<?> constructor = null;
         try {
@@ -51,11 +82,15 @@ class TypeElement {
 
         this.constructor = constructor;
         CSON cson = type.getAnnotation(CSON.class);
-        String commentBefore = cson.comment();
-        String commentAfter = cson.commentAfter();
-        this.comment = commentBefore.isEmpty() ? null : commentBefore;
-        this.commentAfter = commentAfter.isEmpty() ? null : commentAfter;
-
+        if(cson != null) {
+            String commentBefore = cson.comment();
+            String commentAfter = cson.commentAfter();
+            this.comment = commentBefore.isEmpty() ? null : commentBefore;
+            this.commentAfter = commentAfter.isEmpty() ? null : commentAfter;
+        } else {
+            this.comment = null;
+            this.commentAfter = null;
+        }
     }
 
     Class<?> getType() {
