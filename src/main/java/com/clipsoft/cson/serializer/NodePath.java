@@ -38,7 +38,6 @@ public class NodePath {
                 objectNode.merge(elementNode);
                 continue;
             }
-
             SchemaElementNode elementNode = makeSubTree(path, fieldRack);
             objectNode.merge(elementNode);
         }

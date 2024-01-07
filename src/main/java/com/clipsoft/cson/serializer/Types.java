@@ -14,7 +14,8 @@ enum Types {
     Object,
     Map,
     BigDecimal,
-    CSONElement,
+    CSONObject,
+    CSONArray,
     Collection;
 
 
@@ -45,8 +46,10 @@ enum Types {
             return Double;
         } else if(type == java.math.BigDecimal.class) {
             return BigDecimal;
-        } else if(com.clipsoft.cson.CSONElement.class.isAssignableFrom(type)) {
-            return CSONElement;
+        } else if(com.clipsoft.cson.CSONObject.class.isAssignableFrom(type)) {
+            return CSONObject;
+        }  else if(com.clipsoft.cson.CSONArray.class.isAssignableFrom(type)) {
+            return CSONArray;
         }
         else if(type == boolean.class || type == Boolean.class) {
             return Boolean;

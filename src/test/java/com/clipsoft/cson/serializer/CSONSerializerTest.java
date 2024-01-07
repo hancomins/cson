@@ -864,27 +864,43 @@ public class CSONSerializerTest {
 
    @CSON
     public static class CSONElementInClass {
+        @CSONValue
+        private ArrayList<CSONArray> csonArrayInList = new ArrayList<>();
+
+
+       @CSONValue
+       private Map<String, CSONObject> csonObjectInMap = new HashMap<>();
+
+
        @CSONValue
        private CSONObject csonObject = new CSONObject();
 
-       @CSONValue("ok[3]")
-       private CSONObject csonObject2 = new CSONObject();
+
+       @CSONValue("ok[2]")
+       private CSONObject csonObjectInArray = new CSONObject();
+
     }
 
     @Test
     public void csonElementInClassTest() {
         CSONElementInClass csonElementInClass = new CSONElementInClass();
+
+        csonElementInClass.csonArrayInList.add(new CSONArray().put(new CSONObject().put("name1", "name1")));
+
+        csonElementInClass.csonObjectInMap.put("name2", new CSONObject().put("name2", "name2"));
+
+
         csonElementInClass.csonObject.put("name", "name");
-        csonElementInClass.csonObject2.put("name2", "name2");
+        csonElementInClass.csonObjectInArray.put("name3", "name3");
         CSONObject csonObject = CSONSerializer.toCSONObject(csonElementInClass);
         System.out.println(csonObject.toString(JSONOptions.json5()));
 
-
-
         CSONElementInClass parsedCSONObject = CSONObject.toObject(new CSONObject(csonObject.toString()), CSONElementInClass.class);
 
+        assertEquals(csonElementInClass.csonObject,  parsedCSONObject.csonObject);
 
-        System.out.println(parsedCSONObject.csonObject);
+
+        assertEquals(csonObject.toString(),CSONObject.fromObject(parsedCSONObject).toString());
 
     }
 

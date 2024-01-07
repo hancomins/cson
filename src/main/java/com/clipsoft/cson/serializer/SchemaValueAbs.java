@@ -1,5 +1,6 @@
 package com.clipsoft.cson.serializer;
 
+import com.clipsoft.cson.CSONArray;
 import com.clipsoft.cson.CSONElement;
 import com.clipsoft.cson.CSONObject;
 
@@ -76,10 +77,10 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
             ISchemaArrayValue thisArray = (ISchemaArrayValue) this;
             if(nodeArray.getCollectionItems().size() != thisArray.getCollectionItems().size()) {
                 //TODO 예외 발생 시켜야한다.
+                // TODO 이건 좀 고민중...
+                //return false;
             }
         }
-
-
         this.allSchemaValueAbsList.add(node);
         return true;
     }
@@ -154,6 +155,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     public Object getValue(Object parent) {
         Object value = null;
         int index = this.allSchemaValueAbsList.size() - 1;
+
         while(value == null && index > -1) {
             SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
             value = duplicatedSchemaValueAbs.onGetValue(parent);
@@ -169,9 +171,59 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
                 }
             }
             index--;
+
         }
         return value;
     }
+
+
+    /*
+    2024.01.08 동일한 path 의 CSONElement 가 여러개 있을 경우 merge 하도록 하는 코드.
+     추후 이 것을 구현해야 하는 상황이 생긴다면 주석을 해제하여 사용한다.
+    @Override
+    public Object getValue(Object parent) {
+        Object value = null;
+        int index = this.allSchemaValueAbsList.size() - 1;
+        boolean doContinue = true;
+        CSONElement lastCSONElement = null;
+        while(doContinue && index > -1) {
+            SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
+            if(type == Types.CSONElement && duplicatedSchemaValueAbs.type != Types.CSONElement) {
+                continue;
+            }
+
+            value = duplicatedSchemaValueAbs.onGetValue(parent);
+            if(value == null) {
+                index--;
+                continue;
+            }
+            if(!this.equalsValueType(duplicatedSchemaValueAbs)) {
+                if(this instanceof ISchemaArrayValue || this instanceof ISchemaMapValue) {
+                    return value;
+                } else {
+                    value = Utils.convertValue(value, duplicatedSchemaValueAbs.type);
+                }
+            }
+            index--;
+            if(type != Types.CSONElement && value != null) {
+                doContinue = false;
+            } else if(value instanceof CSONElement) {
+                if(lastCSONElement != null) {
+                    if(lastCSONElement instanceof  CSONObject && value instanceof  CSONObject) {
+                        ((CSONObject) lastCSONElement).merge((CSONObject) value);
+                        value = lastCSONElement;
+                    }
+                    else if(lastCSONElement instanceof CSONArray && value instanceof CSONArray) {
+                        ((CSONArray) lastCSONElement).merge((CSONArray) value);
+                        value = lastCSONElement;
+                    }
+                } else {
+                    lastCSONElement = (CSONElement) value;
+                }
+            }
+        }
+        return value;
+    }*/
 
     @Override
     public void setValue(Object parent, Object value) {

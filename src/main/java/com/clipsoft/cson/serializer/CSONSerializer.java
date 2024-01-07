@@ -4,6 +4,7 @@ import com.clipsoft.cson.*;
 import com.clipsoft.cson.util.DataConverter;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CSONSerializer {
 
@@ -59,8 +60,6 @@ public class CSONSerializer {
                 List<SchemaValueAbs> parentschemaField = schemaNode.getParentSchemaFieldList();
                 int nullCount = parentschemaField.size();
 
-                CSONElement csonElementValue = null;
-
                 // 부모 필드들의 값을 가져온다.
                 for(SchemaValueAbs parentSchemaValueAbs : parentschemaField) {
                     int id = parentSchemaValueAbs.getId();
@@ -79,17 +78,7 @@ public class CSONSerializer {
                             parentObj = parentSchemaValueAbs.getValue(grandObj);
                         }
                     }
-                    if(parentObj instanceof CSONElement) {
-                        if(csonElementValue instanceof CSONObject && parentObj instanceof CSONObject) {
-                            ((CSONObject) csonElementValue).merge((CSONObject) parentObj);
-                        } else if(csonElementValue instanceof CSONArray && parentObj instanceof CSONArray) {
-                            ((CSONArray) csonElementValue).merge((CSONArray) parentObj);
-                        }  else {
-                            csonElementValue = (CSONElement) parentObj;
-                        }
-                        nullCount--;
-                    }
-                    else if(parentObj != null) {
+                    if(parentObj != null) {
                         parentObjMap.put(id, parentObj);
                         nullCount--;
                     }
@@ -110,16 +99,11 @@ public class CSONSerializer {
                         CSONObject currentObject = ((CSONObject)csonElement);
                         CSONElement childElement = currentObject.optCSONObject((String) key);
                         if (childElement == null) {
-                            if(csonElementValue != null) {
-                                currentObject.put((String) key, csonElementValue);
-                                csonElement = csonElementValue;
-                            } else {
                                 childElement = (schemaNode instanceof SchemaArrayNode) ? new CSONArray() : new CSONObject();
                                 currentObject.put((String) key, childElement);
                                 currentObject.setCommentForKey((String) key, schemaNode.getComment());
                                 currentObject.setCommentAfterKey((String) key, schemaNode.getAfterComment());
                                 csonElement = childElement;
-                            }
                         }
 
                     } else {
@@ -130,14 +114,11 @@ public class CSONSerializer {
                         CSONArray currentArray = ((CSONArray)csonElement);
                         CSONElement childElement = (CSONElement) currentArray.opt((Integer) key);
                         if(childElement == null) {
-                            if(csonElementValue != null) {
-                                currentObject.set((int)key, csonElementValue);
-                                csonElement = csonElementValue;
-                            } else {
+
                                 childElement = (schemaNode instanceof SchemaArrayNode) ? new CSONArray() : new CSONObject();
                                 currentObject.set((int) key, childElement);
                                 csonElement = childElement;
-                            }
+
                         }
                     }
                     objectSerializeDequeueItems.add(new ObjectSerializeDequeueItem(iter, schemaNode, csonElement));
@@ -191,6 +172,7 @@ public class CSONSerializer {
         return root;
     }
 
+
     private static void putValueInCSONElement(CSONElement csonElement, ISchemaValue ISchemaValueAbs, Object key, Object value) {
         if(key instanceof String) {
             ((CSONObject) csonElement).put((String) key, value);
@@ -198,7 +180,10 @@ public class CSONSerializer {
             ((CSONObject) csonElement).setCommentAfterKey((String) key, ISchemaValueAbs.getAfterComment());
         }
         else {
-            assert csonElement instanceof CSONArray;
+            if(!(csonElement instanceof CSONArray)) {
+                throw new CSONSerializerException("Invalide path. '" + key + "' is not array index." +  "(csonElement is not CSONArray. csonElement=" + csonElement +  ")");
+            }
+
             ((CSONArray)csonElement).set((int)key, value);
             ((CSONArray)csonElement).setCommentForValue((int)key, ISchemaValueAbs.getComment()) ;
             ((CSONArray)csonElement).setCommentAfterValue((int)key, ISchemaValueAbs.getAfterComment());
@@ -461,6 +446,18 @@ public class CSONSerializer {
                     finalTarget.put(key, null);
                 }
             });
+        } else if(types == Types.CSONObject) {
+            csonObject.keySet().forEach(key -> {
+                CSONObject child = csonObject.optCSONObject(key, null);
+                if(child != null) finalTarget.put(key, child);
+                else finalTarget.put(key, null);
+            });
+        } else if(types == Types.CSONArray) {
+            csonObject.keySet().forEach(key -> {
+                CSONArray child = csonObject.optCSONArray(key, null);
+                if(child != null) finalTarget.put(key, child);
+                else finalTarget.put(key, null);
+            });
         }
 
         return target;
@@ -648,6 +645,12 @@ public class CSONSerializer {
             } else if(isArrayType ? ((CSONArray) cson).isNull((int)key) : ((CSONObject)cson).isNull((String)key)) {
                 schemaField.setValue(parents, null);
             }
+        } else if(Types.CSONObject == valueType) {
+            CSONObject value = isArrayType ? ((CSONArray) cson).optCSONObject((int)key) : ((CSONObject)cson).optCSONObject((String)key);
+            schemaField.setValue(parents, value);
+        } else if(Types.CSONArray == valueType) {
+            CSONArray value = isArrayType ? ((CSONArray) cson).optCSONArray((int)key) : ((CSONObject)cson).optCSONArray((String)key);
+            schemaField.setValue(parents, value);
         }
         else {
             try {
@@ -681,6 +684,10 @@ public class CSONSerializer {
                 return csonArray.optChar(index, '\0');
             case String:
                 return csonArray.optString(index);
+            case CSONArray:
+                return csonArray.optCSONArray(index);
+            case CSONObject:
+                return csonArray.optCSONObject(index);
             case Object:
                 CSONObject csonObject = csonArray.optCSONObject(index);
                 if(csonObject != null) {
