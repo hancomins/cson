@@ -21,12 +21,7 @@ class TypeElements {
     }
 
     TypeElement getTypeInfo(Class<?> type) {
-        TypeElement typeInfo = typeInfoMap.get(type);
-        if(typeInfo == null) {
-            typeInfo = TypeElement.create(type);
-            typeInfoMap.put(type, typeInfo);
-        }
-        return typeInfo;
+        return typeInfoMap.computeIfAbsent(type, TypeElement::create);
     }
 
 

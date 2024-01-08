@@ -1,5 +1,7 @@
 package com.clipsoft.cson.serializer;
 
+import com.clipsoft.cson.CSONElement;
+
 import java.lang.reflect.Field;
 import java.util.*;
 

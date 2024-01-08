@@ -31,6 +31,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     }
 
 
+
     @Override
     boolean equalsValueType(SchemaValueAbs schemaValueAbs) {
         if(!(schemaValueAbs instanceof ISchemaMapValue)) {

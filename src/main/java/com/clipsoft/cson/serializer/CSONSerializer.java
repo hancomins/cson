@@ -499,6 +499,7 @@ public class CSONSerializer {
         while(iter.hasNext()) {
             Object key = iter.next();
             ISchemaNode node = schemaNode.get(key);
+            CSONElement parentsCSON = csonElement;
             if(node instanceof SchemaElementNode) {
                 boolean nullValue = false;
                 CSONElement childElement = getChildElement((SchemaElementNode) node, csonElement, key);
@@ -523,11 +524,12 @@ public class CSONSerializer {
                         }
                     }
                 }
+
                 csonElement = childElement;
                 schemaNode = (SchemaObjectNode)node;
                 List<SchemaValueAbs> parentSchemaFieldList = schemaNode.getParentSchemaFieldList();
                 for(SchemaValueAbs parentSchemaField : parentSchemaFieldList) {
-                    getOrCreateParentObject(parentSchemaField, parentObjMap, targetObject, nullValue);
+                    getOrCreateParentObject(parentSchemaField, parentObjMap, targetObject, nullValue, parentsCSON);
                 }
                 iter = schemaNode.keySet().iterator();
                 currentObjectSerializeDequeueItem = new ObjectSerializeDequeueItem(iter, schemaNode, csonElement);
@@ -537,7 +539,7 @@ public class CSONSerializer {
                 SchemaValueAbs schemaField = (SchemaValueAbs) node;
                 SchemaValueAbs parentField = schemaField.getParentField();
                 if(csonElement != null) {
-                    Object obj = getOrCreateParentObject(parentField, parentObjMap, targetObject);
+                    Object obj = getOrCreateParentObject(parentField, parentObjMap, targetObject, parentsCSON);
                     setValueTargetFromCSONObjects(obj, schemaField, csonElement, key);
                 }
             }
@@ -554,11 +556,11 @@ public class CSONSerializer {
         return targetObject;
     }
 
-    private static Object getOrCreateParentObject(SchemaValueAbs parentSchemaField, HashMap<Integer, Object> parentObjMap, Object root) {
-        return getOrCreateParentObject(parentSchemaField, parentObjMap, root, false);
+    private static Object getOrCreateParentObject(SchemaValueAbs parentSchemaField, HashMap<Integer, Object> parentObjMap, Object root, CSONElement csonElement) {
+        return getOrCreateParentObject(parentSchemaField, parentObjMap, root, false, csonElement);
     }
 
-    private static Object getOrCreateParentObject(SchemaValueAbs parentSchemaField, HashMap<Integer, Object> parentObjMap, Object root, boolean setNull) {
+    private static Object getOrCreateParentObject(SchemaValueAbs parentSchemaField, HashMap<Integer, Object> parentObjMap, Object root, boolean setNull, CSONElement csonElement) {
         if(parentSchemaField == null) return root;
 
         int id = parentSchemaField.getId();
@@ -581,7 +583,12 @@ public class CSONSerializer {
                 schemaField.setValue(parent, null);
            }
            else if(!setNull && child == null) {
-                child = schemaField.newInstance();
+               if(schemaField instanceof SchemaFieldNormal) {
+                   child = ((SchemaFieldNormal)schemaField).obtainObject(parent, csonElement);
+               }
+               if(child == null)
+                   child = schemaField.newInstance();
+
                 parentObjMap.put(parentId, child);
                 schemaField.setValue(parent, child);
            }

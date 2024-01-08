@@ -905,6 +905,69 @@ public class CSONSerializerTest {
     }
 
 
+    @CSON
+    public static interface InterfaceTest {
+        @CSONValueGetter
+        String getName();
+
+        @CSONValueSetter
+        void setName(String name);
+
+    }
+
+    @CSON
+    public static class GenericClassTest<T extends  InterfaceTest> {
+        @CSONValue
+        private T value;
+
+
+        private String namename;
+
+        @ObjectObtainor(fieldName = "value")
+        public T getValue(CSONElement csonElement) {
+            return (T) new InterfaceTest() {
+                @Override
+                public String getName() {
+                    return System.currentTimeMillis() + "";
+                }
+
+                @Override
+                public void setName(String name) {
+                    namename = name;
+
+                }
+            };
+        }
+
+
+        private String name = "";
+    }
+
+
+    @Test
+    public void genericClassTest2() {
+        GenericClassTest<InterfaceTest> genericClassTest = new GenericClassTest<>();
+        genericClassTest.value = new InterfaceTest() {
+            @Override
+            public String getName() {
+                return System.currentTimeMillis() + "";
+            }
+
+            @Override
+            public void setName(String name) {
+                genericClassTest.name = name;
+            }
+        };
+        CSONObject csonObject = CSONSerializer.toCSONObject(genericClassTest);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+
+        GenericClassTest<InterfaceTest> parsertObject = CSONSerializer.fromCSONObject(csonObject, GenericClassTest.class);
+
+    }
+
+
+
+
 
 
 }

@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 public abstract class SchemaField extends SchemaValueAbs {
 
     final Field field;
+    final String fieldName;
 
     final String comment;
     final String afterComment;
@@ -15,6 +16,7 @@ public abstract class SchemaField extends SchemaValueAbs {
     SchemaField(TypeElement parentsTypeElement, Field field, String path) {
         super(parentsTypeElement, path, field.getType());
         this.field = field;
+        this.fieldName = field.getName();
         field.setAccessible(true);
 
 

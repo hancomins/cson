@@ -1,8 +1,8 @@
 package com.clipsoft.cson.serializer;
 
-import com.clipsoft.cson.CSONArray;
+
 import com.clipsoft.cson.CSONElement;
-import com.clipsoft.cson.CSONObject;
+
 
 import java.lang.reflect.Method;
 
@@ -92,6 +92,15 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     }
 
 
+
+
+    Object newInstance() {
+        if(objectTypeElement == null) return null;
+        return objectTypeElement.newInstance();
+    }
+
+
+
     SchemaValueAbs(TypeElement parentsTypeElement, String path, Class<?> valueTypeClass) {
 
         this.path = path;
@@ -112,10 +121,6 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     }
 
 
-    Object newInstance() {
-        if(objectTypeElement == null) return null;
-        return objectTypeElement.newInstance();
-    }
 
 
     boolean isPrimitive() {
@@ -143,6 +148,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     final <T extends SchemaValueAbs> T getParentField() {
         return (T) parentFieldRack;
     }
+
 
 
 

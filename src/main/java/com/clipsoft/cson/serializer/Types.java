@@ -16,7 +16,8 @@ enum Types {
     BigDecimal,
     CSONObject,
     CSONArray,
-    Collection;
+    Collection,
+    DynamicType;
 
 
 
@@ -64,6 +65,8 @@ enum Types {
             return ByteArray;
         } else if(java.util.Collection.class.isAssignableFrom(type)) {
             return Collection;
+        } else if(java.lang.Object.class == type) {
+            return DynamicType;
         } else {
             return Object;
         }

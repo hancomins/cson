@@ -53,26 +53,34 @@ public class NodePath {
         List<SchemaValueAbs> results = new ArrayList<>();
         Class<?> currentClass = clazz;
 
-        while(currentClass != Object.class) {
-            for(Field field : currentClass.getDeclaredFields()) {
-                SchemaValueAbs fieldRack = SchemaValueAbs.of(typeElement,field);
-                if(fieldRack != null  /* && !fieldPaths.contains(fieldRack.getPath()) */ ) {
-                    // 동일한 path 가 있으면 거른다.
-                    fieldPaths.add(fieldRack.getPath());
-                    results.add(fieldRack);
+        while(currentClass != Object.class && currentClass != null) {
+            Field[] fields = currentClass.getDeclaredFields();
+            Method[] methods = currentClass.getDeclaredMethods();
+            if(fields != null) {
+                for (Field field : fields) {
+                    SchemaValueAbs fieldRack = SchemaValueAbs.of(typeElement, field);
+                    if (fieldRack != null  /* && !fieldPaths.contains(fieldRack.getPath()) */) {
+                        // 동일한 path 가 있으면 거른다.
+                        fieldPaths.add(fieldRack.getPath());
+                        results.add(fieldRack);
+                    }
                 }
             }
-            for(Method method : currentClass.getDeclaredMethods()) {
-                SchemaValueAbs methodRack = SchemaValueAbs.of(typeElement,method);
-                if(methodRack != null) {
-                    fieldPaths.add(methodRack.getPath());
-                    results.add(methodRack);
+            if(methods != null) {
+                for(Method method : methods) {
+                    SchemaValueAbs methodRack = SchemaValueAbs.of(typeElement,method);
+                    if(methodRack != null) {
+                        fieldPaths.add(methodRack.getPath());
+                        results.add(methodRack);
+                    }
                 }
             }
+
             currentClass = currentClass.getSuperclass();
         }
         return results;
     }
+
 
 
 
