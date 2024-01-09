@@ -3,6 +3,7 @@ package com.clipsoft.cson.serializer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -16,6 +17,11 @@ interface ISchemaArrayValue extends ISchemaValue {
 
      List<CollectionItems> getCollectionItems();
 
+     default boolean isGenericTypeValue() {
+         int size = getCollectionItems().size();
+         CollectionItems collectionItems = getCollectionItems().get(size - 1);
+         return collectionItems.isGeneric;
+     }
 
 
 
@@ -74,6 +80,13 @@ interface ISchemaArrayValue extends ISchemaValue {
             CollectionItems collectionBundle = new CollectionItems(parameterizedType);
             collectionBundles.add(collectionBundle);
             return getGenericType(collectionBundles,parameterizedType, path);
+        }
+        else if(fieldArgTypes[0] instanceof TypeVariable) {
+            CollectionItems collectionItems = collectionBundles.get(collectionBundles.size() - 1);
+            collectionItems.isGeneric = true;
+            collectionItems.genericTypeName = ((TypeVariable) fieldArgTypes[0]).getName();
+            collectionItems.valueClass = Object.class;
+            return collectionBundles;
         }
         else {
             throw new CSONObjectException("Invalid collection or RAW type. Collections must use <generic> types. (path: " + path + ")");

@@ -11,12 +11,15 @@ public interface ISchemaValue extends ISchemaNode {
     String getComment();
     String getAfterComment();
 
-
     static void assertValueType(Class<?> valueType, String parentPath) {
+        assertValueType(valueType, Types.of(valueType), parentPath);
+    }
+
+    static void assertValueType(Class<?> valueType,Types type, String parentPath) {
         if(CSONElement.class.isAssignableFrom(valueType)) {
             return;
         }
-        Types type = Types.of(valueType);
+
         if(valueType.isArray() && type != Types.ByteArray) {
             if(parentPath != null) {
                 throw new CSONObjectException("Array type '" + valueType.getName() + "' is not supported");

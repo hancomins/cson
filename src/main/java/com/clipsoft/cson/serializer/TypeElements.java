@@ -21,6 +21,10 @@ class TypeElements {
     }
 
     TypeElement getTypeInfo(Class<?> type) {
+        // 익명 클래스는 캐시하지 않는다.
+        if(type.isAnonymousClass()) {
+            return TypeElement.create(type);
+        }
         return typeInfoMap.computeIfAbsent(type, TypeElement::create);
     }
 

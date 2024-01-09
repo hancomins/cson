@@ -3,6 +3,7 @@ package com.clipsoft.cson.serializer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.*;
 
 class CollectionItems {
@@ -38,10 +39,17 @@ class CollectionItems {
         } else {
             this.valueClass = null;
         }
+        this.genericTypeName = "";
     }
+
+
+
+
     protected final Constructor<? extends Collection<?>> collectionConstructor;
     protected final Class<?> collectionType;
     protected Class<?> valueClass;
+    protected boolean isGeneric = false;
+    protected String genericTypeName;
 
 
 

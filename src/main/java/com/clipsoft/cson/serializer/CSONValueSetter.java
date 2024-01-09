@@ -10,4 +10,6 @@ import java.lang.annotation.Target;
 public @interface CSONValueSetter {
     String value() default "";
     String key () default "";
+
+    boolean ignoreError() default false;
 }

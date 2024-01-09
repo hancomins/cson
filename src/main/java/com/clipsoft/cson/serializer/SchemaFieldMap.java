@@ -1,24 +1,34 @@
 package com.clipsoft.cson.serializer;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.*;
 
 class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
 
     private final Constructor<?> constructorMap;
     private final Class<?> elementClass;
+    private final boolean isGenericTypeValue;
+    private TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
     SchemaFieldMap(TypeElement parentsTypeElement, Field field, String path) {
         super(parentsTypeElement, field, path);
 
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
         Type genericType = field.getGenericType();
-        Map.Entry<Class<?>, Class<?>> entry = ISchemaMapValue.readKeyValueGenericType(genericType, fieldPath);
+        Map.Entry<Class<?>, Type> entry = ISchemaMapValue.readKeyValueGenericType(genericType, fieldPath);
         Class<?> keyClass = entry.getKey();
-        this.elementClass = entry.getValue();
-        if(elementClass != null) {
+        Type valueType = entry.getValue();
+        boolean isGenericValue = false;
+        if(valueType instanceof Class<?>) {
+            this.elementClass = (Class<?>)valueType;
+        } else if(valueType instanceof TypeVariable) {
+            this.elementClass = Object.class;
+            obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(field.getName());
+            isGenericValue = true;
+        } else {
+            this.elementClass = null;
+        }
+        isGenericTypeValue = isGenericValue;
+        if(elementClass != null && !isGenericValue) {
             ISchemaValue.assertValueType(elementClass, fieldPath);
         }
         ISchemaMapValue.assertCollectionOrMapValue(elementClass,fieldPath);
@@ -60,6 +70,20 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         }
     }
 
+    @Override
+    public boolean isGenericValue() {
+        return isGenericTypeValue;
+    }
+
+    @Override
+    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+        return obtainTypeValueInvoker;
+    }
+
+    @Override
+    public String targetPath() {
+        return field.getDeclaringClass().getName() + "." + field.getName();
+    }
 
     @SuppressWarnings("unchecked")
 

@@ -8,6 +8,10 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ObjectObtainor {
-    String fieldName();
+public @interface ObtainTypeValue {
+
+    String value() default "";
+    String[] fieldNames() default  {};
+
+    boolean ignoreError() default false;
 }

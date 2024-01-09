@@ -1,12 +1,13 @@
 package com.clipsoft.cson.serializer;
 
 
-import com.clipsoft.cson.CSONElement;
+import com.clipsoft.cson.CSONObject;
 
-
+import java.lang.reflect.TypeVariable;
 import java.lang.reflect.Method;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,7 +21,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     final TypeElement objectTypeElement;
 
     final String path;
-    final Types type;
+    private Types type;
 
     private final boolean isPrimitive;
 
@@ -101,16 +102,30 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
 
-    SchemaValueAbs(TypeElement parentsTypeElement, String path, Class<?> valueTypeClass) {
+    SchemaValueAbs(TypeElement parentsTypeElement, String path, Class<?> valueTypeClass, Type genericType) {
 
         this.path = path;
         this.valueTypeClass = valueTypeClass;
         this.parentsTypeElement = parentsTypeElement;
-        this.type = Types.of(valueTypeClass);
 
+
+        Types type = Types.Object;
+        if(genericType instanceof TypeVariable && parentsTypeElement != null) {
+            TypeVariable typeVariable = (TypeVariable)genericType;
+            if(parentsTypeElement.containsGenericType(typeVariable.getName())) {
+                type = Types.GenericType;
+            }
+        } else {
+            type = Types.of(valueTypeClass);
+        }
+        this.type = type;
 
         if(this.type == Types.Object) {
-            this.objectTypeElement = TypeElements.getInstance().getTypeInfo(valueTypeClass);
+            try {
+                this.objectTypeElement = TypeElements.getInstance().getTypeInfo(valueTypeClass);
+            } catch (CSONSerializerException e) {
+                throw new CSONSerializerException("A type that cannot be used as a serialization object : " + valueTypeClass.getName() + ". (path: " + parentsTypeElement.getType().getName() + "." + path + ")", e);
+            }
         }
         else {
             this.objectTypeElement = null;
@@ -122,6 +137,14 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
 
+
+    final Types types() {
+        return type;
+    }
+
+    void changeType(Types type) {
+        this.type = type;
+    }
 
     boolean isPrimitive() {
         return isPrimitive;
@@ -164,7 +187,17 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
         while(value == null && index > -1) {
             SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
+
             value = duplicatedSchemaValueAbs.onGetValue(parent);
+            if(value != null && duplicatedSchemaValueAbs.getType() == Types.GenericType) {
+                Types inType = Types.of(value.getClass());
+                if(Types.isSingleType(inType)) {
+                    return value;
+                } else {
+                    return CSONObject.fromObject(value);
+                }
+            }
+
             if(value == null) {
                 index--;
                 continue;

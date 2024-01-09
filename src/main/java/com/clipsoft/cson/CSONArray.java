@@ -48,6 +48,11 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 
 
+
+
+
+
+
 	public CSONArray(StringFormatOption stringFormatOption) {
 		super(ElementType.Object);
 		this.defaultJSONOptions = stringFormatOption;

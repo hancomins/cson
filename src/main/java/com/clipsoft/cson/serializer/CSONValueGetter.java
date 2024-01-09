@@ -12,4 +12,7 @@ public @interface CSONValueGetter {
     String key() default "";
     String comment() default "";
     String commentAfterKey() default "";
+
+    boolean ignoreError() default false;
+
 }

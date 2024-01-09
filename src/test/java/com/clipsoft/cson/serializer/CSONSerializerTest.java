@@ -879,6 +879,19 @@ public class CSONSerializerTest {
        @CSONValue("ok[2]")
        private CSONObject csonObjectInArray = new CSONObject();
 
+
+       private CSONArray consObjectBySetterGetter = new CSONArray();
+
+       @CSONValueSetter("consObjectBySetterGetter")
+       public void setConsObjectBySetterGetter(CSONArray csonObjectInArray) {
+           consObjectBySetterGetter = (CSONArray)csonObjectInArray;
+       }
+
+       @CSONValueGetter("consObjectBySetterGetter")
+       public CSONArray getConsObjectBySetterGetter() {
+            return new CSONArray().put(1).put(2);
+       }
+
     }
 
     @Test
@@ -888,12 +901,15 @@ public class CSONSerializerTest {
         csonElementInClass.csonArrayInList.add(new CSONArray().put(new CSONObject().put("name1", "name1")));
 
         csonElementInClass.csonObjectInMap.put("name2", new CSONObject().put("name2", "name2"));
-
+        //csonElementInClass.consObjectBySetterGetter = new CSONObject().put("1234", "5678");
 
         csonElementInClass.csonObject.put("name", "name");
         csonElementInClass.csonObjectInArray.put("name3", "name3");
         CSONObject csonObject = CSONSerializer.toCSONObject(csonElementInClass);
         System.out.println(csonObject.toString(JSONOptions.json5()));
+
+        assertEquals(csonObject.getCSONArray("consObjectBySetterGetter"), new CSONArray().put(1,2));
+
 
         CSONElementInClass parsedCSONObject = CSONObject.toObject(new CSONObject(csonObject.toString()), CSONElementInClass.class);
 
@@ -901,6 +917,12 @@ public class CSONSerializerTest {
 
 
         assertEquals(csonObject.toString(),CSONObject.fromObject(parsedCSONObject).toString());
+
+
+        csonObject.optCSONArray("consObjectBySetterGetter").put(1,2);
+        parsedCSONObject = CSONObject.toObject(new CSONObject(csonObject.toString()), CSONElementInClass.class);
+
+        assertEquals( new CSONArray().put(1,2,1,2),parsedCSONObject.consObjectBySetterGetter);
 
     }
 
@@ -916,6 +938,11 @@ public class CSONSerializerTest {
     }
 
     @CSON
+    public static interface InterfaceTestText extends InterfaceTest {
+
+    }
+
+    @CSON
     public static class GenericClassTest<T extends  InterfaceTest> {
         @CSONValue
         private T value;
@@ -923,8 +950,8 @@ public class CSONSerializerTest {
 
         private String namename;
 
-        @ObjectObtainor(fieldName = "value")
-        public T getValue(CSONElement csonElement) {
+        @ObtainTypeValue
+        public T getValue(CSONObject all, CSONObject value) {
             return (T) new InterfaceTest() {
                 @Override
                 public String getName() {
@@ -944,6 +971,106 @@ public class CSONSerializerTest {
     }
 
 
+
+
+
+    @CSON
+    public static class ObjGenericClassTest<TV , IV> {
+
+
+        @CSONValue
+        public TV value;
+        @CSONValue
+        public List<HashSet<TV>> values = new ArrayList<>();
+        @CSONValue
+        public Map<String, TV> Maps = new HashMap<>();
+
+        public List<String> setNames = new ArrayList<>();
+
+        @CSONValue
+        public Map<String, IV> intMaps = new HashMap<>();
+
+        @CSONValueSetter
+        public void setOK(TV ok) {
+            value = ok;
+        }
+
+        @ObtainTypeValue("intMaps")
+        public int getIntValue(CSONObject csonElement, CSONObject value) {
+            return csonElement.getInt("$value");
+
+        }
+        @ObtainTypeValue(fieldNames = {"Maps", "values", "value", "setOk"})
+        public TV getValue(CSONObject all, CSONObject value) {
+            return (TV) new InterfaceTest() {
+                String name = System.currentTimeMillis() + "";
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public void setName(String name) {
+                    this.name = name;
+                }
+            };
+        }
+
+        private String name = "";
+    }
+
+
+    @Test
+    public void objGenericClassTest1() {
+        ObjGenericClassTest<InterfaceTestText, Integer> genericClassTest = new ObjGenericClassTest<>();
+        genericClassTest.value = new InterfaceTestText() {
+            @Override
+            public String getName() {
+                return System.currentTimeMillis() + "";
+            }
+
+            @Override
+            public void setName(String name) {
+                genericClassTest.name = name;
+            }
+        };
+
+        for(int i = 0; i < 5; ++i) {
+            final int count = i;
+            genericClassTest.intMaps.put(i + "", i);
+            InterfaceTestText text = new InterfaceTestText() {
+                @Override
+                public String getName() {
+                    return count + "";
+                }
+
+                @Override
+                public void setName(String name) {
+                    genericClassTest.setNames.add(name);
+                }
+            };
+            HashSet<InterfaceTestText> set = new HashSet<>();
+            set.add(text);
+            genericClassTest.values.add(set);
+            genericClassTest.Maps.put(i + "", text);
+        }
+
+        CSONObject csonObject = CSONSerializer.toCSONObject(genericClassTest);
+        System.out.println(csonObject.toString());
+
+        ObjGenericClassTest<InterfaceTest, Integer> parsertObject = CSONSerializer.fromCSONObject(csonObject, ObjGenericClassTest.class);
+
+
+
+
+        assertEquals( csonObject.toString(),CSONObject.fromObject(parsertObject).toString());
+
+        System.out.println(CSONObject.fromObject(parsertObject));
+
+
+    }
+
     @Test
     public void genericClassTest2() {
         GenericClassTest<InterfaceTest> genericClassTest = new GenericClassTest<>();
@@ -962,6 +1089,7 @@ public class CSONSerializerTest {
         System.out.println(csonObject.toString(JSONOptions.json5()));
 
         GenericClassTest<InterfaceTest> parsertObject = CSONSerializer.fromCSONObject(csonObject, GenericClassTest.class);
+
 
     }
 

@@ -12,15 +12,27 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     private final List<CollectionItems> collectionBundles;
     protected final Types ValueType;
     private final TypeElement objectValueTypeElement;
-
+    private final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
 
     protected SchemaFieldArray(TypeElement typeElement, Field field, String path) {
         super(typeElement, field, path);
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
         this.collectionBundles = ISchemaArrayValue.getGenericType(field.getGenericType(), fieldPath);
 
-        Class<?> valueClass = this.collectionBundles.get(collectionBundles.size() - 1).valueClass;
-        ValueType = Types.of(valueClass);
+        obtainTypeValueInvoker = typeElement.findObtainTypeValueInvoker(field.getName());
+
+        CollectionItems collectionItems = this.collectionBundles.get(collectionBundles.size() - 1);
+        Class<?> valueClass = collectionItems.valueClass;
+        Types valueType = Types.of(valueClass);
+
+        if(collectionItems.isGeneric) {
+            if(!typeElement.containsGenericType(collectionItems.genericTypeName)) {
+                throw new CSONSerializerException("Collection generic type is already defined. (path: " + fieldPath + ")");
+            }
+            valueType = Types.GenericType;
+        }
+        ValueType = valueType;
+
         if (ValueType == Types.Object) {
             objectValueTypeElement = TypeElements.getInstance().getTypeInfo(valueClass);
         } else {
@@ -39,6 +51,11 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     @Override
     public List<CollectionItems> getCollectionItems() {
         return collectionBundles;
+    }
+
+    @Override
+    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+        return obtainTypeValueInvoker;
     }
 
 
@@ -72,4 +89,9 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
         return super.equalsValueType(schemaValueAbs);
     }
 
+
+    @Override
+    public String targetPath() {
+        return field.getDeclaringClass().getName() + "." + field.getName();
+    }
 }

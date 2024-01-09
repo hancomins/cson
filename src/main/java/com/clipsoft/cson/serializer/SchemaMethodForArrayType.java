@@ -1,5 +1,7 @@
 package com.clipsoft.cson.serializer;
 
+import com.clipsoft.cson.CSONArray;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Collection;
@@ -8,16 +10,25 @@ import java.util.List;
 class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue {
 
 
+
+
     @SuppressWarnings("DuplicatedCode")
     static boolean isCollectionTypeParameterOrReturns(Method method) {
         CSONValueGetter getter = method.getAnnotation(CSONValueGetter.class);
         CSONValueSetter setter = method.getAnnotation(CSONValueSetter.class);
-        if(getter != null && Collection.class.isAssignableFrom(method.getReturnType())) {
+        if(getter != null && CSONArray.class.isAssignableFrom(method.getReturnType())) {
+            return false;
+        }
+        else if(getter != null && Collection.class.isAssignableFrom(method.getReturnType())) {
             return true;
         }
         Class<?>[] types = method.getParameterTypes();
-        if(setter != null && types.length == 1 && Collection.class.isAssignableFrom(types[0])) {
-            return true;
+        if(setter != null && types.length == 1) {
+            if(CSONArray.class.isAssignableFrom(types[0])) {
+                return false;
+            } else if(Collection.class.isAssignableFrom(types[0])) {
+                return true;
+            }
         }
         return false;
     }
@@ -25,6 +36,7 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
     private final List<CollectionItems> collectionBundles;
     protected final Types endpointValueType;
     private final TypeElement objectValueTypeElement;
+    private final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
 
     SchemaMethodForArrayType(TypeElement parentsTypeElement, Method method) {
         super(parentsTypeElement, method);
@@ -38,6 +50,8 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
         else {
             methodPath += "(" + method.getParameterTypes()[0].getName() + ") <return: " + method.getReturnType().getName() + ">";
         }
+
+        obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(method.getName());
 
         this.collectionBundles = ISchemaArrayValue.getGenericType(genericFieldType, methodPath);
         Class<?> valueClass = this.collectionBundles.get(collectionBundles.size() - 1).valueClass;
@@ -67,6 +81,10 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
         return collectionBundles;
     }
 
+    @Override
+    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+        return obtainTypeValueInvoker;
+    }
 
 
     @Override

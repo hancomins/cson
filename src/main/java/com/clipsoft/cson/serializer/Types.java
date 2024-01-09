@@ -14,10 +14,11 @@ enum Types {
     Object,
     Map,
     BigDecimal,
+    CSONElement,
     CSONObject,
     CSONArray,
     Collection,
-    DynamicType;
+    GenericType;
 
 
 
@@ -27,6 +28,10 @@ enum Types {
 
     static boolean isSingleType(Types type) {
         return type == Byte || type == Short || type == Integer || type == Long || type == Float || type == Double || type == Boolean || type == Character || type == String || type == ByteArray || type == BigDecimal;
+    }
+
+    static boolean isCsonType(Types type) {
+        return type == CSONElement || type == CSONObject || type == CSONArray;
     }
 
 
@@ -49,8 +54,10 @@ enum Types {
             return BigDecimal;
         } else if(com.clipsoft.cson.CSONObject.class.isAssignableFrom(type)) {
             return CSONObject;
-        }  else if(com.clipsoft.cson.CSONArray.class.isAssignableFrom(type)) {
+        } else if(com.clipsoft.cson.CSONArray.class.isAssignableFrom(type)) {
             return CSONArray;
+        } else if(com.clipsoft.cson.CSONElement.class.isAssignableFrom(type)) {
+            return CSONElement;
         }
         else if(type == boolean.class || type == Boolean.class) {
             return Boolean;
@@ -65,9 +72,7 @@ enum Types {
             return ByteArray;
         } else if(java.util.Collection.class.isAssignableFrom(type)) {
             return Collection;
-        } else if(java.lang.Object.class == type) {
-            return DynamicType;
-        } else {
+        }  else {
             return Object;
         }
     }
