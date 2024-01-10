@@ -10,8 +10,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ObtainTypeValue {
 
-    String value() default "";
     String[] fieldNames() default  {};
+    String[] setterMethodNames() default  {};
 
     boolean ignoreError() default false;
 }

@@ -418,6 +418,13 @@ public class CSONSerializer {
     }
 
 
+    /**
+     * CSONObject 를 Map<String, T> 로 변환한다.
+     * @param csonObject 변환할 CSONObject
+     * @param valueType Map 의 value 타입 클래스
+     * @return 변환된 Map
+     * @param <T> Map 의 value 타입
+     */
     @SuppressWarnings({"unchecked", "unused"})
     public static <T> Map<String, T> fromCSONObjectToMap(CSONObject csonObject, Class<T> valueType) {
         Types types = Types.of(valueType);
@@ -651,10 +658,13 @@ public class CSONSerializer {
         }
     }
 
-    private static Object injectValueOfGenericType(Object value, CSONElement cson) {
+    private static Object injectValueOfGenericType_(Object value, CSONElement cson) {
+        if(value == null) return null;
+        Class<?> valueClas = value.getClass();
         Types realType = Types.of(value.getClass());
         if(Types.isSingleType(realType) || Types.isCsonType(realType)) {
-            return value;
+            Object singleValue = ((CSONObject)cson).opt("$value");
+            return DataConverter.convertValue(valueClas, singleValue);
         } else if(Types.Object == realType) {
             CSONObject csonObj = cson instanceof CSONObject ? (CSONObject) cson : null;
             if(csonObj != null) {
@@ -694,7 +704,7 @@ public class CSONSerializer {
                 schemaField.setValue(parents, null);
             }
             else if(val instanceof CSONElement) {
-                Object value = injectValueOfGenericType(obj, (CSONElement)val);
+                Object value = injectValueOfGenericType_(obj, (CSONElement)val);
                 schemaField.setValue(parents, value);
             } else {
                 schemaField.setValue(parents, obj);
@@ -760,26 +770,21 @@ public class CSONSerializer {
     }
 
 
-    private static OnObtainTypeValue makeOnObtainTypeValue(ObtainTypeValueInvokerGetter obtainTypeValueInvokerGetter, Object parents, CSONObject root) {
-        return   (csonObjectOrValue) -> {
-
+    private static OnObtainTypeValue makeOnObtainTypeValue(ObtainTypeValueInvokerGetter obtainTypeValueInvokerGetter,Object parents, CSONObject root) {
+        return (csonObjectOrValue) -> {
             TypeElement.ObtainTypeValueInvoker invoker = obtainTypeValueInvokerGetter.getObtainTypeValueInvoker();
-
-            // TODO 옵션처리 권장.
-            if(invoker == null) {
+            if(invoker == null ) {
+                if(obtainTypeValueInvokerGetter.isIgnoreError()) {
+                    return null;
+                }
                 throw new CSONSerializerException("Generic types must have @ObtainTypeValue annotated methods. target=" + obtainTypeValueInvokerGetter.targetPath());
             }
-
-            // TODO : invoker 가 null 이면 에러 처리
             return invoker.obtain(parents,csonObjectOrValue instanceof CSONObject ? (CSONObject)csonObjectOrValue : new CSONObject().put("$value", csonObjectOrValue) ,root);
         };
-
     }
 
 
     private static Object optValueInCSONArray(CSONArray csonArray, int index, ISchemaArrayValue ISchemaArrayValue) {
-
-
 
         switch (ISchemaArrayValue.getEndpointValueType()) {
             case Byte:
@@ -816,8 +821,6 @@ public class CSONSerializer {
     }
 
 
-
-
     @SuppressWarnings({"rawtypes", "ReassignedVariable", "unchecked"})
     private static void csonArrayToCollectionObject(CSONArray csonArray, ISchemaArrayValue ISchemaArrayValue, Object parent, OnObtainTypeValue onObtainTypeValue) {
         List<CollectionItems> collectionItems = ISchemaArrayValue.getCollectionItems();
@@ -837,7 +840,7 @@ public class CSONSerializer {
             if(collectionItem.isGeneric) {
                 CSONObject csonObject = objectItem.csonArray.optCSONObject(index);
                 Object object = onObtainTypeValue.obtain(csonObject);
-                object = injectValueOfGenericType(object, csonObject);
+                object = injectValueOfGenericType_(object, csonObject);
                 objectItem.collectionObject.add(object);
             }
             else if (collectionItem.valueClass != null) {
@@ -858,7 +861,6 @@ public class CSONSerializer {
                     objectItem = newArraySerializeDequeueItem;
                 }
             }
-
             while (index == end) {
                 arraySerializeDequeueItems.remove(arraySerializeDequeueItems.size() - 1);
                 if (arraySerializeDequeueItems.isEmpty()) {
@@ -870,9 +872,7 @@ public class CSONSerializer {
                 collectionItem = collectionItems.get(--collectionItemIndex);
             }
         }
-
         ISchemaArrayValue.setValue(parent, objectItem.collectionObject);
-
     }
 
 

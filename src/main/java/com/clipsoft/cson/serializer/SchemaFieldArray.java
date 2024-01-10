@@ -94,4 +94,9 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     public String targetPath() {
         return field.getDeclaringClass().getName() + "." + field.getName();
     }
+
+    @Override
+    public boolean isIgnoreError() {
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
+    }
 }

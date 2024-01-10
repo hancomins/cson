@@ -85,6 +85,12 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         return field.getDeclaringClass().getName() + "." + field.getName();
     }
 
+    @Override
+    public boolean isIgnoreError() {
+        TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker = getObtainTypeValueInvoker();
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
+    }
+
     @SuppressWarnings("unchecked")
 
 

@@ -892,6 +892,23 @@ public class CSONSerializerTest {
             return new CSONArray().put(1).put(2);
        }
 
+
+       List<CSONObject> csonObjectInArrayBySetter = null;
+
+       @CSONValueSetter("csonObjectInArrayBySetter")
+       public void setCsonObjectInList(List<CSONObject> csonObjectInArray) {
+           this.csonObjectInArrayBySetter = csonObjectInArray;
+       }
+
+       @CSONValueGetter("csonObjectInArrayBySetter")
+       public List<CSONObject> getCsonObjectInList() {
+           if(this.csonObjectInArrayBySetter == null) {
+                this.csonObjectInArrayBySetter = new ArrayList<>();
+                this.csonObjectInArrayBySetter.add(new CSONObject().put("random",Math.random() + ""));
+           }
+           return this.csonObjectInArrayBySetter;
+       }
+
     }
 
     @Test
@@ -947,7 +964,6 @@ public class CSONSerializerTest {
         @CSONValue
         private T value;
 
-
         private String namename;
 
         @ObtainTypeValue
@@ -977,31 +993,114 @@ public class CSONSerializerTest {
     @CSON
     public static class ObjGenericClassTest<TV , IV> {
 
-
         @CSONValue
         public TV value;
         @CSONValue
         public List<HashSet<TV>> values = new ArrayList<>();
         @CSONValue
         public Map<String, TV> Maps = new HashMap<>();
-
         public List<String> setNames = new ArrayList<>();
-
         @CSONValue
         public Map<String, IV> intMaps = new HashMap<>();
 
+        IV okValue;
+
+        Map<String,TV> okValueMap;
+        List<TV> okValueList;
+
         @CSONValueSetter
-        public void setOK(TV ok) {
-            value = ok;
+        public void setOK(IV ok) {
+            okValue = ok;
         }
 
-        @ObtainTypeValue("intMaps")
+        @CSONValueGetter
+        public IV getOK() {
+            return (IV)(Integer)10000;
+        }
+
+
+        @CSONValueSetter
+        public void setOKList(List<TV> ok) {
+            okValueList = ok;
+        }
+
+        @CSONValueGetter
+        public List<TV> getOKList() {
+            if(this.okValueList != null) {
+                return this.okValueList;
+            }
+
+            List<TV> list = new ArrayList<>();
+            list.add((TV) new InterfaceTest() {
+                String name = Math.random() + "";
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public void setName(String name) {
+                    this.name = name;
+                }
+            });
+            return list;
+        }
+
+        @CSONValueSetter
+        public void setOKMap(Map<String,TV> ok) {
+            okValueMap = ok;
+        }
+
+        @CSONValueGetter
+        public Map<String,TV> getOKMap() {
+            if(this.okValueMap != null) {
+                return this.okValueMap;
+            }
+
+            Map<String,TV> map = new HashMap<>();
+            map.put("1", (TV) new InterfaceTest() {
+                String name = Math.random() + "";
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public void setName(String name) {
+                    this.name = name;
+                }
+            });
+            return map;
+        }
+
+        @ObtainTypeValue(fieldNames =  {"intMaps"})
         public int getIntValue(CSONObject csonElement, CSONObject value) {
             return csonElement.getInt("$value");
 
         }
-        @ObtainTypeValue(fieldNames = {"Maps", "values", "value", "setOk"})
+        @ObtainTypeValue(fieldNames = {"Maps", "values"}, setterMethodNames = {"setOK","setOKMap", "setOKList"})
         public TV getValue(CSONObject all, CSONObject value) {
+            return (TV) new InterfaceTest() {
+                String name = System.currentTimeMillis() + "";
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public void setName(String name) {
+                    this.name = name;
+                }
+            };
+        }
+
+
+
+        @ObtainTypeValue(fieldNames = {"value"})
+        public TV getValue1(CSONObject all, CSONObject value) {
             return (TV) new InterfaceTest() {
                 String name = System.currentTimeMillis() + "";
 
@@ -1049,6 +1148,7 @@ public class CSONSerializerTest {
                 public void setName(String name) {
                     genericClassTest.setNames.add(name);
                 }
+
             };
             HashSet<InterfaceTestText> set = new HashSet<>();
             set.add(text);
@@ -1060,11 +1160,9 @@ public class CSONSerializerTest {
         System.out.println(csonObject.toString());
 
         ObjGenericClassTest<InterfaceTest, Integer> parsertObject = CSONSerializer.fromCSONObject(csonObject, ObjGenericClassTest.class);
+        assertNotNull(parsertObject.value);
 
-
-
-
-        assertEquals( csonObject.toString(),CSONObject.fromObject(parsertObject).toString());
+        assertEquals( csonObject.toString(StringFormatOption.json5()),CSONObject.fromObject(parsertObject).toString(StringFormatOption.json5()));
 
         System.out.println(CSONObject.fromObject(parsertObject));
 
@@ -1087,14 +1185,70 @@ public class CSONSerializerTest {
         };
         CSONObject csonObject = CSONSerializer.toCSONObject(genericClassTest);
         System.out.println(csonObject.toString(JSONOptions.json5()));
-
         GenericClassTest<InterfaceTest> parsertObject = CSONSerializer.fromCSONObject(csonObject, GenericClassTest.class);
-
-
     }
 
 
 
+    @CSON
+    public static class ResponseMessage<T> {
+        @CSONValue
+        private boolean success = false;
+        @CSONValue
+        private int code = 0;
+
+        @CSONValue
+        private List<T> data = new ArrayList<>();
+
+
+        public static ResponseMessage<FileInfo> createFileInfoMessage(List<FileInfo> fileInfos) {
+            ResponseMessage<FileInfo> responseMessage = new ResponseMessage<>();
+            responseMessage.success = true;
+            responseMessage.code = 200;
+            responseMessage.data = fileInfos;
+            return responseMessage;
+        }
+
+
+        private ResponseMessage() {
+            this.data = new ArrayList<>();
+        }
+    }
+
+    @CSON
+    public static class FileInfo {
+        @CSONValue
+        private String name = "name";
+        @CSONValue
+        private boolean isDirectory = false;
+        @CSONValue
+        private long size = 0;
+
+    }
+
+    private static FileInfo makeRandomFileInfo() {
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.name = System.currentTimeMillis() + "";
+        fileInfo.isDirectory = Math.random() > 0.5;
+        fileInfo.size = (long)(Math.random() * 1000000);
+        return fileInfo;
+    }
+
+    @Test
+    public void genericClassTest3() {
+        List<FileInfo> fileInfos = new ArrayList<>();
+        for(int i = 0; i < 5; ++i) {
+            fileInfos.add(makeRandomFileInfo());
+        }
+        ResponseMessage<FileInfo> responseMessage = ResponseMessage.createFileInfoMessage(fileInfos);
+
+        CSONObject csonObject = CSONObject.fromObject(responseMessage);
+        System.out.println(csonObject.toString(StringFormatOption.jsonPretty()));
+
+
+
+
+    }
 
 
 

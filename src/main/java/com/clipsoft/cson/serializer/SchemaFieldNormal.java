@@ -37,6 +37,11 @@ public class SchemaFieldNormal extends SchemaField {
         return field.getDeclaringClass().getName() + "." + field.getName();
     }
 
+    @Override
+    public boolean isIgnoreError() {
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
+    }
+
     /*
 
     @Override

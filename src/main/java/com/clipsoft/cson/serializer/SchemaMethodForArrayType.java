@@ -36,10 +36,11 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
     private final List<CollectionItems> collectionBundles;
     protected final Types endpointValueType;
     private final TypeElement objectValueTypeElement;
-    private final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
+
 
     SchemaMethodForArrayType(TypeElement parentsTypeElement, Method method) {
         super(parentsTypeElement, method);
+
 
         boolean isGetter = getMethodType() == MethodType.Getter;
         Type genericFieldType = isGetter ? method.getGenericReturnType() : method.getGenericParameterTypes()[0];
@@ -51,11 +52,12 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
             methodPath += "(" + method.getParameterTypes()[0].getName() + ") <return: " + method.getReturnType().getName() + ">";
         }
 
-        obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(method.getName());
+
 
         this.collectionBundles = ISchemaArrayValue.getGenericType(genericFieldType, methodPath);
-        Class<?> valueClass = this.collectionBundles.get(collectionBundles.size() - 1).valueClass;
-        endpointValueType = Types.of(valueClass);
+        CollectionItems lastCollectionItems = this.collectionBundles.get(this.collectionBundles.size() - 1);
+        Class<?> valueClass = lastCollectionItems.valueClass;
+        endpointValueType = lastCollectionItems.isGeneric ? Types.GenericType : Types.of(valueClass);
         if (endpointValueType == Types.Object) {
             objectValueTypeElement = TypeElements.getInstance().getTypeInfo(valueClass);
         } else {
@@ -79,11 +81,6 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
     @Override
     public List<CollectionItems> getCollectionItems() {
         return collectionBundles;
-    }
-
-    @Override
-    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
-        return obtainTypeValueInvoker;
     }
 
 

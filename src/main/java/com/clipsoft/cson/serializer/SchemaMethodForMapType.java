@@ -27,7 +27,7 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
     private final Constructor<?> constructorMap;
     private final Class<?> elementClass;
     private final boolean isGenericTypeValue;
-    private TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
+
     private final String methodPath;
 
     SchemaMethodForMapType(TypeElement parentsTypeElement, Method method) {
@@ -53,7 +53,6 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
             this.elementClass = (Class<?>)valueType;
         } else if(valueType instanceof TypeVariable) {
             this.elementClass = Object.class;
-            obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(method.getName());
             isGenericValue = true;
 
         } else {
@@ -112,8 +111,4 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
         return isGenericTypeValue;
     }
 
-    @Override
-    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
-        return obtainTypeValueInvoker;
-    }
 }

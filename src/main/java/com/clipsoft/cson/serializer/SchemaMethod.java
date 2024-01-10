@@ -2,13 +2,14 @@ package com.clipsoft.cson.serializer;
 
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 
 class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGetter {
 
 
 
-    private final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
+    private  TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
 
     private static Class<?> getValueType(Method method) {
         CSONValueGetter csonValueGetter = method.getAnnotation(CSONValueGetter.class);
@@ -18,6 +19,8 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         if(csonValueSetter != null && csonValueGetter != null) {
             throw new CSONSerializerException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must be annotated with @CSONValueGetter or @CSONValueSetter, not both");
         }
+
+
 
         if(csonValueSetter != null) {
             if(types.length != 1) {
@@ -33,6 +36,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
             if(types.length != 0) {
                 throw new CSONSerializerException("Getter method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must have no parameter");
             }
+
             return returnType;
         }
         else {
@@ -82,6 +86,21 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         }
     }
 
+    private static java.lang.reflect.Type getGenericType(Method method) {
+        CSONValueGetter csonValueGetter = method.getAnnotation(CSONValueGetter.class);
+        CSONValueSetter csonValueSetter = method.getAnnotation(CSONValueSetter.class);
+        if(csonValueSetter != null) {
+            return method.getParameters()[0].getParameterizedType();
+        }
+        else if(csonValueGetter != null) {
+            return method.getGenericReturnType();
+        }
+        else {
+            throw new CSONSerializerException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must be annotated with @CSONValueGetter or @CSONValueSetter");
+        }
+
+    }
+
     static String getterNameFilter(String methodName) {
         if(methodName.length() > 3 && (methodName.startsWith("get") || methodName.startsWith("Get") || methodName.startsWith("GET"))) {
             String name =  methodName.substring(3);
@@ -100,13 +119,38 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
 
     @Override
     public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
-        return obtainTypeValueInvoker;
+        if(obtainTypeValueInvoker == null) {
+            System.out.println(methodGetter.getName());
+            System.out.println(methodSetter.getName());
+        }
+
+        if(obtainTypeValueInvoker != null) {
+            return obtainTypeValueInvoker;
+        }
+
+        List<SchemaMethod> schemaMethods = getAllSchemaValueList();
+        for(SchemaMethod schemaMethod : schemaMethods) {
+            if(schemaMethod.obtainTypeValueInvoker != null) {
+                return schemaMethod.obtainTypeValueInvoker;
+            }
+        }
+        return null;
+
     }
 
     @Override
     public String targetPath() {
-        Method method = methodGetter != null ? methodGetter : methodSetter;
-       return method.getDeclaringClass().getName() + "." + method.getName() + "()";
+        if(methodSetter == null && methodGetter != null) {
+            return methodGetter.getDeclaringClass().getName() + ".(Undeclared Setter)()";
+        } else if(methodSetter == null && methodGetter == null) {
+            return parentsTypeElement.getType().getName() + ".(Undeclared Setter)()";
+        }
+       return methodSetter.getDeclaringClass().getName() + "." + methodSetter.getName() + "()";
+    }
+
+    @Override
+    public boolean isIgnoreError() {
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
     }
 
     static enum MethodType {
@@ -136,6 +180,8 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     }
 
 
+
+
     private MethodType methodType = null;
     private Method methodSetter;
     private Method methodGetter;
@@ -145,8 +191,10 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
 
     private final boolean ignoreError;
 
+
+
     SchemaMethod(TypeElement parentsTypeElement, Method method) {
-        super(parentsTypeElement,getPath(method), getValueType(method), method.getGenericReturnType());
+        super(parentsTypeElement,getPath(method), getValueType(method), getGenericType(method));
         method.setAccessible(true);
         MethodType methodType = getMethodType(method);
 
@@ -155,7 +203,6 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         if(isGetter) {
             methodPath += "() <return: " + method.getReturnType().getName() + ">";
             ignoreError = method.getAnnotation(CSONValueGetter.class).ignoreError();
-            obtainTypeValueInvoker = null;
         }
         else {
             methodPath += "(" + method.getParameterTypes()[0].getName() + ") <return: " + method.getReturnType().getName() + ">";
@@ -164,7 +211,9 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         }
         this.methodPath = methodPath;
 
-        ISchemaValue.assertValueType(getValueTypeClass(), method.getDeclaringClass().getName() + "." + method.getName());
+        if(this.getType() != Types.GenericType) {
+            ISchemaValue.assertValueType(getValueTypeClass(), method.getDeclaringClass().getName() + "." + method.getName());
+        }
         if(methodType == MethodType.Getter) {
             setGetter(method);
         }
@@ -194,6 +243,10 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         } else {
             this.methodType = MethodType.Setter;
         }
+        if(obtainTypeValueInvoker == null) {
+            obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(method.getName());
+        }
+
     }
 
 
