@@ -392,9 +392,9 @@ public class CSONDeserializerTest {
         arrayItemKey.key = "test";
         csonObject.put("key", arrayItemKey);
 
-
-
-
     }
+
+
+
 
 }

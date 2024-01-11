@@ -3,11 +3,8 @@ package com.clipsoft.cson.serializer;
 
 import com.clipsoft.cson.CSONObject;
 
-import java.lang.reflect.TypeVariable;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,7 +32,11 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
     static SchemaValueAbs of(TypeElement typeElement, Field field) {
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
+        int modifiers = field.getModifiers();
         if(csonValue == null) return null;
+        if(Modifier.isFinal(modifiers)) {
+            throw new CSONSerializerException("@CSONValue field cannot be final. (path: " + typeElement.getType().getName() + "." + field.getName() + ")");
+        }
         String key = csonValue.key();
         if(key == null || key.isEmpty()) key = csonValue.value();
         if(key == null || key.isEmpty()) key = field.getName();
@@ -183,7 +184,41 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     @Override
     public Object getValue(Object parent) {
         Object value = null;
-        int index = this.allSchemaValueAbsList.size() - 1;
+
+        int index = 0;
+        int size = this.allSchemaValueAbsList.size();
+
+        while(value == null && index < size) {
+            SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
+
+            value = duplicatedSchemaValueAbs.onGetValue(parent);
+            if(value != null && duplicatedSchemaValueAbs.getType() == Types.GenericType) {
+                Types inType = Types.of(value.getClass());
+                if(Types.isSingleType(inType)) {
+                    return value;
+                } else {
+                    return CSONObject.fromObject(value);
+                }
+            }
+
+            if(value == null) {
+                ++index;
+                continue;
+            }
+            if(!this.equalsValueType(duplicatedSchemaValueAbs)) {
+                if(this instanceof ISchemaArrayValue || this instanceof ISchemaMapValue) {
+                    return value;
+                } else {
+                    value = Utils.convertValue(value, duplicatedSchemaValueAbs.type);
+                }
+            }
+            ++index;
+
+        }
+        return value;
+
+
+        /*int index = this.allSchemaValueAbsList.size() - 1;
 
         while(value == null && index > -1) {
             SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
@@ -212,7 +247,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
             index--;
 
         }
-        return value;
+        return value;*/
     }
 
 

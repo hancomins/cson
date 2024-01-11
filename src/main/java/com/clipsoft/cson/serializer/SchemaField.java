@@ -9,7 +9,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     final String comment;
     final String afterComment;
-
+    private final boolean isStatic;
 
     final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
 
@@ -21,6 +21,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         this.field = field;
         this.fieldName = field.getName();
         field.setAccessible(true);
+        this.isStatic = java.lang.reflect.Modifier.isStatic(field.getModifiers());
 
         obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(fieldName);
 
@@ -42,6 +43,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
 
 
+
     @Override
     public String getComment() {
         return comment;
@@ -59,6 +61,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     @Override
     Object onGetValue(Object parent) {
+        if(isStatic) parent = null;
         try {
             return field.get(parent);
         } catch (IllegalAccessException e) {
@@ -68,6 +71,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
     @Override
     void onSetValue(Object parent, Object value) {
+        if(isStatic) parent = null;
         try {
             field.set(parent, value);
         } catch (IllegalAccessException e) {
@@ -77,6 +81,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     @Override
     void onSetValue(Object parent, short value) {
+        if(isStatic) parent = null;
         try {
             field.setShort(parent, value);
         } catch (IllegalAccessException e) {
@@ -85,6 +90,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
     @Override
     void onSetValue(Object parent, int value) {
+        if(isStatic) parent = null;
         try {
             field.setInt(parent, value);
         } catch (IllegalAccessException e) {
@@ -93,6 +99,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
     @Override
     void onSetValue(Object parent, long value) {
+        if(isStatic) parent = null;
         try {
             field.setLong(parent, value);
         } catch (IllegalAccessException e) {
@@ -101,6 +108,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
     @Override
     void onSetValue(Object parent, float value) {
+        if(isStatic) parent = null;
         try {
             field.setFloat(parent, value);
         } catch (IllegalAccessException e) {
@@ -109,6 +117,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
     @Override
     void onSetValue(Object parent, double value) {
+        if(isStatic) parent = null;
         try {
             field.setDouble(parent, value);
         } catch (IllegalAccessException e) {
@@ -117,6 +126,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
     @Override
     void onSetValue(Object parent, boolean value) {
+        if(isStatic) parent = null;
         try {
             field.setBoolean(parent, value);
         } catch (IllegalAccessException e) {
@@ -125,6 +135,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
     @Override
     void onSetValue(Object parent, char value) {
+        if(isStatic) parent = null;
         try {
             field.setChar(parent, value);
         } catch (IllegalAccessException e) {
@@ -134,6 +145,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     @Override
     void onSetValue(Object parent, byte value) {
+        if(isStatic) parent = null;
         try {
             field.setByte(parent, value);
         } catch (IllegalAccessException e) {

@@ -1245,10 +1245,50 @@ public class CSONSerializerTest {
         CSONObject csonObject = CSONObject.fromObject(responseMessage);
         System.out.println(csonObject.toString(StringFormatOption.jsonPretty()));
 
+    }
 
+
+    @CSON
+    public static class A1 {
+        @CSONValue
+        private String name = "name";
+
+        @CSONValueSetter("name")
+        public void setName(String name) {
+            this.name = name;
+        }
 
 
     }
+
+
+
+    @CSON
+    public static class A2 extends A1 {
+        @CSONValue
+        private String name = "name2";
+
+        private String value = "value";
+        @CSONValueSetter("name")
+        public void setName(String name2) {
+            this.value = name2 + "by A2";
+        }
+    }
+
+
+    @Test
+    public void extendsTest2() {
+        A2 a2 = new A2();
+        CSONObject csonObject = CSONObject.fromObject(a2);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+        A2 a2_1 = CSONObject.toObject(csonObject, A2.class);
+
+        assertEquals(a2_1.name, "name2");
+        assertEquals(a2_1.value, "name2by A2");
+
+    }
+
+
 
 
 

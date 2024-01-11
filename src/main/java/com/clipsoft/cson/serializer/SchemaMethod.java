@@ -190,11 +190,13 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     private String afterComment = null;
 
     private final boolean ignoreError;
-
+    private final boolean isStatic;
 
 
     SchemaMethod(TypeElement parentsTypeElement, Method method) {
         super(parentsTypeElement,getPath(method), getValueType(method), getGenericType(method));
+        this.isStatic = java.lang.reflect.Modifier.isStatic(method.getModifiers());
+
         method.setAccessible(true);
         MethodType methodType = getMethodType(method);
 
@@ -221,6 +223,8 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
             setSetter(method);
         }
     }
+
+
 
     private void setGetter(Method method) {
         CSONValueGetter csonValueGetter = method.getAnnotation(CSONValueGetter.class);
@@ -307,6 +311,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     @Override
     Object onGetValue(Object parent) {
         if(methodGetter == null) return null;
+        if(isStatic) parent = null;
         try {
             return methodGetter.invoke(parent);
         } catch (Exception e) {
@@ -320,6 +325,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     @Override
     void onSetValue(Object parent, Object value) {
         if(methodSetter == null) return;
+        if(isStatic) parent = null;
         try {
             methodSetter.invoke(parent, value);
         } catch (Exception e) {

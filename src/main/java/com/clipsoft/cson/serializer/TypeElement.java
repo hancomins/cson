@@ -2,7 +2,6 @@ package com.clipsoft.cson.serializer;
 
 
 import com.clipsoft.cson.CSONArray;
-import com.clipsoft.cson.CSONElement;
 import com.clipsoft.cson.CSONObject;
 import com.clipsoft.cson.util.ReflectionUtils;
 
@@ -10,6 +9,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class TypeElement {
 
@@ -173,15 +173,21 @@ class TypeElement {
     }
 
 
+    /**
+     * 인터페이스를 포함한 부모 클래스 모두를 탐색하여 @CSON 어노테이션이 있는지 확인한다.
+     * @param type 탐색할 클래스
+     * @return
+     */
     private static boolean isCSONAnnotated(Class<?> type) {
-        Class<?> superClass = type;
-        while(superClass != Object.class && superClass != null) {
+        AtomicBoolean result = new AtomicBoolean(false);
+        ReflectionUtils.searchSuperClassAndInterfaces(type, (superClass) -> {
             CSON a = superClass.getAnnotation(CSON.class);
             if(a != null) {
-                return true;
+                result.set(true);
+                return false;
             }
-            superClass = superClass.getSuperclass();
-        }
+            return true;
+        });
         return false;
 
     }
@@ -280,8 +286,8 @@ class TypeElement {
                        continue;
                     }
                     ObtainTypeValue obtainTypeValue = method.getAnnotation(ObtainTypeValue.class);
-                    List<Method> allMethods = ReflectionUtils.allMethods(currentType);
-                    List<Field> allFields =  ReflectionUtils.allFields(currentType);
+                    List<Method> allMethods = ReflectionUtils.getAllInheritedMethods(currentType);
+                    List<Field> allFields =  ReflectionUtils.getAllInheritedFields(currentType);
 
 
 

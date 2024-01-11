@@ -2,6 +2,7 @@ package com.clipsoft.cson.serializer;
 
 
 import com.clipsoft.cson.PathItem;
+import com.clipsoft.cson.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
@@ -59,17 +60,15 @@ public class NodePath {
     }
 
     private static void findSchemaByAncestors(TypeElement typeElement,List<SchemaValueAbs> results,Class<?> currentClass) {
-        while(currentClass != Object.class && currentClass != null) {
-            Field[] fields = currentClass.getDeclaredFields();
-            Method[] methods = currentClass.getDeclaredMethods();
-            findCsonValueFields(typeElement, results, fields);
-            findCsonGetterSetterMethods(typeElement, results, methods);
-            currentClass = currentClass.getSuperclass();
-        }
+        List<Field> fields = ReflectionUtils.getAllInheritedFields(currentClass);
+        List<Method> methods = ReflectionUtils.getAllInheritedMethods(currentClass);
+        findCsonValueFields(typeElement, results, fields);
+        findCsonGetterSetterMethods(typeElement, results, methods);
+
     }
 
 
-    private static void findCsonGetterSetterMethods(TypeElement typeElement, List<SchemaValueAbs> results, Method[] methods) {
+    private static void findCsonGetterSetterMethods(TypeElement typeElement, List<SchemaValueAbs> results, List<Method> methods) {
         if(methods != null) {
             for(Method method : methods) {
                 SchemaMethod methodRack = (SchemaMethod)SchemaValueAbs.of(typeElement,method);
@@ -80,7 +79,7 @@ public class NodePath {
         }
     }
 
-    private static void findCsonValueFields(TypeElement typeElement, List<SchemaValueAbs> results, Field[] fields) {
+    private static void findCsonValueFields(TypeElement typeElement, List<SchemaValueAbs> results, List<Field> fields) {
         if(fields != null) {
             for (Field field : fields) {
                 SchemaValueAbs fieldRack = SchemaValueAbs.of(typeElement, field);
