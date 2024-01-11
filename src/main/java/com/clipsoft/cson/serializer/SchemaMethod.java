@@ -313,7 +313,12 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         if(methodGetter == null) return null;
         if(isStatic) parent = null;
         try {
-            return methodGetter.invoke(parent);
+            Object value = methodGetter.invoke(parent);
+            if(isEnum && value != null) {
+                return value.toString();
+            }
+            return value;
+
         } catch (Exception e) {
             if(ignoreError) {
                 return null;
@@ -327,6 +332,14 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         if(methodSetter == null) return;
         if(isStatic) parent = null;
         try {
+            if(isEnum) {
+                try {
+                    //noinspection unchecked
+                    value = Enum.valueOf((Class<Enum>) valueTypeClass, value.toString());
+                } catch (Exception e) {
+                    value = null;
+                }
+            }
             methodSetter.invoke(parent, value);
         } catch (Exception e) {
             if(ignoreError) {

@@ -632,6 +632,7 @@ public class CSONSerializer {
            }
            else if(!setNull && child == null) {
                 if(schemaField instanceof ObtainTypeValueInvokerGetter) {
+                    // TODO 앞으로 제네릭 또는 interface 나 추상 클래스로만 사용 가능하도록 변경할 것.
                     TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker = ((ObtainTypeValueInvokerGetter)schemaField).getObtainTypeValueInvoker();
                     if(obtainTypeValueInvoker != null) {
                         OnObtainTypeValue onObtainTypeValue = makeOnObtainTypeValue((ObtainTypeValueInvokerGetter)schemaField, parent, rootCSON);
@@ -658,15 +659,28 @@ public class CSONSerializer {
         }
     }
 
-    private static Object injectValueOfGenericType_(Object value, CSONElement cson) {
+    /**
+     * Object의 타입을 읽어서 실제 타입으로 캐스팅한다.
+     * @param value Object 타입의 값
+     * @param realValue 실제 타입의 값
+     * @return
+     */
+    private static Object dynamicCasting(Object value, Object realValue) {
         if(value == null) return null;
         Class<?> valueClas = value.getClass();
-        Types realType = Types.of(value.getClass());
-        if(Types.isSingleType(realType) || Types.isCsonType(realType)) {
-            Object singleValue = ((CSONObject)cson).opt("$value");
-            return DataConverter.convertValue(valueClas, singleValue);
-        } else if(Types.Object == realType) {
-            CSONObject csonObj = cson instanceof CSONObject ? (CSONObject) cson : null;
+        Types valueType = Types.of(value.getClass());
+        if(valueClas.isEnum()) {
+            try {
+                //noinspection unchecked
+                return Enum.valueOf((Class<? extends Enum>) valueClas,realValue.toString());
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        if(Types.isSingleType(valueType) || Types.isCsonType(valueType)) {
+            return DataConverter.convertValue(valueClas, realValue);
+        } else if(Types.Object == valueType) {
+            CSONObject csonObj = realValue instanceof CSONObject ? (CSONObject) realValue : null;
             if(csonObj != null) {
                 fromCSONObject(csonObj, value);
                 return value;
@@ -699,16 +713,9 @@ public class CSONSerializer {
             Object obj = makeOnObtainTypeValue(schemaFieldNormal, parents, root).obtain(val) ;//on == null ? null : onObtainTypeValue.obtain(cson instanceof CSONObject ? (CSONObject) cson : null);
             if(obj == null) {
                 obj = schemaFieldNormal.newInstance();
+                obj = dynamicCasting(obj, val);
             }
-            if(obj == null) {
-                schemaField.setValue(parents, null);
-            }
-            else if(val instanceof CSONElement) {
-                Object value = injectValueOfGenericType_(obj, (CSONElement)val);
-                schemaField.setValue(parents, value);
-            } else {
-                schemaField.setValue(parents, obj);
-            }
+            schemaField.setValue(parents, obj);
         }
         else if(Types.Collection == valueType) {
             CSONArray csonArray = isArrayType ? ((CSONArray) cson).optCSONArray((int)key) : ((CSONObject)cson).optCSONArray((String)key);
@@ -779,9 +786,22 @@ public class CSONSerializer {
                 }
                 throw new CSONSerializerException("Generic types must have @ObtainTypeValue annotated methods. target=" + obtainTypeValueInvokerGetter.targetPath());
             }
-            return invoker.obtain(parents,csonObjectOrValue instanceof CSONObject ? (CSONObject)csonObjectOrValue : new CSONObject().put("$value", csonObjectOrValue) ,root);
+            try {
+                Object obj = invoker.obtain(parents, csonObjectOrValue instanceof CSONObject ? (CSONObject) csonObjectOrValue : new CSONObject().put("$value", csonObjectOrValue), root);
+                if (obj != null && invoker.isDeserializeAfter()) {
+                    obj = dynamicCasting(obj, csonObjectOrValue);
+                }
+                return obj;
+            } catch (RuntimeException e) {
+                if(obtainTypeValueInvokerGetter.isIgnoreError()) {
+                    return null;
+                }
+                throw e;
+            }
         };
     }
+
+
 
 
     private static Object optValueInCSONArray(CSONArray csonArray, int index, ISchemaArrayValue ISchemaArrayValue) {
@@ -840,7 +860,6 @@ public class CSONSerializer {
             if(collectionItem.isGeneric) {
                 CSONObject csonObject = objectItem.csonArray.optCSONObject(index);
                 Object object = onObtainTypeValue.obtain(csonObject);
-                object = injectValueOfGenericType_(object, csonObject);
                 objectItem.collectionObject.add(object);
             }
             else if (collectionItem.valueClass != null) {

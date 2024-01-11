@@ -14,4 +14,8 @@ public @interface ObtainTypeValue {
     String[] setterMethodNames() default  {};
 
     boolean ignoreError() default false;
+
+    boolean deserializeAfter() default true;
+
+
 }

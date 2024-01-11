@@ -305,7 +305,7 @@ class TypeElement {
 
                             String finalFieldName = fieldName;
                             if(allFields.stream().filter(field -> field.getAnnotation(CSONValue.class) != null).noneMatch(field -> field.getName().equals(finalFieldName))) {
-                                throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ". Field '" + fieldName + "' not found in " + currentType.getName());
+                                throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ".field with annotated @CSONValue '" + fieldName + "' not found in " + currentType.getName());
                             }
 
                             Class<?> returnType = verifyMethod(genericTypeNames, currentType, method);
@@ -313,8 +313,10 @@ class TypeElement {
                             result.add(new ObtainTypeValueInvoker( method, fieldName,
                                     returnType,
                                     method.getParameterTypes(),
-                                    obtainTypeValue.ignoreError(), false));
+                                    obtainTypeValue.ignoreError(),obtainTypeValue.deserializeAfter(), false));
                         }
+
+
 
 
                         for(String setterMethodName : setterMethodNames) {
@@ -329,7 +331,7 @@ class TypeElement {
                             result.add(new ObtainTypeValueInvoker(method, setterMethodName,
                                     returnType,
                                     method.getParameterTypes(),
-                                    obtainTypeValue.ignoreError(), false));
+                                    obtainTypeValue.ignoreError(),obtainTypeValue.deserializeAfter(), false));
                         }
 
                     }
@@ -382,13 +384,14 @@ class TypeElement {
         }
 
 
-        private ObtainTypeValueInvoker(Method method,String fieldName,  Class<?> returnType, Class<?>[] parameters, boolean ignoreError, boolean isField) {
+        private ObtainTypeValueInvoker(Method method,String fieldName,  Class<?> returnType, Class<?>[] parameters, boolean ignoreError,boolean deserializeAfter, boolean isField) {
             this.method = method;
             this.returnType = returnType;
             this.parameters = parameters;
             this.ignoreError = ignoreError;
             this.fieldName = fieldName;
             this.isField = isField;
+            this.deserializeAfter = deserializeAfter;
         }
 
         private Method method;
@@ -396,10 +399,15 @@ class TypeElement {
         private Class<?>[] parameters;
         boolean ignoreError = false;
         private String fieldName;
+        private boolean deserializeAfter = true;
         private boolean isField = false;
 
         String getFieldName() {
             return fieldName;
+        }
+
+        boolean isDeserializeAfter() {
+            return deserializeAfter;
         }
 
 

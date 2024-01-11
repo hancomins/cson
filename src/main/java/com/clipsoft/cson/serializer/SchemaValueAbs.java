@@ -21,6 +21,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     private Types type;
 
     private final boolean isPrimitive;
+    final boolean isEnum;
 
     //private final boolean isMapField;
 
@@ -108,6 +109,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         this.path = path;
         this.valueTypeClass = valueTypeClass;
         this.parentsTypeElement = parentsTypeElement;
+        this.isEnum = valueTypeClass.isEnum();
 
 
         Types type = Types.Object;
@@ -150,6 +152,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     boolean isPrimitive() {
         return isPrimitive;
     }
+
 
 
     final Types getType() {

@@ -66,7 +66,7 @@ enum Types {
         }
         else if(type == char.class || type == Character.class) {
             return Character;
-        } else if(type == String.class) {
+        } else if(type == String.class || type.isEnum()) {
             return String;
         } else if(type == byte[].class ) {
             return ByteArray;

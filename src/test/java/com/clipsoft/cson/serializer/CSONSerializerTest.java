@@ -1289,6 +1289,64 @@ public class CSONSerializerTest {
     }
 
 
+    public static enum ValueEnum {
+        VALUE1, VALUE2, VALUE3, VALUE4
+    }
+
+    @CSON
+    public static class EnumClass<T> {
+        @CSONValue
+        private ValueEnum valueEnum = ValueEnum.VALUE1;
+
+        private ValueEnum valueEnum2 = null;
+        @CSONValue
+        private ValueEnum valueEnum3 = ValueEnum.VALUE3;
+
+        @CSONValue
+
+        private T valueEnum4 = null;
+
+        @ObtainTypeValue(fieldNames = {"valueEnum4"}, deserializeAfter = false)
+        public T getValueEnum4(CSONObject csonElement, CSONObject root) {
+            return (T) ValueEnum.VALUE4;
+        }
+
+
+        @CSONValueSetter
+        public void setValueEnum2(ValueEnum valueEnum2) {
+            this.valueEnum2 = valueEnum2;
+        }
+
+        @CSONValueGetter
+        public ValueEnum getValueEnum2() {
+            if(valueEnum2 == null) {
+                valueEnum2 = ValueEnum.VALUE2;
+            }
+            return valueEnum2;
+        }
+
+    }
+
+    @Test
+    public void enumTest() {
+        EnumClass<ValueEnum> enumClass = new EnumClass<ValueEnum>();
+        CSONObject csonObject = CSONObject.fromObject(enumClass);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+        csonObject.put("valueEnum3", "sdafdasfadsf");
+
+
+
+        EnumClass enumClass1 = CSONObject.toObject(csonObject, EnumClass.class);
+        assertEquals(enumClass.valueEnum, enumClass1.valueEnum);
+        assertEquals(enumClass1.valueEnum2, ValueEnum.VALUE2);
+
+        assertEquals(enumClass1.valueEnum3, null);
+        assertEquals(enumClass1.valueEnum4, ValueEnum.VALUE4);
+
+        System.out.println(CSONObject.fromObject(enumClass1));
+    }
+
+
 
 
 

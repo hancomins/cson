@@ -11,4 +11,5 @@ public interface ObtainTypeValueInvokerGetter {
     String targetPath();
 
     boolean isIgnoreError();
+
 }

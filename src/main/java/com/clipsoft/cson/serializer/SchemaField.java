@@ -63,19 +63,31 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     Object onGetValue(Object parent) {
         if(isStatic) parent = null;
         try {
-            return field.get(parent);
+            Object value = field.get(parent);
+            if(isEnum && value != null) {
+                return value.toString();
+            }
+            return value;
         } catch (IllegalAccessException e) {
             e.printStackTrace();
             return null;
         }
     }
+    @SuppressWarnings("unchecked")
     @Override
     void onSetValue(Object parent, Object value) {
         if(isStatic) parent = null;
         try {
+            if(isEnum) {
+                try {
+                    value = Enum.valueOf((Class<Enum>) valueTypeClass, value.toString());
+                } catch (Exception e) {
+                    value = null;
+                }
+            }
             field.set(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
 
@@ -85,7 +97,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         try {
             field.setShort(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
@@ -94,7 +106,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         try {
             field.setInt(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
@@ -103,7 +115,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         try {
             field.setLong(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
@@ -112,7 +124,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         try {
             field.setFloat(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
@@ -121,7 +133,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         try {
             field.setDouble(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
@@ -130,7 +142,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         try {
             field.setBoolean(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
@@ -139,7 +151,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         try {
             field.setChar(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
 
@@ -149,7 +161,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         try {
             field.setByte(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
 
