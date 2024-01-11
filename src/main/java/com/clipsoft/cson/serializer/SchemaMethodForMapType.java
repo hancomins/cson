@@ -3,6 +3,7 @@ package com.clipsoft.cson.serializer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.Map;
 
 class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
@@ -25,6 +26,8 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
 
     private final Constructor<?> constructorMap;
     private final Class<?> elementClass;
+    private final boolean isGenericTypeValue;
+    private final boolean isAbstractValue;
 
     private final String methodPath;
 
@@ -43,13 +46,26 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
         this.methodPath = methodPath;
 
 
-        Map.Entry<Class<?>, Class<?>> entry = ISchemaMapValue.readKeyValueGenericType(genericType, methodPath);
+        Map.Entry<Class<?>, Type> entry = ISchemaMapValue.readKeyValueGenericType(genericType, methodPath);
         Class<?> keyClass = entry.getKey();
-        this.elementClass = entry.getValue();
-        if(elementClass != null) {
+        Type valueType = entry.getValue();
+        boolean isGenericValue = false;
+        if(valueType instanceof Class<?>) {
+            this.elementClass = (Class<?>)valueType;
+        } else if(valueType instanceof TypeVariable) {
+            this.elementClass = Object.class;
+            isGenericValue = true;
+
+        } else {
+            this.elementClass = null;
+        }
+        isGenericTypeValue = isGenericValue;
+
+        if(elementClass != null && !isGenericValue) {
             ISchemaValue.assertValueType(elementClass, methodPath);
         }
         ISchemaMapValue.assertCollectionOrMapValue(elementClass,methodPath);
+
 
 
         if(!String.class.isAssignableFrom(keyClass)) {
@@ -60,6 +76,7 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
             }
         }
         constructorMap = ISchemaMapValue.constructorOfMap(getValueTypeClass());
+        isAbstractValue = elementClass != null && elementClass.isInterface() || java.lang.reflect.Modifier.isAbstract(elementClass.getModifiers());
 
     }
 
@@ -92,4 +109,15 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
             throw new CSONSerializerException("Map type " + getValueTypeClass().getName() + " has no default constructor. (path: " + methodPath + ")", e);
         }
     }
+
+    @Override
+    public boolean isGenericValue() {
+        return isGenericTypeValue;
+    }
+
+    @Override
+    public boolean isAbstractType() {
+        return isAbstractValue;
+    }
+
 }

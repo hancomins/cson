@@ -27,6 +27,55 @@ public class DataConverter {
 		return null; 
 	}
 
+	public static Object convertValue(Class<?> objectType,  Object value) {
+		if(value == null) return null;
+		if(objectType == null) return value;
+		if(objectType == String.class) {
+			return toString(value);
+		}
+		else if(objectType == Integer.class || objectType == int.class) {
+			return toInteger(value);
+		}
+		else if(objectType == Long.class || objectType == long.class) {
+			return toLong(value);
+		}
+		else if(objectType == Short.class || objectType == short.class) {
+			return toShort(value);
+		}
+		else if(objectType == Byte.class || objectType == byte.class) {
+			return toByte(value);
+		}
+		else if(objectType == Float.class || objectType == float.class) {
+			return toFloat(value);
+		}
+		else if(objectType == Double.class || objectType == double.class) {
+			return toDouble(value);
+		}
+		else if(objectType == Boolean.class || objectType == boolean.class) {
+			return toBoolean(value);
+		}
+		else if(objectType == Character.class || objectType == char.class) {
+			return toChar(value);
+		}
+		else if(objectType == byte[].class) {
+			return toByteArray(value);
+		}
+		else if(objectType == CSONArray.class) {
+			return toArray(value);
+		}
+		else if(objectType == CSONObject.class) {
+			return toObject(value);
+		}
+		else if(objectType == BigDecimal.class) {
+			return new BigDecimal(toString(value));
+		}
+		else if(objectType == BigInteger.class) {
+			return new BigInteger(toString(value));
+		}
+		return value;
+
+	}
+
 	public static int toInteger(Object value) {
 		return toInteger(value, 0);
 	}
@@ -199,7 +248,7 @@ public class DataConverter {
 		}
 		else if(value instanceof String) {
 			try {
-				Number no = NumberConversionUtil.stringToNumber((String) value);
+				Number no = NumberConversionUtil.stringToNumber((String)value, NumberConversionUtil.DEFAULT_NUMBER_CONVERSION_OPTION);
 				return toBoxingNumberOfType(no, type);
 			} catch (NumberFormatException ignored) {
 				return null;

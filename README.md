@@ -117,7 +117,77 @@ dependencies {
     // {"user":{"name":"John","age":25,"friends":["Nancy","Mary","Tom","Jerry","Suji"],"addr":{"city":"Incheon","zipCode":"06164"}}}
    ```
 ## Object serialization/deserialization
-   * You can use the annotation to serialize and deserialize the object. 
+   * **The types that can be serialized and deserialized into JSON are as follows.**
+     * Primitive types (int, long, float, double, boolean, char, byte, short)
+     * Boxed types (Integer, Long, Float, Double, Boolean, Character, Byte, Short)
+     * String
+     * Enum
+     * CSONObject
+     * CSONArray
+     * Class, Interface with @CSON annotation
+     * byte[]: to Base64 String
+     * Collection<?> (List, Set, Queue, Deque, etc.)
+       * A Collection can be used as an element within a Collection.
+       * A class annotated with @CSON can be used as an element within a Collection.
+       * A <Generic> type can be used as an element within a Collection.
+       * Other basic types are available.
+       * However, a Map cannot be used as an element within a Collection.
+     * Map<String, ?> (HashMap, TreeMap, LinkedHashMap, etc.)
+       * The key must always be of the String type.
+       * Map and Collection types cannot be used as Values.
+       * A class annotated with @CSON can be used as a Value.
+       * A <Generic> type can be used as a Value.
+       * Other basic types are available.
+     * Annotation list
+       * @CSON: Indicates that the class can be serialized and deserialized into JSON.
+       * @CSONValue: Indicates that the field can be serialized and deserialized into JSON.
+       
+       * @CSONValueGetter
+         * You can use this annotation to retrieve the value corresponding to a key through a method. 
+         * The method must have a return value and should not have any arguments.
+         * If you want to use a method with a different name, you can specify the key value as an argument.
+         * The argument type of @CSONValueSetter method and the return type of @CSONValueGette r must always match!
+     
+       * @CSONValueSetter
+         * You can use this annotation to set the value corresponding to a key through a method. 
+         * The method must have one argument. 
+         * If you want to use a method with a different name, you can specify the key value as an argument.
+         * The argument type of @CSONValueSetter method and the return type of @CSONValueGette r must always match!
+     
+     * @ObtainTypeValue
+       * During deserialization, it is possible to obtain the actual value of a generic type or interface type.
+         * It can have two arguments of type JSONObject.
+           * The first argument is the json object for the field. If the type is not an object type, a COSNObject object of the form {"$value": value} is taken as an argument.
+           * The second argument is an object of CSONObject representing the entire JSONObject.
+           * The return value is the actual value of the generic type or interface type.
+       * Example
+         ```java
+           @CSON
+           public static class Message<K,V> {
+            @CSONValue
+            private K key;
+
+            private List<V> list;
+
+            @CSONValueSetter
+            public void setData(V data) {
+                this.value = data;
+            }
+            @ObtainTypeValue(fieldNames = {"value"}, deserializeAfter = false)
+            public K obtainKeyValue(CSONObject object, CSONObject root) {
+                return (K) object.optString("$value");
+            }
+
+            @ObtainTypeValue(setterMethodNames = {"setData"}, deserializeAfter = true)
+            public V obtainValue(CSONObject object, CSONObject root) {
+                return (V) new ValueObject();
+            }
+          }
+      
+           CSONObject rawObject = ...
+           Message<String, ValueObject> message = CSONObject.toObject(rawObject,Message.class);
+         ```
+  * **How can serialization and deserialization be performed between Object and JSON types?**
      ```java
      @CSON
      public static class Addr {

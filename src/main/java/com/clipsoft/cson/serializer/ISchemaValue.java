@@ -1,5 +1,7 @@
 package com.clipsoft.cson.serializer;
 
+import com.clipsoft.cson.CSONElement;
+
 public interface ISchemaValue extends ISchemaNode {
 
     Object getValue(Object parent);
@@ -9,9 +11,17 @@ public interface ISchemaValue extends ISchemaNode {
     String getComment();
     String getAfterComment();
 
+    boolean isAbstractType();
 
     static void assertValueType(Class<?> valueType, String parentPath) {
-        Types type = Types.of(valueType);
+        assertValueType(valueType, Types.of(valueType), parentPath);
+    }
+
+    static void assertValueType(Class<?> valueType,Types type, String parentPath) {
+        if(CSONElement.class.isAssignableFrom(valueType)) {
+            return;
+        }
+
         if(valueType.isArray() && type != Types.ByteArray) {
             if(parentPath != null) {
                 throw new CSONObjectException("Array type '" + valueType.getName() + "' is not supported");

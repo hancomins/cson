@@ -16,6 +16,10 @@ public interface ISchemaMapValue {
 
     Object newInstance();
 
+    boolean isGenericValue();
+    boolean isAbstractType();
+    TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker();
+
 
     static Constructor<?> constructorOfMap(Class<?> type) {
         try {
@@ -47,7 +51,7 @@ public interface ISchemaMapValue {
     }
 
 
-    static Map.Entry<Class<?>, Class<?>> readKeyValueGenericType(Type genericType, String path) {
+    static Map.Entry<Class<?>, Type> readKeyValueGenericType(Type genericType, String path) {
         if (genericType instanceof java.lang.reflect.ParameterizedType) {
             java.lang.reflect.ParameterizedType aType = (java.lang.reflect.ParameterizedType) genericType;
             Type[] fieldArgTypes = aType.getActualTypeArguments();
@@ -59,6 +63,8 @@ public interface ISchemaMapValue {
             } else if(fieldArgTypes[1] instanceof  java.lang.reflect.ParameterizedType) {
                 assert fieldArgTypes[0] instanceof Class<?>;
                 return new AbstractMap.SimpleEntry<>((Class<?>)fieldArgTypes[0], (Class<?>)((java.lang.reflect.ParameterizedType)fieldArgTypes[1]).getRawType());
+            }  else if(fieldArgTypes[1] instanceof  java.lang.reflect.TypeVariable) {
+                return new AbstractMap.SimpleEntry<>((Class<?>)fieldArgTypes[0],fieldArgTypes[1]);
             }
             else {
                 throw new CSONObjectException("Map must use <generic> types. (path: " + path + ")");

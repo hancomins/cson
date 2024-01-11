@@ -196,8 +196,9 @@ public class Utils {
             return  isArrayType ? ((CSONArray) cson).optString((int)key) : ((CSONObject)cson).optString((String)key);
         }  else if(Types.ByteArray == valueType) {
             return  isArrayType ? ((CSONArray) cson).optByteArray((int)key) : ((CSONObject)cson).optByteArray((String)key);
+        } else {
+            return  isArrayType ? ((CSONArray) cson).opt((int)key) : ((CSONObject)cson).opt((String)key);
         }
-        return null;
 
     }
 

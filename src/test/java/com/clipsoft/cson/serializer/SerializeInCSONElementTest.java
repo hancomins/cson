@@ -26,8 +26,6 @@ public class SerializeInCSONElementTest {
     @Test
     public void testSerializeInCSONElement() throws Exception {
 
-
-
         CSONClass csonClass = new CSONClass();
         csonClass.name = "name";
         csonClass.value = "value";

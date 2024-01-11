@@ -2,13 +2,11 @@ package com.clipsoft.cson.serializer;
 
 
 import com.clipsoft.cson.PathItem;
+import com.clipsoft.cson.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class NodePath {
 
@@ -38,7 +36,6 @@ public class NodePath {
                 objectNode.merge(elementNode);
                 continue;
             }
-
             SchemaElementNode elementNode = makeSubTree(path, fieldRack);
             objectNode.merge(elementNode);
         }
@@ -50,28 +47,47 @@ public class NodePath {
 
 
     private static List<SchemaValueAbs> searchAllCSONValueFields(TypeElement typeElement, Class<?> clazz) {
-        Set<String> fieldPaths = new HashSet<>();
+        //Set<String> fieldPaths = new HashSet<>();
         List<SchemaValueAbs> results = new ArrayList<>();
-        Class<?> currentClass = clazz;
-        while(currentClass != Object.class) {
-            for(Field field : currentClass.getDeclaredFields()) {
-                SchemaValueAbs fieldRack = SchemaValueAbs.of(typeElement,field);
-                if(fieldRack != null  /* && !fieldPaths.contains(fieldRack.getPath()) */ ) {
-                    // 동일한 path 가 있으면 거른다.
-                    fieldPaths.add(fieldRack.getPath());
-                    results.add(fieldRack);
-                }
+        findSchemaByAncestors(typeElement, results, clazz);
+        Class<?>[] interfaces = clazz.getInterfaces();
+        if(interfaces != null) {
+            for(Class<?> interfaceClass : interfaces) {
+                findSchemaByAncestors(typeElement, results, interfaceClass);
             }
-            for(Method method : currentClass.getDeclaredMethods()) {
-                SchemaValueAbs methodRack = SchemaValueAbs.of(typeElement,method);
+        }
+        return results;
+    }
+
+    private static void findSchemaByAncestors(TypeElement typeElement,List<SchemaValueAbs> results,Class<?> currentClass) {
+        List<Field> fields = ReflectionUtils.getAllInheritedFields(currentClass);
+        List<Method> methods = ReflectionUtils.getAllInheritedMethods(currentClass);
+        findCsonValueFields(typeElement, results, fields);
+        findCsonGetterSetterMethods(typeElement, results, methods);
+
+    }
+
+
+    private static void findCsonGetterSetterMethods(TypeElement typeElement, List<SchemaValueAbs> results, List<Method> methods) {
+        if(methods != null) {
+            for(Method method : methods) {
+                SchemaMethod methodRack = (SchemaMethod)SchemaValueAbs.of(typeElement,method);
                 if(methodRack != null) {
-                    fieldPaths.add(methodRack.getPath());
                     results.add(methodRack);
                 }
             }
-            currentClass = currentClass.getSuperclass();
         }
-        return results;
+    }
+
+    private static void findCsonValueFields(TypeElement typeElement, List<SchemaValueAbs> results, List<Field> fields) {
+        if(fields != null) {
+            for (Field field : fields) {
+                SchemaValueAbs fieldRack = SchemaValueAbs.of(typeElement, field);
+                if (fieldRack != null  /* && !fieldPaths.contains(fieldRack.getPath()) */) {
+                    results.add(fieldRack);
+                }
+            }
+        }
     }
 
 

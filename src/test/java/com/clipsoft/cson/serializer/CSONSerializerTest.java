@@ -1,11 +1,9 @@
 package com.clipsoft.cson.serializer;
 
-import com.clipsoft.cson.CSONArray;
-import com.clipsoft.cson.CSONObject;
-import com.clipsoft.cson.JSONOptions;
-import com.clipsoft.cson.StringFormatOption;
+import com.clipsoft.cson.*;
 import org.junit.Test;
 
+import java.sql.Array;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -863,11 +861,608 @@ public class CSONSerializerTest {
        //CSONSerializer.fromCSONObject(csonObject, parsedUsers);
 
 
-
-
-
-
    }
+
+   @CSON
+    public static class CSONElementInClass {
+        @CSONValue
+        private ArrayList<CSONArray> csonArrayInList = new ArrayList<>();
+
+
+       @CSONValue
+       private Map<String, CSONObject> csonObjectInMap = new HashMap<>();
+
+
+       @CSONValue
+       private CSONObject csonObject = new CSONObject();
+
+
+       @CSONValue("ok[2]")
+       private CSONObject csonObjectInArray = new CSONObject();
+
+
+       private CSONArray consObjectBySetterGetter = new CSONArray();
+
+       @CSONValueSetter("consObjectBySetterGetter")
+       public void setConsObjectBySetterGetter(CSONArray csonObjectInArray) {
+           consObjectBySetterGetter = (CSONArray)csonObjectInArray;
+       }
+
+       @CSONValueGetter("consObjectBySetterGetter")
+       public CSONArray getConsObjectBySetterGetter() {
+            return new CSONArray().put(1).put(2);
+       }
+
+
+       List<CSONObject> csonObjectInArrayBySetter = null;
+
+       @CSONValueSetter("csonObjectInArrayBySetter")
+       public void setCsonObjectInList(List<CSONObject> csonObjectInArray) {
+           this.csonObjectInArrayBySetter = csonObjectInArray;
+       }
+
+       @CSONValueGetter("csonObjectInArrayBySetter")
+       public List<CSONObject> getCsonObjectInList() {
+           if(this.csonObjectInArrayBySetter == null) {
+                this.csonObjectInArrayBySetter = new ArrayList<>();
+                this.csonObjectInArrayBySetter.add(new CSONObject().put("random",Math.random() + ""));
+           }
+           return this.csonObjectInArrayBySetter;
+       }
+
+    }
+
+    @Test
+    public void csonElementInClassTest() {
+        CSONElementInClass csonElementInClass = new CSONElementInClass();
+
+        csonElementInClass.csonArrayInList.add(new CSONArray().put(new CSONObject().put("name1", "name1")));
+
+        csonElementInClass.csonObjectInMap.put("name2", new CSONObject().put("name2", "name2"));
+        //csonElementInClass.consObjectBySetterGetter = new CSONObject().put("1234", "5678");
+
+        csonElementInClass.csonObject.put("name", "name");
+        csonElementInClass.csonObjectInArray.put("name3", "name3");
+        CSONObject csonObject = CSONSerializer.toCSONObject(csonElementInClass);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+
+        assertEquals(csonObject.getCSONArray("consObjectBySetterGetter"), new CSONArray().put(1,2));
+
+
+        CSONElementInClass parsedCSONObject = CSONObject.toObject(new CSONObject(csonObject.toString()), CSONElementInClass.class);
+
+        assertEquals(csonElementInClass.csonObject,  parsedCSONObject.csonObject);
+
+
+        assertEquals(csonObject.toString(),CSONObject.fromObject(parsedCSONObject).toString());
+
+
+        csonObject.optCSONArray("consObjectBySetterGetter").put(1,2);
+        parsedCSONObject = CSONObject.toObject(new CSONObject(csonObject.toString()), CSONElementInClass.class);
+
+        assertEquals( new CSONArray().put(1,2,1,2),parsedCSONObject.consObjectBySetterGetter);
+
+    }
+
+
+    @CSON
+    public static interface InterfaceTest {
+        @CSONValueGetter
+        String getName();
+
+        @CSONValueSetter
+        void setName(String name);
+
+    }
+
+    @CSON
+    public static interface InterfaceTestText extends InterfaceTest {
+
+    }
+
+    @CSON
+    public static class GenericClassTest<T extends  InterfaceTest> {
+        @CSONValue
+        private T value;
+
+        private String namename;
+
+        @ObtainTypeValue
+        public T getValue(CSONObject all, CSONObject value) {
+            return (T) new InterfaceTest() {
+                @Override
+                public String getName() {
+                    return System.currentTimeMillis() + "";
+                }
+
+                @Override
+                public void setName(String name) {
+                    namename = name;
+
+                }
+            };
+        }
+
+
+        private String name = "";
+    }
+
+
+
+
+
+    @CSON
+    public static class ObjGenericClassTest<TV , IV> {
+
+        @CSONValue
+        public TV value;
+        @CSONValue
+        public List<HashSet<TV>> values = new ArrayList<>();
+        @CSONValue
+        public Map<String, TV> Maps = new HashMap<>();
+        public List<String> setNames = new ArrayList<>();
+        @CSONValue
+        public Map<String, IV> intMaps = new HashMap<>();
+
+        IV okValue;
+
+        Map<String,TV> okValueMap;
+        List<TV> okValueList;
+
+        @CSONValueSetter
+        public void setOK(IV ok) {
+            okValue = ok;
+        }
+
+        @CSONValueGetter
+        public IV getOK() {
+            return (IV)(Integer)10000;
+        }
+
+
+        @CSONValueSetter
+        public void setOKList(List<TV> ok) {
+            okValueList = ok;
+        }
+
+        @CSONValueGetter
+        public List<TV> getOKList() {
+            if(this.okValueList != null) {
+                return this.okValueList;
+            }
+
+            List<TV> list = new ArrayList<>();
+            list.add((TV) new InterfaceTest() {
+                String name = Math.random() + "";
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public void setName(String name) {
+                    this.name = name;
+                }
+            });
+            return list;
+        }
+
+        @CSONValueSetter
+        public void setOKMap(Map<String,TV> ok) {
+            okValueMap = ok;
+        }
+
+        @CSONValueGetter
+        public Map<String,TV> getOKMap() {
+            if(this.okValueMap != null) {
+                return this.okValueMap;
+            }
+
+            Map<String,TV> map = new HashMap<>();
+            map.put("1", (TV) new InterfaceTest() {
+                String name = Math.random() + "";
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public void setName(String name) {
+                    this.name = name;
+                }
+            });
+            return map;
+        }
+
+        @ObtainTypeValue(fieldNames =  {"intMaps"})
+        public int getIntValue(CSONObject csonElement, CSONObject value) {
+            return csonElement.getInt("$value");
+
+        }
+        @ObtainTypeValue(fieldNames = {"Maps", "values"}, setterMethodNames = {"setOK","setOKMap", "setOKList"})
+        public TV getValue(CSONObject all, CSONObject value) {
+            return (TV) new InterfaceTest() {
+                String name = System.currentTimeMillis() + "";
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public void setName(String name) {
+                    this.name = name;
+                }
+            };
+        }
+
+
+
+        @ObtainTypeValue(fieldNames = {"value"})
+        public TV getValue1(CSONObject all, CSONObject value) {
+            return (TV) new InterfaceTest() {
+                String name = System.currentTimeMillis() + "";
+
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public void setName(String name) {
+                    this.name = name;
+                }
+            };
+        }
+
+        private String name = "";
+    }
+
+
+    @Test
+    public void objGenericClassTest1() {
+        ObjGenericClassTest<InterfaceTestText, Integer> genericClassTest = new ObjGenericClassTest<>();
+        genericClassTest.value = new InterfaceTestText() {
+            @Override
+            public String getName() {
+                return System.currentTimeMillis() + "";
+            }
+
+            @Override
+            public void setName(String name) {
+                genericClassTest.name = name;
+            }
+        };
+
+        for(int i = 0; i < 5; ++i) {
+            final int count = i;
+            genericClassTest.intMaps.put(i + "", i);
+            InterfaceTestText text = new InterfaceTestText() {
+                @Override
+                public String getName() {
+                    return count + "";
+                }
+
+                @Override
+                public void setName(String name) {
+                    genericClassTest.setNames.add(name);
+                }
+
+            };
+            HashSet<InterfaceTestText> set = new HashSet<>();
+            set.add(text);
+            genericClassTest.values.add(set);
+            genericClassTest.Maps.put(i + "", text);
+        }
+
+        CSONObject csonObject = CSONSerializer.toCSONObject(genericClassTest);
+        System.out.println(csonObject.toString());
+
+        ObjGenericClassTest<InterfaceTest, Integer> parsertObject = CSONSerializer.fromCSONObject(csonObject, ObjGenericClassTest.class);
+        assertNotNull(parsertObject.value);
+
+        assertEquals( csonObject.toString(StringFormatOption.json5()),CSONObject.fromObject(parsertObject).toString(StringFormatOption.json5()));
+
+        System.out.println(CSONObject.fromObject(parsertObject));
+
+
+    }
+
+    @Test
+    public void genericClassTest2() {
+        GenericClassTest<InterfaceTest> genericClassTest = new GenericClassTest<>();
+        genericClassTest.value = new InterfaceTest() {
+            @Override
+            public String getName() {
+                return System.currentTimeMillis() + "";
+            }
+
+            @Override
+            public void setName(String name) {
+                genericClassTest.name = name;
+            }
+        };
+        CSONObject csonObject = CSONSerializer.toCSONObject(genericClassTest);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+        GenericClassTest<InterfaceTest> parsertObject = CSONSerializer.fromCSONObject(csonObject, GenericClassTest.class);
+    }
+
+
+
+    @CSON
+    public static class ResponseMessage<T> {
+        @CSONValue
+        private boolean success = false;
+        @CSONValue
+        private int code = 0;
+
+        @CSONValue
+        private List<T> data = new ArrayList<>();
+
+
+        public static ResponseMessage<FileInfo> createFileInfoMessage(List<FileInfo> fileInfos) {
+            ResponseMessage<FileInfo> responseMessage = new ResponseMessage<>();
+            responseMessage.success = true;
+            responseMessage.code = 200;
+            responseMessage.data = fileInfos;
+            return responseMessage;
+        }
+
+
+        private ResponseMessage() {
+            this.data = new ArrayList<>();
+        }
+    }
+
+    @CSON
+    public static class FileInfo {
+        @CSONValue
+        private String name = "name";
+        @CSONValue
+        private boolean isDirectory = false;
+        @CSONValue
+        private long size = 0;
+
+    }
+
+    private static FileInfo makeRandomFileInfo() {
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.name = System.currentTimeMillis() + "";
+        fileInfo.isDirectory = Math.random() > 0.5;
+        fileInfo.size = (long)(Math.random() * 1000000);
+        return fileInfo;
+    }
+
+    @Test
+    public void genericClassTest3() {
+        List<FileInfo> fileInfos = new ArrayList<>();
+        for(int i = 0; i < 5; ++i) {
+            fileInfos.add(makeRandomFileInfo());
+        }
+        ResponseMessage<FileInfo> responseMessage = ResponseMessage.createFileInfoMessage(fileInfos);
+
+        CSONObject csonObject = CSONObject.fromObject(responseMessage);
+        System.out.println(csonObject.toString(StringFormatOption.jsonPretty()));
+
+    }
+
+
+    @CSON
+    public static class A1 {
+        @CSONValue
+        private String name = "name";
+
+        @CSONValueSetter("name")
+        public void setName(String name) {
+            this.name = name;
+        }
+
+
+    }
+
+
+
+    @CSON
+    public static class A2 extends A1 {
+        @CSONValue
+        private String name = "name2";
+
+        private String value = "value";
+        @CSONValueSetter("name")
+        public void setName(String name2) {
+            this.value = name2 + "by A2";
+        }
+    }
+
+
+    @Test
+    public void extendsTest2() {
+        A2 a2 = new A2();
+        CSONObject csonObject = CSONObject.fromObject(a2);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+        A2 a2_1 = CSONObject.toObject(csonObject, A2.class);
+
+        assertEquals(a2_1.name, "name2");
+        assertEquals(a2_1.value, "name2by A2");
+
+    }
+
+
+    public static enum ValueEnum {
+        VALUE1, VALUE2, VALUE3, VALUE4
+    }
+
+    @CSON
+    public static class EnumClass<T> {
+        @CSONValue
+        private ValueEnum valueEnum = ValueEnum.VALUE1;
+
+        private ValueEnum valueEnum2 = null;
+        @CSONValue
+        private ValueEnum valueEnum3 = ValueEnum.VALUE3;
+
+        @CSONValue
+
+        private T valueEnum4 = null;
+
+        @ObtainTypeValue(fieldNames = {"valueEnum4"}, deserializeAfter = false)
+        public T getValueEnum4(CSONObject csonElement, CSONObject root) {
+            return (T) ValueEnum.VALUE4;
+        }
+
+
+        @CSONValueSetter
+        public void setValueEnum2(ValueEnum valueEnum2) {
+            this.valueEnum2 = valueEnum2;
+        }
+
+        @CSONValueGetter
+        public ValueEnum getValueEnum2() {
+            if(valueEnum2 == null) {
+                valueEnum2 = ValueEnum.VALUE2;
+            }
+            return valueEnum2;
+        }
+    }
+
+    @CSON
+    public static interface I1 {
+        @CSONValueGetter
+        String getName();
+
+        @CSONValueSetter
+        void setName(String name);
+    }
+
+    @CSON
+    public static class I1Impl implements  I1 {
+
+        private String name = "name";
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public void setName(String name) {
+            this.name = name + " by I1Impl";
+
+        }
+    }
+
+    @CSON
+    public static class I2 {
+        @CSONValue
+        private I1Impl i1 = new I1Impl();
+        @CSONValue
+        private I1 i1i = new I1Impl();
+
+        @CSONValue
+        private List<I1> i1iList = new ArrayList<>();
+
+        @CSONValue
+        private Map<String, I1> i1iMap = new HashMap<>();
+
+        private I1 i1iInSetter = new I1Impl();
+        private List<I1> i1iListInSetter = new ArrayList<>();
+        private Map<String, I1> i1iMapInSetter = new HashMap<>();
+
+
+
+        @CSONValue
+        private static String staticValue = "staticValue";
+
+        @ObtainTypeValue(fieldNames = {"i1i","i1iList", "i1iMap" }, setterMethodNames = {"setI1inMethod", "setI1iListInSetter", "setI1iMapInSetter"}, deserializeAfter = true)
+        public I1 getI1(CSONObject csonElement, CSONObject root) {
+            return new I1Impl();
+        }
+
+        @CSONValueSetter
+        public void setI1inMethod(I1 i1) {
+            this.i1iInSetter = i1;
+        }
+
+        @CSONValueGetter
+        public I1 getI1inMethod() {
+            return this.i1i;
+        }
+
+        @CSONValueSetter
+        public void setI1iListInSetter(List<I1> i1iListInSetter) {
+            this.i1iListInSetter = i1iListInSetter;
+        }
+
+        @CSONValueGetter
+        public List<I1> getI1iListInSetter() {
+            List<I1> list = new ArrayList<>();
+            list.add(new I1Impl());
+            return list;
+        }
+
+        @CSONValueSetter
+        public void setI1iMapInSetter(Map<String, I1> i1iMapInSetter) {
+            this.i1iMapInSetter = i1iMapInSetter;
+        }
+
+        @CSONValueGetter
+        public Map<String, I1> getI1iMapInSetter() {
+            Map<String, I1> map = new HashMap<>();
+            map.put("1", new I1Impl());
+            return map;
+        }
+    }
+
+    @Test
+    public void interfaceAndImplClassTest() {
+        I2 i2 = new I2();
+        i2.i1iList = new ArrayList<>();
+        i2.i1iList.add(new I1Impl());
+        i2.i1iMap.put("1", new I1Impl());
+        CSONObject csonObject = CSONObject.fromObject(i2);
+
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+
+        I2 i2_1 = CSONObject.toObject(csonObject, I2.class);
+        assertEquals(i2_1.i1.getName(), "name by I1Impl");
+        assertEquals(i2_1.i1i.getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iList.get(0).getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iMap.get("1").getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iInSetter.getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iListInSetter.get(0).getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iMapInSetter.get("1").getName(), "name by I1Impl");
+
+    }
+
+
+
+
+
+
+
+    @Test
+    public void enumTest() {
+        EnumClass<ValueEnum> enumClass = new EnumClass<ValueEnum>();
+        CSONObject csonObject = CSONObject.fromObject(enumClass);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+        csonObject.put("valueEnum3", "sdafdasfadsf");
+
+
+
+        EnumClass enumClass1 = CSONObject.toObject(csonObject, EnumClass.class);
+        assertEquals(enumClass.valueEnum, enumClass1.valueEnum);
+        assertEquals(enumClass1.valueEnum2, ValueEnum.VALUE2);
+
+        assertEquals(enumClass1.valueEnum3, null);
+        assertEquals(enumClass1.valueEnum4, ValueEnum.VALUE4);
+
+        System.out.println(CSONObject.fromObject(enumClass1));
+    }
+
+
+
 
 
 }

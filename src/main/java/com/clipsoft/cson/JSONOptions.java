@@ -1,7 +1,8 @@
 package com.clipsoft.cson;
 
+
 @SuppressWarnings("UnusedReturnValue")
-public class JSONOptions implements StringFormatOption {
+public class JSONOptions implements StringFormatOption<JSONOptions> {
 
         private StringFormatType formatType = StringFormatType.JSON;
 
@@ -15,7 +16,7 @@ public class JSONOptions implements StringFormatOption {
             jsonOptions.setDepthSpace("  ");
             jsonOptions.setAllowComments(false);
             jsonOptions.setSkipComments(true);
-            jsonOptions.setIgnoreNumberFormatError(true);
+            jsonOptions.setIgnoreNonNumeric(true);
             jsonOptions.setAllowNaN(true);
             jsonOptions.setAllowPositiveSing(false);
             jsonOptions.setAllowInfinity(true);
@@ -37,7 +38,7 @@ public class JSONOptions implements StringFormatOption {
             jsonOptions.setDepthSpace("  ");
             jsonOptions.setAllowComments(true);
             jsonOptions.setSkipComments(false);
-            jsonOptions.setIgnoreNumberFormatError(true);
+            jsonOptions.setIgnoreNonNumeric(true);
             jsonOptions.setAllowNaN(true);
             jsonOptions.setAllowPositiveSing(true);
             jsonOptions.setAllowInfinity(true);
@@ -174,11 +175,13 @@ public class JSONOptions implements StringFormatOption {
         }
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-        public boolean isIgnoreNumberFormatError() {
+        @Override
+        public boolean isIgnoreNonNumeric() {
             return ignoreNumberFormatError;
         }
 
-        public JSONOptions setIgnoreNumberFormatError(boolean ignoreNumberFormatError) {
+
+        public JSONOptions setIgnoreNonNumeric(boolean ignoreNumberFormatError) {
             this.ignoreNumberFormatError = ignoreNumberFormatError;
             return this;
         }
@@ -196,7 +199,9 @@ public class JSONOptions implements StringFormatOption {
             return allowPositiveSing;
         }
 
-        public JSONOptions setAllowPositiveSing(boolean allowPositiveSing) {
+
+
+    public JSONOptions setAllowPositiveSing(boolean allowPositiveSing) {
             this.allowPositiveSing = allowPositiveSing;
             return this;
         }

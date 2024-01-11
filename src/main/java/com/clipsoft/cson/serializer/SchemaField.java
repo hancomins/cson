@@ -2,20 +2,28 @@ package com.clipsoft.cson.serializer;
 
 import java.lang.reflect.Field;
 
-public abstract class SchemaField extends SchemaValueAbs {
+public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeValueInvokerGetter {
 
     final Field field;
+    final String fieldName;
 
     final String comment;
     final String afterComment;
+    private final boolean isStatic;
+
+    final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
 
     //private final boolean isMapField;
 
 
     SchemaField(TypeElement parentsTypeElement, Field field, String path) {
-        super(parentsTypeElement, path, field.getType());
+        super(parentsTypeElement, path, field.getType(), field.getGenericType());
         this.field = field;
+        this.fieldName = field.getName();
         field.setAccessible(true);
+        this.isStatic = java.lang.reflect.Modifier.isStatic(field.getModifiers());
+
+        obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(fieldName);
 
 
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
@@ -24,9 +32,14 @@ public abstract class SchemaField extends SchemaValueAbs {
         this.comment = comment.isEmpty() ? null : comment;
         this.afterComment = afterComment.isEmpty() ? null : afterComment;
 
-        ISchemaValue.assertValueType(field.getType(), field.getDeclaringClass().getName() + "." + field.getName() );
+        ISchemaValue.assertValueType(field.getType(), this.getType(), field.getDeclaringClass().getName() + "." + field.getName() );
     }
 
+
+    @Override
+    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+        return obtainTypeValueInvoker;
+    }
 
 
 
@@ -48,85 +61,107 @@ public abstract class SchemaField extends SchemaValueAbs {
 
     @Override
     Object onGetValue(Object parent) {
+        if(isStatic) parent = null;
         try {
-            return field.get(parent);
+            Object value = field.get(parent);
+            if(isEnum && value != null) {
+                return value.toString();
+            }
+            return value;
         } catch (IllegalAccessException e) {
             e.printStackTrace();
             return null;
         }
     }
+    @SuppressWarnings("unchecked")
     @Override
     void onSetValue(Object parent, Object value) {
+        if(isStatic) parent = null;
         try {
+            if(isEnum) {
+                try {
+                    value = Enum.valueOf((Class<Enum>) valueTypeClass, value.toString());
+                } catch (Exception e) {
+                    value = null;
+                }
+            }
             field.set(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
 
     @Override
     void onSetValue(Object parent, short value) {
+        if(isStatic) parent = null;
         try {
             field.setShort(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
     void onSetValue(Object parent, int value) {
+        if(isStatic) parent = null;
         try {
             field.setInt(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
     void onSetValue(Object parent, long value) {
+        if(isStatic) parent = null;
         try {
             field.setLong(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
     void onSetValue(Object parent, float value) {
+        if(isStatic) parent = null;
         try {
             field.setFloat(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
     void onSetValue(Object parent, double value) {
+        if(isStatic) parent = null;
         try {
             field.setDouble(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
     void onSetValue(Object parent, boolean value) {
+        if(isStatic) parent = null;
         try {
             field.setBoolean(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
     @Override
     void onSetValue(Object parent, char value) {
+        if(isStatic) parent = null;
         try {
             field.setChar(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
 
     @Override
     void onSetValue(Object parent, byte value) {
+        if(isStatic) parent = null;
         try {
             field.setByte(parent, value);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
 

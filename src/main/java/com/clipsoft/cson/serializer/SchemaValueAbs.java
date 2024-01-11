@@ -1,8 +1,10 @@
 package com.clipsoft.cson.serializer;
 
-import java.lang.reflect.Method;
 
-import java.lang.reflect.Field;
+import com.clipsoft.cson.CSONObject;
+
+import java.lang.reflect.*;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -16,9 +18,10 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     final TypeElement objectTypeElement;
 
     final String path;
-    final Types type;
+    private Types type;
 
     private final boolean isPrimitive;
+    final boolean isEnum;
 
     //private final boolean isMapField;
 
@@ -30,7 +33,11 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
     static SchemaValueAbs of(TypeElement typeElement, Field field) {
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
+        int modifiers = field.getModifiers();
         if(csonValue == null) return null;
+        if(Modifier.isFinal(modifiers)) {
+            throw new CSONSerializerException("@CSONValue field cannot be final. (path: " + typeElement.getType().getName() + "." + field.getName() + ")");
+        }
         String key = csonValue.key();
         if(key == null || key.isEmpty()) key = csonValue.value();
         if(key == null || key.isEmpty()) key = field.getName();
@@ -73,10 +80,10 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
             ISchemaArrayValue thisArray = (ISchemaArrayValue) this;
             if(nodeArray.getCollectionItems().size() != thisArray.getCollectionItems().size()) {
                 //TODO 예외 발생 시켜야한다.
+                // TODO 이건 좀 고민중...
+                //return false;
             }
         }
-
-
         this.allSchemaValueAbsList.add(node);
         return true;
     }
@@ -88,16 +95,39 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     }
 
 
-    SchemaValueAbs(TypeElement parentsTypeElement, String path, Class<?> valueTypeClass) {
+
+
+    Object newInstance() {
+        if(objectTypeElement == null) return null;
+        return objectTypeElement.newInstance();
+    }
+
+
+
+    SchemaValueAbs(TypeElement parentsTypeElement, String path, Class<?> valueTypeClass, Type genericType) {
 
         this.path = path;
         this.valueTypeClass = valueTypeClass;
         this.parentsTypeElement = parentsTypeElement;
-        this.type = Types.of(valueTypeClass);
+        this.isEnum = valueTypeClass.isEnum();
 
+        Types type = Types.Object;
+        if(genericType instanceof TypeVariable && parentsTypeElement != null) {
+            TypeVariable typeVariable = (TypeVariable)genericType;
+            if(parentsTypeElement.containsGenericType(typeVariable.getName())) {
+                type = Types.GenericType;
+            }
+        } else {
+            type = Types.of(valueTypeClass);
+        }
+        this.type = type;
 
-        if(this.type == Types.Object) {
-            this.objectTypeElement = TypeElements.getInstance().getTypeInfo(valueTypeClass);
+        if(this.type == Types.Object || this.type == Types.AbstractObject) {
+            try {
+                this.objectTypeElement = TypeElements.getInstance().getTypeInfo(valueTypeClass);
+            } catch (CSONSerializerException e) {
+                throw new CSONSerializerException("A type that cannot be used as a serialization object : " + valueTypeClass.getName() + ". (path: " + parentsTypeElement.getType().getName() + "." + path + ")", e);
+            }
         }
         else {
             this.objectTypeElement = null;
@@ -108,15 +138,20 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     }
 
 
-    Object newInstance() {
-        if(objectTypeElement == null) return null;
-        return objectTypeElement.newInstance();
+
+
+    final Types types() {
+        return type;
     }
 
+    void changeType(Types type) {
+        this.type = type;
+    }
 
     boolean isPrimitive() {
         return isPrimitive;
     }
+
 
 
     final Types getType() {
@@ -142,6 +177,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
 
+
     final void setParentFiled(SchemaValueAbs parent) {
         this.parentFieldRack = parent;
     }
@@ -150,9 +186,88 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     @Override
     public Object getValue(Object parent) {
         Object value = null;
-        int index = this.allSchemaValueAbsList.size() - 1;
+
+        int index = 0;
+        int size = this.allSchemaValueAbsList.size();
+
+        while(value == null && index < size) {
+            SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
+
+            value = duplicatedSchemaValueAbs.onGetValue(parent);
+            if(value != null && duplicatedSchemaValueAbs.getType() == Types.GenericType) {
+                Types inType = Types.of(value.getClass());
+                if(Types.isSingleType(inType)) {
+                    return value;
+                } else {
+                    return CSONObject.fromObject(value);
+                }
+            }
+
+            if(value == null) {
+                ++index;
+                continue;
+            }
+            if(!this.equalsValueType(duplicatedSchemaValueAbs)) {
+                if(this instanceof ISchemaArrayValue || this instanceof ISchemaMapValue) {
+                    return value;
+                } else {
+                    value = Utils.convertValue(value, duplicatedSchemaValueAbs.type);
+                }
+            }
+            ++index;
+
+        }
+        return value;
+
+
+        /*int index = this.allSchemaValueAbsList.size() - 1;
+
         while(value == null && index > -1) {
             SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
+
+            value = duplicatedSchemaValueAbs.onGetValue(parent);
+            if(value != null && duplicatedSchemaValueAbs.getType() == Types.GenericType) {
+                Types inType = Types.of(value.getClass());
+                if(Types.isSingleType(inType)) {
+                    return value;
+                } else {
+                    return CSONObject.fromObject(value);
+                }
+            }
+
+            if(value == null) {
+                index--;
+                continue;
+            }
+            if(!this.equalsValueType(duplicatedSchemaValueAbs)) {
+                if(this instanceof ISchemaArrayValue || this instanceof ISchemaMapValue) {
+                    return value;
+                } else {
+                    value = Utils.convertValue(value, duplicatedSchemaValueAbs.type);
+                }
+            }
+            index--;
+
+        }
+        return value;*/
+    }
+
+
+    /*
+    2024.01.08 동일한 path 의 CSONElement 가 여러개 있을 경우 merge 하도록 하는 코드.
+     추후 이 것을 구현해야 하는 상황이 생긴다면 주석을 해제하여 사용한다.
+    @Override
+    public Object getValue(Object parent) {
+        Object value = null;
+        int index = this.allSchemaValueAbsList.size() - 1;
+        boolean doContinue = true;
+        CSONElement lastCSONElement = null;
+        while(doContinue && index > -1) {
+            SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
+            if(type == Types.CSONElement && duplicatedSchemaValueAbs.type != Types.CSONElement) {
+                continue;
+            }
+
             value = duplicatedSchemaValueAbs.onGetValue(parent);
             if(value == null) {
                 index--;
@@ -166,9 +281,25 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
                 }
             }
             index--;
+            if(type != Types.CSONElement && value != null) {
+                doContinue = false;
+            } else if(value instanceof CSONElement) {
+                if(lastCSONElement != null) {
+                    if(lastCSONElement instanceof  CSONObject && value instanceof  CSONObject) {
+                        ((CSONObject) lastCSONElement).merge((CSONObject) value);
+                        value = lastCSONElement;
+                    }
+                    else if(lastCSONElement instanceof CSONArray && value instanceof CSONArray) {
+                        ((CSONArray) lastCSONElement).merge((CSONArray) value);
+                        value = lastCSONElement;
+                    }
+                } else {
+                    lastCSONElement = (CSONElement) value;
+                }
+            }
         }
         return value;
-    }
+    }*/
 
     @Override
     public void setValue(Object parent, Object value) {

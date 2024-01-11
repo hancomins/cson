@@ -21,12 +21,11 @@ class TypeElements {
     }
 
     TypeElement getTypeInfo(Class<?> type) {
-        TypeElement typeInfo = typeInfoMap.get(type);
-        if(typeInfo == null) {
-            typeInfo = TypeElement.create(type);
-            typeInfoMap.put(type, typeInfo);
+        // 익명 클래스는 캐시하지 않는다.
+        if(type.isAnonymousClass()) {
+            return TypeElement.create(type);
         }
-        return typeInfo;
+        return typeInfoMap.computeIfAbsent(type, TypeElement::create);
     }
 
 

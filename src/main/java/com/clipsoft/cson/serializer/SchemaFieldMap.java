@@ -1,34 +1,47 @@
 package com.clipsoft.cson.serializer;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.*;
 
 class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
 
     private final Constructor<?> constructorMap;
     private final Class<?> elementClass;
+    private final boolean isGenericTypeValue;
+    private final boolean isAbstractValue;
+    private TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
     SchemaFieldMap(TypeElement parentsTypeElement, Field field, String path) {
         super(parentsTypeElement, field, path);
 
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
         Type genericType = field.getGenericType();
-        Map.Entry<Class<?>, Class<?>> entry = ISchemaMapValue.readKeyValueGenericType(genericType, fieldPath);
+        Map.Entry<Class<?>, Type> entry = ISchemaMapValue.readKeyValueGenericType(genericType, fieldPath);
         Class<?> keyClass = entry.getKey();
-        this.elementClass = entry.getValue();
-        if(elementClass != null) {
+        Type valueType = entry.getValue();
+        boolean isGenericValue = false;
+        if(valueType instanceof Class<?>) {
+            this.elementClass = (Class<?>)valueType;
+        } else if(valueType instanceof TypeVariable) {
+            this.elementClass = Object.class;
+            isGenericValue = true;
+        } else {
+            this.elementClass = null;
+        }
+        obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(field.getName());
+        isGenericTypeValue = isGenericValue;
+        if(elementClass != null && !isGenericValue) {
             ISchemaValue.assertValueType(elementClass, fieldPath);
         }
         ISchemaMapValue.assertCollectionOrMapValue(elementClass,fieldPath);
 
 
+        isAbstractValue = elementClass != null && elementClass.isInterface() || java.lang.reflect.Modifier.isAbstract(elementClass.getModifiers());
         if(!String.class.isAssignableFrom(keyClass)) {
             throw new CSONSerializerException("Map field '" + fieldPath + "' is not String key. Please use String key.");
         }
         constructorMap = ISchemaMapValue.constructorOfMap(field.getType());
     }
+
 
 
     @Override
@@ -59,6 +72,31 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         }
     }
 
+    @Override
+    public boolean isGenericValue() {
+        return isGenericTypeValue;
+    }
+
+    @Override
+    public boolean isAbstractType() {
+        return isAbstractValue;
+    }
+
+    @Override
+    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+        return obtainTypeValueInvoker;
+    }
+
+    @Override
+    public String targetPath() {
+        return field.getDeclaringClass().getName() + "." + field.getName();
+    }
+
+    @Override
+    public boolean isIgnoreError() {
+        TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker = getObtainTypeValueInvoker();
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
+    }
 
     @SuppressWarnings("unchecked")
 

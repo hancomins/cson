@@ -1,8 +1,6 @@
 package com.clipsoft.cson.serializer;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -16,6 +14,13 @@ interface ISchemaArrayValue extends ISchemaValue {
 
      List<CollectionItems> getCollectionItems();
 
+
+
+     default boolean isGenericTypeValue() {
+         int size = getCollectionItems().size();
+         CollectionItems collectionItems = getCollectionItems().get(size - 1);
+         return collectionItems.isGeneric();
+     }
 
 
 
@@ -68,12 +73,20 @@ interface ISchemaArrayValue extends ISchemaValue {
                     throw new CSONObjectException("java.util.Map type cannot be directly used as an element of Collection. Please create a class that wraps your Map and use it as an element of the Collection. (path: " + path + ")");
                 }
                 ISchemaValue.assertValueType((Class<?>)rawType, path);
-                collectionBundles.get(collectionBundles.size() - 1).valueClass = (Class<?>)rawType;
+                CollectionItems collectionItems = collectionBundles.get(collectionBundles.size() - 1);
+                collectionItems.setValueClass((Class<?>)rawType);
                 return collectionBundles;
             }
             CollectionItems collectionBundle = new CollectionItems(parameterizedType);
             collectionBundles.add(collectionBundle);
             return getGenericType(collectionBundles,parameterizedType, path);
+        }
+        else if(fieldArgTypes[0] instanceof TypeVariable) {
+            CollectionItems collectionItems = collectionBundles.get(collectionBundles.size() - 1);
+            collectionItems.setGenericTypeName(((TypeVariable) fieldArgTypes[0]).getName());
+
+            collectionItems.setValueClass(Object.class);
+            return collectionBundles;
         }
         else {
             throw new CSONObjectException("Invalid collection or RAW type. Collections must use <generic> types. (path: " + path + ")");

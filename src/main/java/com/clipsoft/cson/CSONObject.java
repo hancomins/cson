@@ -77,28 +77,28 @@ public class CSONObject extends CSONElement implements Cloneable {
 		reader.close();
 	}
 
-	public CSONObject(StringFormatOption stringFormatOption) {
+	public CSONObject(StringFormatOption<?> stringFormatOption) {
 		super(ElementType.Object);
 		this.defaultJSONOptions = stringFormatOption;
 	}
 
 
 
-	public CSONObject(String json, StringFormatOption options) {
+	public CSONObject(String json, StringFormatOption<?> options) {
 		super(ElementType.Object);
 		NoSynchronizedStringReader reader =  new NoSynchronizedStringReader(json);
 		parse(reader, options);
 		reader.close();
 	}
-	public CSONObject(Reader reader, StringFormatOption options) {
+	public CSONObject(Reader reader, StringFormatOption<?> options) {
 		super(ElementType.Object);
 		parse(reader, options);
 	}
 
-	private void parse(Reader stringReader, StringFormatOption options) {
+	private void parse(Reader stringReader, StringFormatOption<?> options) {
 		StringFormatType type = options.getFormatType();
 		if(type == StringFormatType.PureJSON) {
-			PureJSONParser.parsePureJSON(stringReader, this);
+			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else {
 			new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseObject(this);
 		}
@@ -123,7 +123,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 	@SuppressWarnings("unused")
-	public static CSONObject fromObject(Object obj, StringFormatOption stringFormatOption) {
+	public static CSONObject fromObject(Object obj, StringFormatOption<?> stringFormatOption) {
 		CSONObject csonObject = CSONSerializer.toCSONObject(obj);
 		csonObject.setStringFormatOption(stringFormatOption);
 		return csonObject;
@@ -744,7 +744,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	@Override
-	public void setStringFormatOption(StringFormatOption defaultJSONOptions) {
+	public void setStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
 		super.setStringFormatOption(defaultJSONOptions);
 		for(Entry<String, Object> entry : dataMap.entrySet()) {
 			Object obj = entry.getValue();
@@ -760,7 +760,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return toString(defaultJSONOptions);
 	}
 
-	public String toString(StringFormatOption stringFormatOption) {
+	public String toString(StringFormatOption<?> stringFormatOption) {
 		if(stringFormatOption instanceof  JSONOptions) {
 			JSONWriter jsonWriter = new JSONWriter((JSONOptions) stringFormatOption);
 			write(jsonWriter, true);

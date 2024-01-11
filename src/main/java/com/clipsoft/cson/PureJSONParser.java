@@ -29,8 +29,8 @@ class PureJSONParser {
     }
 
 
-    static CSONElement parsePureJSON(Reader reader) {
-        return parsePureJSON(reader, null);
+    static CSONElement parsePureJSON(Reader reader, NumberConversionUtil.NumberConversionOption numberConversionOption) {
+        return parsePureJSON(reader, null, numberConversionOption);
     }
 
     static void appendSpecialChar(Reader reader, CharacterBuffer dataStringBuilder, int c) throws IOException {
@@ -68,7 +68,7 @@ class PureJSONParser {
         }
     }
 
-    static CSONElement parsePureJSON(Reader reader, CSONElement rootElement) {
+    static CSONElement parsePureJSON(Reader reader, CSONElement rootElement,NumberConversionUtil.NumberConversionOption numberConversionOption) {
         //ArrayDeque<Mode> modeStack = new ArrayDeque<>();
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
         CSONElement currentElement = null;
@@ -155,7 +155,7 @@ class PureJSONParser {
                     else if(currentMode == Mode.Number) {
                         char[] numberString = dataStringBuilder.getChars();
                         int len = dataStringBuilder.getLength();
-                        processNumber(currentElement, numberString, len, key, index);
+                        processNumber(currentElement, numberString, len, key, index, numberConversionOption);
                         key = null;
                     } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
 
@@ -175,7 +175,7 @@ class PureJSONParser {
                     if(currentMode == Mode.Number) {
                         char[] numberString = dataStringBuilder.getChars();
                         int len = dataStringBuilder.getLength();
-                        processNumber(currentElement, numberString, len, key, index);
+                        processNumber(currentElement, numberString, len, key, index, numberConversionOption);
                         key = null;
                     }
 
@@ -251,7 +251,7 @@ class PureJSONParser {
         return lastIndex + 1;
     }
 
-    private static void processNumber(CSONElement currentElement, char[] numberString, int len, String key, int index) {
+    private static void processNumber(CSONElement currentElement, char[] numberString, int len, String key, int index, NumberConversionUtil.NumberConversionOption numberConversionOption) {
         if(len == 0) {
             throw new CSONParseException("Unexpected character ',' at " + index);
         }
@@ -273,7 +273,7 @@ class PureJSONParser {
                     String booleanString = new String(numberString, 0, len);
                     booleanValue = Boolean.parseBoolean(booleanString);
                 } else {
-                    numberValue = NumberConversionUtil.stringToNumber(numberString, 0, len);
+                    numberValue = NumberConversionUtil.stringToNumber(numberString, 0, len, numberConversionOption);
                 }
             } catch (NumberFormatException e) {
                     //throw new CSONParseException("Number format error value '" + numberString + "' at " + index, e);
