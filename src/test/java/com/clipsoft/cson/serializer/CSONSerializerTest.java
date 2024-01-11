@@ -1461,6 +1461,33 @@ public class CSONSerializerTest {
         System.out.println(CSONObject.fromObject(enumClass1));
     }
 
+    @CSON
+    public static class Message<K,V> {
+        @CSONValue
+        private K key;
+
+        private List<V> list;
+
+        @CSONValueSetter
+        public void setData(V data) {
+            this.value = data;
+        }
+        @ObtainTypeValue(fieldNames = {"value"}, deserializeAfter = false)
+        public K obtainKeyValue(CSONObject object, CSONObject root) {
+            return (K) object.optString("$value");
+        }
+
+        @ObtainTypeValue(setterMethodNames = {"setData"}, deserializeAfter = true)
+        public V obtainValue(CSONObject object, CSONObject root) {
+            return (V) new ValueObject();
+        }
+    }
+
+
+    CSONObject rawObject = ...
+    Message<String, ValueObject> message = CSONObject.toObject(rawObject,Message.class);
+
+
 
 
 
