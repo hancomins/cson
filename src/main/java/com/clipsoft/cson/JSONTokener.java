@@ -4,10 +4,9 @@ package com.clipsoft.cson;
 
 import com.clipsoft.cson.util.NoSynchronizedBufferReader;
 import com.clipsoft.cson.util.NoSynchronizedStringReader;
+import com.clipsoft.cson.util.NumberConversionUtil;
 
 import java.io.*;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 
 /*
 JSON.org 라이브러리를 가져와 수정하여 사용하였다.
@@ -479,6 +478,8 @@ class JSONTokener {
         if ("".equals(string)) {
             throw this.syntaxError("Missing value");
         }
+
+
         Object value = stringToValue(string);
         if(!jsonOption.isAllowUnquoted() && value instanceof String) {
             throw this.syntaxError("Unquoted string");
@@ -541,7 +542,7 @@ class JSONTokener {
                     err = e;
                 }
             }
-            if(!jsonOption.isIgnoreNumberFormatError()) {
+            if(!jsonOption.isIgnoreNonNumeric()) {
                 if(err != null) {
                     throw syntaxError("Invalid char value: " + string, err);
                 }
@@ -557,6 +558,35 @@ class JSONTokener {
 
 
     Object stringToValue(String string) {
+        if ("".equals(string)) {
+            return string;
+        }
+        if ("true".equalsIgnoreCase(string)) {
+            return Boolean.TRUE;
+        }
+        if ("false".equalsIgnoreCase(string)) {
+            return Boolean.FALSE;
+        }
+        if ("null".equalsIgnoreCase(string)) {
+            return null;
+        }
+        try {
+            Number number = NumberConversionUtil.stringToNumber(string, jsonOption);
+            if(number == null) {
+                return string;
+            } else {
+                return number;
+            }
+        } catch (NumberFormatException e) {
+            if(!jsonOption.isIgnoreNonNumeric()) {
+                throw this.syntaxError("Invalid number format: " + string, e);
+            }
+        }
+        return string;
+
+    }
+
+    /*Object stringToValue(String string) {
         if ("".equals(string)) {
             return string;
         }
@@ -586,10 +616,6 @@ class JSONTokener {
         }
 
 
-        /*
-         * If it might be a number, try converting it. If a number cannot be
-         * produced, then the value will just be a string.
-         */
         char initial = string.charAt(0);
         int length = string.length();
         String originalString = null;
@@ -635,9 +661,9 @@ class JSONTokener {
             }
         }
         return string;
-    }
+    }*/
 
-    protected static Number stringToNumber(final String val) throws NumberFormatException {
+    /*protected static Number stringToNumber(final String val) throws NumberFormatException {
 
 
         char initial = val.charAt(0);
@@ -696,7 +722,7 @@ class JSONTokener {
     protected static boolean isDecimalNotation(final String val) {
         return val.indexOf('.') > -1 || val.indexOf('e') > -1
                 || val.indexOf('E') > -1 || "-0".equals(val);
-    }
+    }*/
 
 
     @SuppressWarnings("SameParameterValue")

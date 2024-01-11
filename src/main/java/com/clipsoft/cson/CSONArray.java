@@ -53,13 +53,13 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 
 
-	public CSONArray(StringFormatOption stringFormatOption) {
+	public CSONArray(StringFormatOption<?> stringFormatOption) {
 		super(ElementType.Object);
 		this.defaultJSONOptions = stringFormatOption;
 	}
 
 
-	protected CSONArray(JSONTokener x) {
+	CSONArray(JSONTokener x) {
 		super(ElementType.Array);
 		this.defaultJSONOptions = x.getJsonOption();
 		new JSONParser(x).parseArray(this);
@@ -71,10 +71,10 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	}
 
 
-	private void parse(Reader stringReader, StringFormatOption options) {
+	private void parse(Reader stringReader, StringFormatOption<?> options) {
 		StringFormatType type = options.getFormatType();
 		if(type == StringFormatType.PureJSON) {
-			PureJSONParser.parsePureJSON(stringReader, this);
+			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else {
 			new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseArray(this);
 		}
@@ -259,7 +259,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		parse(stringSource, defaultJSONOptions);
 	}
 
-	public CSONArray(Reader source, StringFormatOption options) throws CSONException {
+	public CSONArray(Reader source, StringFormatOption<?> options) throws CSONException {
 		super(ElementType.Array);
 		parse(source, options);
 	}
@@ -272,7 +272,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		noSynchronizedStringReader.close();;
 	}
 
-	public CSONArray(String source, StringFormatOption options) throws CSONException {
+	public CSONArray(String source, StringFormatOption<?> options) throws CSONException {
 		super(ElementType.Array);
 		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(source);
 		parse(noSynchronizedStringReader, options);
@@ -561,7 +561,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	}
 
 	@Override
-	public void setStringFormatOption(StringFormatOption defaultJSONOptions) {
+	public void setStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
 		super.setStringFormatOption(defaultJSONOptions);
 		for(Object obj : list) {
 			if(obj instanceof CSONElement) {
@@ -1029,7 +1029,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		return toString(defaultJSONOptions);
 	}
 
-	public String toString(StringFormatOption stringFormatOption) {
+	public String toString(StringFormatOption<?> stringFormatOption) {
 		if(stringFormatOption instanceof JSONOptions) {
 			JSONWriter jsonWriter  = new JSONWriter((JSONOptions) stringFormatOption);
 			write(jsonWriter, true);

@@ -8,7 +8,7 @@ public abstract  class CSONElement {
 
 
 
-	private static StringFormatOption DefaultJSONOptions = StringFormatOption.jsonPure();
+	private static StringFormatOption<?> DefaultJSONOptions = StringFormatOption.jsonPure();
 	private final static Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
 	private final static Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");
 	private CommentObject commentAfterElement = null;
@@ -16,7 +16,7 @@ public abstract  class CSONElement {
 	private CSONPath csonPath = null;
 
 
-	StringFormatOption defaultJSONOptions = DefaultJSONOptions;
+	StringFormatOption<?> defaultJSONOptions = DefaultJSONOptions;
 
 	private boolean allowRawValue = false;
 	private boolean unknownObjectToString = false;
@@ -40,20 +40,20 @@ public abstract  class CSONElement {
 
 
 	@SuppressWarnings("unused")
-	public static StringFormatOption getDefaultStringFormatOption() {
+	public static StringFormatOption<?> getDefaultStringFormatOption() {
 		return DefaultJSONOptions;
 	}
 
 	@SuppressWarnings("unused")
-	public static void setDefaultStringFormatOption(StringFormatOption defaultJSONOptions) {
+	public static void setDefaultStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
 		DefaultJSONOptions = defaultJSONOptions;
 	}
 
-	public void setStringFormatOption(StringFormatOption defaultJSONOptions) {
+	public void setStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
 		this.defaultJSONOptions = defaultJSONOptions;
 	}
 
-	public StringFormatOption getStringFormatOption() {
+	public StringFormatOption<?> getStringFormatOption() {
 		return defaultJSONOptions;
 	}
 
@@ -109,7 +109,7 @@ public abstract  class CSONElement {
 	protected abstract void write(JSONWriter writer, boolean root);
 
 
-	public abstract String toString(StringFormatOption option);
+	public abstract String toString(StringFormatOption<?> option);
 
 
 	public enum ElementType { Object, Array}

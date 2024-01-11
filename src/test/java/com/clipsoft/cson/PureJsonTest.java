@@ -1,6 +1,7 @@
 package com.clipsoft.cson;
 
 import com.clipsoft.cson.util.NoSynchronizedStringReader;
+import com.clipsoft.cson.util.NumberConversionUtil;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -181,7 +182,7 @@ public class PureJsonTest {
         //assertEquals(testJSON.replace("0xff", "255").replace("75.50", "75.5"), csonObject.toString());
 
         NoSynchronizedStringReader stringReader2 = new NoSynchronizedStringReader(testJSON);
-        CSONObject csonObjectPure = (CSONObject)PureJSONParser.parsePureJSON(stringReader2);
+        CSONObject csonObjectPure = (CSONObject)PureJSONParser.parsePureJSON(stringReader2,NumberConversionUtil.DEFAULT_NUMBER_CONVERSION_OPTION);
         stringReader2.close();
 
 

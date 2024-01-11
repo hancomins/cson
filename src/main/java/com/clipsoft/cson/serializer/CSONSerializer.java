@@ -208,7 +208,7 @@ public class CSONSerializer {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> List<T> csonArrayToList(CSONArray csonArray, Class<T> valueType, StringFormatOption stringFormatOption, boolean ignoreError, T defaultValue) {
+    public static <T> List<T> csonArrayToList(CSONArray csonArray, Class<T> valueType, StringFormatOption<?> stringFormatOption, boolean ignoreError, T defaultValue) {
         Types types = Types.of(valueType);
         if(valueType.isPrimitive()) {
             if(ignoreError) {

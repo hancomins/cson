@@ -1,10 +1,9 @@
 package com.clipsoft.cson;
 
-public interface StringFormatOption {
+import com.clipsoft.cson.util.NumberConversionUtil;
 
+public interface StringFormatOption<T> extends NumberConversionUtil.MutableNumberConversionOption<T> {
 
-
-    StringFormatOption PURE_JSON = () -> StringFormatType.PureJSON;
 
     StringFormatType getFormatType();
 
@@ -21,8 +20,8 @@ public interface StringFormatOption {
         return JSONOptions.json5();
     }
 
-    static StringFormatOption jsonPure() {
-        return PURE_JSON;
+    static StringFormatOption<?> jsonPure() {
+        return new PureJSONOption();
     }
 
 

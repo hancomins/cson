@@ -248,7 +248,7 @@ public class DataConverter {
 		}
 		else if(value instanceof String) {
 			try {
-				Number no = NumberConversionUtil.stringToNumber((String) value);
+				Number no = NumberConversionUtil.stringToNumber((String)value, NumberConversionUtil.DEFAULT_NUMBER_CONVERSION_OPTION);
 				return toBoxingNumberOfType(no, type);
 			} catch (NumberFormatException ignored) {
 				return null;

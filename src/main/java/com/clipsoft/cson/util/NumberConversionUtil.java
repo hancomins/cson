@@ -6,12 +6,12 @@ import java.util.Arrays;
 
 public class NumberConversionUtil {
 
-    public static Number stringToNumber(String value) throws NumberFormatException {
+    public static Number stringToNumber(String value, NumberConversionOption numberConversionOption) throws NumberFormatException {
         char[] input = value.toCharArray();
-        return stringToNumber(input, 0, input.length);
+        return stringToNumber(input, 0, input.length,numberConversionOption);
     }
 
-    public static Number stringToNumber(char[] input, int offset, int len) throws NumberFormatException {
+    public static Number stringToNumber(char[] input, int offset, int len, NumberConversionOption numberConversionOption) throws NumberFormatException {
 
         int lastIndex = offset + len - 1;
         // trim
@@ -30,8 +30,14 @@ public class NumberConversionUtil {
         }
         len = lastIndex - offset + 1;
 
+        if(numberConversionOption.isAllowNaN() && len > 2 && (input[offset] == 'N' || input[offset] == 'n') &&
+                (input[offset + 1] == 'A' || input[offset + 1] == 'a') &&
+                (input[offset + 2] == 'N' || input[offset + 2] == 'n')) {
+            return Double.NaN;
+        }
 
-        if( (input[offset] == 'i' || input[offset] == 'I') || (len > 1 && (input[offset + 1] == 'i' || input[offset + 1] == 'I'))) {
+
+        if(numberConversionOption.isAllowInfinity() && (input[offset] == 'i' || input[offset] == 'I') || (len > 1 && (input[offset + 1] == 'i' || input[offset + 1] == 'I'))) {
             String value = new String(input, offset, len);
             if(value.equalsIgnoreCase("infinity")) {
                 return Double.POSITIVE_INFINITY;
@@ -40,8 +46,10 @@ public class NumberConversionUtil {
             }
         }
 
-
-        if (input[offset] == '.'){
+        boolean isLeadingZeroOmission = numberConversionOption.isLeadingZeroOmission();
+        boolean isAllowPositiveSing = numberConversionOption.isAllowPositiveSing();
+        boolean isAllowHexadecimal = numberConversionOption.isAllowHexadecimal();
+        if (numberConversionOption.isLeadingZeroOmission() && input[offset] == '.'){
             char[] newInput = new char[len + 1];
             newInput[0] = '0';
             System.arraycopy(input, offset, newInput, 1, len);
@@ -49,10 +57,10 @@ public class NumberConversionUtil {
             offset = 0;
             len = input.length;
         }
-        else if (len > 1 && input[offset] == '+' && input[offset + 1] == '.')  {
+        else if (isLeadingZeroOmission && isAllowPositiveSing && len > 1 && input[offset] == '+' && input[offset + 1] == '.')  {
             input[offset] = '0';
         }
-        else if (len > 1 && input[offset] == '-' && input[offset + 1] == '.')  {
+        else if (isLeadingZeroOmission && len > 1 && input[offset] == '-' && input[offset + 1] == '.')  {
             char[] newInput = new char[len + 1];
             newInput[0] = '-';
             newInput[1] = '0';
@@ -61,7 +69,7 @@ public class NumberConversionUtil {
             offset = 0;
             len = input.length;
         }
-        else if(len > 2 && input[offset] == '0' && input[offset + 1] == 'x') {
+        else if(isAllowHexadecimal && len > 2 && input[offset] == '0' && input[offset + 1] == 'x') {
             String val = new String(input, offset + 2, len - 2);
             MockBigInteger bi = new MockBigInteger(val, 16);
             if(bi.bitLength() <= 31){
@@ -71,7 +79,7 @@ public class NumberConversionUtil {
                 return bi.longValue();
             }
         }
-        else if (input[offset] == '+'){
+        else if (isAllowPositiveSing && input[offset] == '+'){
             if(len == 1) {
                 input[offset] = '0';
             } else {
@@ -110,10 +118,9 @@ public class NumberConversionUtil {
                     }
                 }
             }
-
-
             // remove Leading Zeros Of Number
-            if (len == 1 && input[offset] == '-') { return Double.valueOf(-0.0); }
+            if (len == 1 && input[offset] == '-') { //noinspection UnnecessaryBoxing
+                return Double.valueOf(-0.0); }
             boolean negativeFirstChar = input[offset] == '-';
             int counter = offset + (negativeFirstChar ? 1:0);
 
@@ -160,6 +167,8 @@ public class NumberConversionUtil {
                 return bi.longValue();
             }
             return bi;
+        } else if(numberConversionOption.isIgnoreNonNumeric()) {
+            return null;
         }
         throw new NumberFormatException("val ["+ Arrays.toString(input) +"] is not a valid number.");
     }
@@ -203,6 +212,59 @@ public class NumberConversionUtil {
             return false;
         }
         return value.charAt(index) >= '0' && value.charAt(index) <= '9';
+    }
+
+    public final static NumberConversionOption DEFAULT_NUMBER_CONVERSION_OPTION = new NumberConversionOption() {
+        @Override
+        public boolean isAllowNaN() {
+            return true;
+        }
+
+        @Override
+        public boolean isAllowInfinity() {
+            return true;
+        }
+
+        @Override
+        public boolean isAllowHexadecimal() {
+            return true;
+        }
+
+        @Override
+        public boolean isLeadingZeroOmission() {
+            return true;
+        }
+
+        @Override
+        public boolean isAllowPositiveSing() {
+            return true;
+        }
+
+        @Override
+        public boolean isIgnoreNonNumeric() {
+            return true;
+        }
+    };
+
+    public static interface NumberConversionOption {
+        public boolean isAllowNaN();
+        public boolean isAllowInfinity();
+        public boolean isAllowHexadecimal();
+        public boolean isLeadingZeroOmission();
+        public boolean isAllowPositiveSing();
+        public boolean isIgnoreNonNumeric();
+
+    }
+
+    public static interface MutableNumberConversionOption<T> extends NumberConversionOption {
+
+
+            public  T setAllowNaN(boolean enable);
+            public  T  setAllowInfinity(boolean enable);
+            public  T  setAllowHexadecimal(boolean enable);
+            public  T  setLeadingZeroOmission(boolean enable);
+            public  T  setAllowPositiveSing(boolean enable);
+            public  T  setIgnoreNonNumeric(boolean enable);
     }
 
 }
