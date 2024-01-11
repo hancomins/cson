@@ -722,7 +722,7 @@ public class CSONSerializer {
             CSONArray csonArray = isArrayType ? ((CSONArray) cson).optCSONArray((int)key) : ((CSONObject)cson).optCSONArray((String)key);
             if(csonArray != null) {
                 OnObtainTypeValue onObtainTypeValue = null;
-                boolean isGenericOrAbsType = ((ISchemaArrayValue)schemaField).isGenericTypeValue() || ((ISchemaArrayValue)schemaField).isAbstractValue();
+                boolean isGenericOrAbsType = ((ISchemaArrayValue)schemaField).isGenericTypeValue() || ((ISchemaArrayValue)schemaField).isAbstractType();
                 if(isGenericOrAbsType) {
                     onObtainTypeValue = makeOnObtainTypeValue((ObtainTypeValueInvokerGetter)schemaField, parents, root);
                 }
@@ -746,7 +746,7 @@ public class CSONSerializer {
             if(csonObj != null) {
                 Object target = schemaField.newInstance();
                 Class<?> type = ((ISchemaMapValue)schemaField).getElementType();
-                boolean isGenericOrAbstract = ((ISchemaMapValue)schemaField).isGenericValue() || ((ISchemaMapValue)schemaField).isAbstractValue();
+                boolean isGenericOrAbstract = ((ISchemaMapValue)schemaField).isGenericValue() || ((ISchemaMapValue)schemaField).isAbstractType();
                 OnObtainTypeValue onObtainTypeValue = null;
                 if(isGenericOrAbstract) {
                     onObtainTypeValue = makeOnObtainTypeValue( (ObtainTypeValueInvokerGetter)schemaField, parents, root);
@@ -859,7 +859,7 @@ public class CSONSerializer {
 
         for(int index = 0; index <= end; ++index) {
             objectItem.setArrayIndex(index);
-            if(collectionItem.isGeneric() || collectionItem.isAbstractObject()) {
+            if(collectionItem.isGeneric() || collectionItem.isAbstractType()) {
                 CSONObject csonObject = objectItem.csonArray.optCSONObject(index);
                 Object object = onObtainTypeValue.obtain(csonObject);
                 objectItem.collectionObject.add(object);

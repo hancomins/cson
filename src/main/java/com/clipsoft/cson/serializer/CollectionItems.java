@@ -70,7 +70,7 @@ class CollectionItems {
         isGeneric = generic;
     }
 
-    public boolean isAbstractObject() {
+    public boolean isAbstractType() {
         return isAbstractObject;
     }
 

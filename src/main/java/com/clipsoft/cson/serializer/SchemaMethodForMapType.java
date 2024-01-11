@@ -116,7 +116,7 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
     }
 
     @Override
-    public boolean isAbstractValue() {
+    public boolean isAbstractType() {
         return isAbstractValue;
     }
 

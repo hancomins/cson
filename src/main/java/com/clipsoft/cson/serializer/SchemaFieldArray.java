@@ -31,7 +31,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
                 throw new CSONSerializerException("Collection generic type is already defined. (path: " + fieldPath + ")");
             }
             valueType = Types.GenericType;
-        } else if(collectionItems.isAbstractObject()) {
+        } else if(collectionItems.isAbstractType()) {
             valueType = Types.AbstractObject;
         }
         ValueType = valueType;
@@ -56,7 +56,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     }
 
     @Override
-    public boolean isAbstractValue() {
+    public boolean isAbstractType() {
         return ValueType == Types.AbstractObject;
     }
 

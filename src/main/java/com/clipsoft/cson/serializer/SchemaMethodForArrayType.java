@@ -84,7 +84,7 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
 
 
     @Override
-    public boolean isAbstractValue() {
+    public boolean isAbstractType() {
         return endpointValueType == Types.AbstractObject;
     }
 

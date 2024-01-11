@@ -43,7 +43,7 @@ public class SchemaFieldNormal extends SchemaField {
     }
 
     @Override
-    public boolean isAbstractValue() {
+    public boolean isAbstractType() {
         return types() == Types.AbstractObject;
     }
 

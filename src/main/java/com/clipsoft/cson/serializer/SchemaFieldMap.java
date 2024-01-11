@@ -78,7 +78,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     }
 
     @Override
-    public boolean isAbstractValue() {
+    public boolean isAbstractType() {
         return isAbstractValue;
     }
 

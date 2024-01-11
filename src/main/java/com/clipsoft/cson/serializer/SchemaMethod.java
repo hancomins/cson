@@ -310,7 +310,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     }
 
     @Override
-    public boolean isAbstractValue() {
+    public boolean isAbstractType() {
         return types() == Types.AbstractObject;
     }
 
