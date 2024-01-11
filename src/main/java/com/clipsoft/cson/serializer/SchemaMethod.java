@@ -197,6 +197,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         super(parentsTypeElement,getPath(method), getValueType(method), getGenericType(method));
         this.isStatic = java.lang.reflect.Modifier.isStatic(method.getModifiers());
 
+
         method.setAccessible(true);
         MethodType methodType = getMethodType(method);
 
@@ -306,6 +307,11 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     @Override
     public String getAfterComment() {
         return afterComment;
+    }
+
+    @Override
+    public boolean isAbstractValue() {
+        return types() == Types.AbstractObject;
     }
 
     @Override

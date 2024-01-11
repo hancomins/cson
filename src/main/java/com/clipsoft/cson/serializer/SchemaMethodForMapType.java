@@ -27,6 +27,7 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
     private final Constructor<?> constructorMap;
     private final Class<?> elementClass;
     private final boolean isGenericTypeValue;
+    private final boolean isAbstractValue;
 
     private final String methodPath;
 
@@ -59,10 +60,12 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
             this.elementClass = null;
         }
         isGenericTypeValue = isGenericValue;
+
         if(elementClass != null && !isGenericValue) {
             ISchemaValue.assertValueType(elementClass, methodPath);
         }
         ISchemaMapValue.assertCollectionOrMapValue(elementClass,methodPath);
+
 
 
         if(!String.class.isAssignableFrom(keyClass)) {
@@ -73,6 +76,7 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
             }
         }
         constructorMap = ISchemaMapValue.constructorOfMap(getValueTypeClass());
+        isAbstractValue = elementClass != null && elementClass.isInterface() || java.lang.reflect.Modifier.isAbstract(elementClass.getModifiers());
 
     }
 
@@ -109,6 +113,11 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
     @Override
     public boolean isGenericValue() {
         return isGenericTypeValue;
+    }
+
+    @Override
+    public boolean isAbstractValue() {
+        return isAbstractValue;
     }
 
 }

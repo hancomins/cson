@@ -11,6 +11,7 @@ enum Types {
     Character,
     String,
     ByteArray,
+    AbstractObject,
     Object,
     Map,
     BigDecimal,
@@ -38,6 +39,16 @@ enum Types {
 
 
     static Types of(Class<?> type) {
+        /*if(type.isAnonymousClass()) {
+            Class<?> superClass = type.getSuperclass();
+            if(superClass != null && superClass != Object.class) {
+                return of(superClass);
+            }
+            else if(type.getInterfaces().length > 0) {
+                return of(type.getInterfaces()[0]);
+            }
+        }*/
+
         if(type == byte.class || type == Byte.class) {
             return Byte;
         } else if(type == short.class || type == Short.class) {
@@ -72,9 +83,13 @@ enum Types {
             return ByteArray;
         } else if(java.util.Collection.class.isAssignableFrom(type)) {
             return Collection;
-        }  else {
+        } else if(type.isInterface() || java.lang.reflect.Modifier.isAbstract(type.getModifiers())) {
+            return AbstractObject;
+        } else {
             return Object;
         }
+
+
     }
 
 }

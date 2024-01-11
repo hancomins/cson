@@ -42,6 +42,11 @@ public class SchemaFieldNormal extends SchemaField {
         return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
     }
 
+    @Override
+    public boolean isAbstractValue() {
+        return types() == Types.AbstractObject;
+    }
+
     /*
 
     @Override

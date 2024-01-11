@@ -17,6 +17,7 @@ public interface ISchemaMapValue {
     Object newInstance();
 
     boolean isGenericValue();
+    boolean isAbstractValue();
     TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker();
 
 

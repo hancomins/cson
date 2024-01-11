@@ -11,6 +11,8 @@ public interface ISchemaValue extends ISchemaNode {
     String getComment();
     String getAfterComment();
 
+    boolean isAbstractValue();
+
     static void assertValueType(Class<?> valueType, String parentPath) {
         assertValueType(valueType, Types.of(valueType), parentPath);
     }

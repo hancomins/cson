@@ -1,9 +1,9 @@
 package com.clipsoft.cson.serializer;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.*;
 
 class CollectionItems {
@@ -35,7 +35,7 @@ class CollectionItems {
         this.collectionConstructor = (Constructor<? extends Collection<?>>) constructorOfCollection(collectionType);
         Type[] actualTypes =  type.getActualTypeArguments();
         if(actualTypes.length > 0 && actualTypes[0] instanceof Class<?>) {
-            this.valueClass = (Class<?>) type.getActualTypeArguments()[0];
+            this.setValueClass((Class<?>) type.getActualTypeArguments()[0]);
         } else {
             this.valueClass = null;
         }
@@ -43,13 +43,47 @@ class CollectionItems {
     }
 
 
+    public void setValueClass(Class<?> valueClass) {
+        isAbstractObject = valueClass.isInterface() || Modifier.isAbstract(valueClass.getModifiers());
+        this.valueClass = valueClass;
+    }
+
+    public Class<?> getValueClass() {
+        return valueClass;
+    }
+
 
 
     protected final Constructor<? extends Collection<?>> collectionConstructor;
     protected final Class<?> collectionType;
-    protected Class<?> valueClass;
-    protected boolean isGeneric = false;
-    protected String genericTypeName;
+    private Class<?> valueClass;
+    private boolean isGeneric = false;
+    private boolean isAbstractObject = false;
+    private String genericTypeName;
+
+
+    public boolean isGeneric() {
+        return isGeneric;
+    }
+
+    public void setGeneric(boolean generic) {
+        isGeneric = generic;
+    }
+
+    public boolean isAbstractObject() {
+        return isAbstractObject;
+    }
+
+    public String getGenericTypeName() {
+        return genericTypeName;
+    }
+
+    public void setGenericTypeName(String name) {
+        this.isGeneric = true;
+        this.genericTypeName = name;
+    }
+
+
 
 
 

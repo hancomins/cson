@@ -111,7 +111,6 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         this.parentsTypeElement = parentsTypeElement;
         this.isEnum = valueTypeClass.isEnum();
 
-
         Types type = Types.Object;
         if(genericType instanceof TypeVariable && parentsTypeElement != null) {
             TypeVariable typeVariable = (TypeVariable)genericType;
@@ -123,7 +122,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         }
         this.type = type;
 
-        if(this.type == Types.Object) {
+        if(this.type == Types.Object || this.type == Types.AbstractObject) {
             try {
                 this.objectTypeElement = TypeElements.getInstance().getTypeInfo(valueTypeClass);
             } catch (CSONSerializerException e) {

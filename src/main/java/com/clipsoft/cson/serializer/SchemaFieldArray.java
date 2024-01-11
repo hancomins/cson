@@ -1,7 +1,5 @@
 package com.clipsoft.cson.serializer;
 
-import com.clipsoft.cson.CSONElement;
-
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -15,6 +13,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     private final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
 
 
+
     protected SchemaFieldArray(TypeElement typeElement, Field field, String path) {
         super(typeElement, field, path);
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
@@ -24,18 +23,20 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
         obtainTypeValueInvoker = typeElement.findObtainTypeValueInvoker(field.getName());
 
         CollectionItems collectionItems = this.collectionBundles.get(collectionBundles.size() - 1);
-        Class<?> valueClass = collectionItems.valueClass;
+        Class<?> valueClass = collectionItems.getValueClass();
         Types valueType = Types.of(valueClass);
 
-        if(collectionItems.isGeneric) {
-            if(!typeElement.containsGenericType(collectionItems.genericTypeName)) {
+        if(collectionItems.isGeneric()) {
+            if( !typeElement.containsGenericType(collectionItems.getGenericTypeName())) {
                 throw new CSONSerializerException("Collection generic type is already defined. (path: " + fieldPath + ")");
             }
             valueType = Types.GenericType;
+        } else if(collectionItems.isAbstractObject()) {
+            valueType = Types.AbstractObject;
         }
         ValueType = valueType;
 
-        if (ValueType == Types.Object) {
+        if (ValueType == Types.Object || valueType == Types.AbstractObject ) {
             objectValueTypeElement = TypeElements.getInstance().getTypeInfo(valueClass);
         } else {
             objectValueTypeElement = null;
@@ -52,6 +53,11 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     @Override
     public List<CollectionItems> getCollectionItems() {
         return collectionBundles;
+    }
+
+    @Override
+    public boolean isAbstractValue() {
+        return ValueType == Types.AbstractObject;
     }
 
     @Override
@@ -100,4 +106,6 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     public boolean isIgnoreError() {
         return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
     }
+
+
 }

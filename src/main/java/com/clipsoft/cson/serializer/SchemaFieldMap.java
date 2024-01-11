@@ -8,6 +8,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     private final Constructor<?> constructorMap;
     private final Class<?> elementClass;
     private final boolean isGenericTypeValue;
+    private final boolean isAbstractValue;
     private TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
     SchemaFieldMap(TypeElement parentsTypeElement, Field field, String path) {
         super(parentsTypeElement, field, path);
@@ -22,11 +23,11 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
             this.elementClass = (Class<?>)valueType;
         } else if(valueType instanceof TypeVariable) {
             this.elementClass = Object.class;
-            obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(field.getName());
             isGenericValue = true;
         } else {
             this.elementClass = null;
         }
+        obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(field.getName());
         isGenericTypeValue = isGenericValue;
         if(elementClass != null && !isGenericValue) {
             ISchemaValue.assertValueType(elementClass, fieldPath);
@@ -34,6 +35,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         ISchemaMapValue.assertCollectionOrMapValue(elementClass,fieldPath);
 
 
+        isAbstractValue = elementClass != null && elementClass.isInterface() || java.lang.reflect.Modifier.isAbstract(elementClass.getModifiers());
         if(!String.class.isAssignableFrom(keyClass)) {
             throw new CSONSerializerException("Map field '" + fieldPath + "' is not String key. Please use String key.");
         }
@@ -73,6 +75,11 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     @Override
     public boolean isGenericValue() {
         return isGenericTypeValue;
+    }
+
+    @Override
+    public boolean isAbstractValue() {
+        return isAbstractValue;
     }
 
     @Override

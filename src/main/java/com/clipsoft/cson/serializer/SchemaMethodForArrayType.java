@@ -53,11 +53,10 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
         }
 
 
-
         this.collectionBundles = ISchemaArrayValue.getGenericType(genericFieldType, methodPath);
         CollectionItems lastCollectionItems = this.collectionBundles.get(this.collectionBundles.size() - 1);
-        Class<?> valueClass = lastCollectionItems.valueClass;
-        endpointValueType = lastCollectionItems.isGeneric ? Types.GenericType : Types.of(valueClass);
+        Class<?> valueClass = lastCollectionItems.getValueClass();
+        endpointValueType = lastCollectionItems.isGeneric() ? Types.GenericType : Types.of(valueClass);
         if (endpointValueType == Types.Object) {
             objectValueTypeElement = TypeElements.getInstance().getTypeInfo(valueClass);
         } else {
@@ -81,6 +80,12 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
     @Override
     public List<CollectionItems> getCollectionItems() {
         return collectionBundles;
+    }
+
+
+    @Override
+    public boolean isAbstractValue() {
+        return endpointValueType == Types.AbstractObject;
     }
 
 

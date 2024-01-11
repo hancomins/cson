@@ -3,6 +3,7 @@ package com.clipsoft.cson.serializer;
 import com.clipsoft.cson.*;
 import org.junit.Test;
 
+import java.sql.Array;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -1324,8 +1325,122 @@ public class CSONSerializerTest {
             }
             return valueEnum2;
         }
+    }
+
+    @CSON
+    public static interface I1 {
+        @CSONValueGetter
+        String getName();
+
+        @CSONValueSetter
+        void setName(String name);
+    }
+
+    @CSON
+    public static class I1Impl implements  I1 {
+
+        private String name = "name";
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public void setName(String name) {
+            this.name = name + " by I1Impl";
+
+        }
+    }
+
+    @CSON
+    public static class I2 {
+        @CSONValue
+        private I1Impl i1 = new I1Impl();
+        @CSONValue
+        private I1 i1i = new I1Impl();
+
+        @CSONValue
+        private List<I1> i1iList = new ArrayList<>();
+
+        @CSONValue
+        private Map<String, I1> i1iMap = new HashMap<>();
+
+        private I1 i1iInSetter = new I1Impl();
+        private List<I1> i1iListInSetter = new ArrayList<>();
+        private Map<String, I1> i1iMapInSetter = new HashMap<>();
+
+
+
+        @CSONValue
+        private static String staticValue = "staticValue";
+
+        @ObtainTypeValue(fieldNames = {"i1i","i1iList", "i1iMap" }, setterMethodNames = {"setI1inMethod", "setI1iListInSetter", "setI1iMapInSetter"}, deserializeAfter = true)
+        public I1 getI1(CSONObject csonElement, CSONObject root) {
+            return new I1Impl();
+        }
+
+        @CSONValueSetter
+        public void setI1inMethod(I1 i1) {
+            this.i1iInSetter = i1;
+        }
+
+        @CSONValueGetter
+        public I1 getI1inMethod() {
+            return this.i1i;
+        }
+
+        @CSONValueSetter
+        public void setI1iListInSetter(List<I1> i1iListInSetter) {
+            this.i1iListInSetter = i1iListInSetter;
+        }
+
+        @CSONValueGetter
+        public List<I1> getI1iListInSetter() {
+            List<I1> list = new ArrayList<>();
+            list.add(new I1Impl());
+            return list;
+        }
+
+        @CSONValueSetter
+        public void setI1iMapInSetter(Map<String, I1> i1iMapInSetter) {
+            this.i1iMapInSetter = i1iMapInSetter;
+        }
+
+        @CSONValueGetter
+        public Map<String, I1> getI1iMapInSetter() {
+            Map<String, I1> map = new HashMap<>();
+            map.put("1", new I1Impl());
+            return map;
+        }
+    }
+
+    @Test
+    public void interfaceAndImplClassTest() {
+        I2 i2 = new I2();
+        i2.i1iList = new ArrayList<>();
+        i2.i1iList.add(new I1Impl());
+        i2.i1iMap.put("1", new I1Impl());
+        CSONObject csonObject = CSONObject.fromObject(i2);
+
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+
+        I2 i2_1 = CSONObject.toObject(csonObject, I2.class);
+        assertEquals(i2_1.i1.getName(), "name by I1Impl");
+        assertEquals(i2_1.i1i.getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iList.get(0).getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iMap.get("1").getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iInSetter.getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iListInSetter.get(0).getName(), "name by I1Impl");
+        assertEquals(i2_1.i1iMapInSetter.get("1").getName(), "name by I1Impl");
 
     }
+
+
+
+
+
+
 
     @Test
     public void enumTest() {
