@@ -17,16 +17,16 @@ public class NodePath {
     }
 
 
-    protected static SchemaObjectNode makeSchema(TypeElement targetTypeElement,  SchemaValueAbs parentFieldRack) {
-        List<SchemaValueAbs> fieldRacks = searchAllCSONValueFields(targetTypeElement, targetTypeElement.getType());
+    protected static SchemaObjectNode makeSchema(TypeSchema targetTypeSchema, SchemaValueAbs parentFieldRack) {
+        List<SchemaValueAbs> fieldRacks = searchAllCSONValueFields(targetTypeSchema, targetTypeSchema.getType());
         SchemaObjectNode objectNode = new SchemaObjectNode().setBranchNode(false);
 
         for(SchemaValueAbs fieldRack : fieldRacks) {
             fieldRack.setParentFiled(parentFieldRack);
             String path = fieldRack.getPath();
             if(fieldRack.getType() == Types.Object) {
-                TypeElement typeElement = TypeElements.getInstance().getTypeInfo(fieldRack.getValueTypeClass());
-                SchemaObjectNode childTree = makeSchema(typeElement,fieldRack);
+                TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(fieldRack.getValueTypeClass());
+                SchemaObjectNode childTree = makeSchema(typeSchema,fieldRack);
                 childTree.setComment(fieldRack.getComment());
                 childTree.setAfterComment(fieldRack.getAfterComment());
                 childTree.addParentFieldRack(fieldRack);
@@ -46,32 +46,32 @@ public class NodePath {
     }
 
 
-    private static List<SchemaValueAbs> searchAllCSONValueFields(TypeElement typeElement, Class<?> clazz) {
+    private static List<SchemaValueAbs> searchAllCSONValueFields(TypeSchema typeSchema, Class<?> clazz) {
         //Set<String> fieldPaths = new HashSet<>();
         List<SchemaValueAbs> results = new ArrayList<>();
-        findSchemaByAncestors(typeElement, results, clazz);
+        findSchemaByAncestors(typeSchema, results, clazz);
         Class<?>[] interfaces = clazz.getInterfaces();
         if(interfaces != null) {
             for(Class<?> interfaceClass : interfaces) {
-                findSchemaByAncestors(typeElement, results, interfaceClass);
+                findSchemaByAncestors(typeSchema, results, interfaceClass);
             }
         }
         return results;
     }
 
-    private static void findSchemaByAncestors(TypeElement typeElement,List<SchemaValueAbs> results,Class<?> currentClass) {
+    private static void findSchemaByAncestors(TypeSchema typeSchema, List<SchemaValueAbs> results, Class<?> currentClass) {
         List<Field> fields = ReflectionUtils.getAllInheritedFields(currentClass);
         List<Method> methods = ReflectionUtils.getAllInheritedMethods(currentClass);
-        findCsonValueFields(typeElement, results, fields);
-        findCsonGetterSetterMethods(typeElement, results, methods);
+        findCsonValueFields(typeSchema, results, fields);
+        findCsonGetterSetterMethods(typeSchema, results, methods);
 
     }
 
 
-    private static void findCsonGetterSetterMethods(TypeElement typeElement, List<SchemaValueAbs> results, List<Method> methods) {
+    private static void findCsonGetterSetterMethods(TypeSchema typeSchema, List<SchemaValueAbs> results, List<Method> methods) {
         if(methods != null) {
             for(Method method : methods) {
-                SchemaMethod methodRack = (SchemaMethod)SchemaValueAbs.of(typeElement,method);
+                SchemaMethod methodRack = (SchemaMethod)SchemaValueAbs.of(typeSchema,method);
                 if(methodRack != null) {
                     results.add(methodRack);
                 }
@@ -79,10 +79,10 @@ public class NodePath {
         }
     }
 
-    private static void findCsonValueFields(TypeElement typeElement, List<SchemaValueAbs> results, List<Field> fields) {
+    private static void findCsonValueFields(TypeSchema typeSchema, List<SchemaValueAbs> results, List<Field> fields) {
         if(fields != null) {
             for (Field field : fields) {
-                SchemaValueAbs fieldRack = SchemaValueAbs.of(typeElement, field);
+                SchemaValueAbs fieldRack = SchemaValueAbs.of(typeSchema, field);
                 if (fieldRack != null  /* && !fieldPaths.contains(fieldRack.getPath()) */) {
                     results.add(fieldRack);
                 }

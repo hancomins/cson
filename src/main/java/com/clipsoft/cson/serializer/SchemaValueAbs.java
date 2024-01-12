@@ -14,8 +14,8 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
     private final int id = LAST_ID.getAndIncrement();
 
-    final TypeElement parentsTypeElement;
-    final TypeElement objectTypeElement;
+    final TypeSchema parentsTypeSchema;
+    final TypeSchema objectTypeSchema;
 
     final String path;
     private Types type;
@@ -31,43 +31,43 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     private final ArrayList<SchemaValueAbs> allSchemaValueAbsList = new ArrayList<>();
 
 
-    static SchemaValueAbs of(TypeElement typeElement, Field field) {
+    static SchemaValueAbs of(TypeSchema typeSchema, Field field) {
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
         int modifiers = field.getModifiers();
         if(csonValue == null) return null;
         if(Modifier.isFinal(modifiers)) {
-            throw new CSONSerializerException("@CSONValue field cannot be final. (path: " + typeElement.getType().getName() + "." + field.getName() + ")");
+            throw new CSONSerializerException("@CSONValue field cannot be final. (path: " + typeSchema.getType().getName() + "." + field.getName() + ")");
         }
         String key = csonValue.key();
         if(key == null || key.isEmpty()) key = csonValue.value();
         if(key == null || key.isEmpty()) key = field.getName();
 
         if(Collection.class.isAssignableFrom(field.getType())) {
-            return new SchemaFieldArray(typeElement, field, key);
+            return new SchemaFieldArray(typeSchema, field, key);
         } else if(Map.class.isAssignableFrom(field.getType())) {
-            return new SchemaFieldMap(typeElement, field, key);
+            return new SchemaFieldMap(typeSchema, field, key);
         }
         else {
-            return new SchemaFieldNormal(typeElement, field, key);
+            return new SchemaFieldNormal(typeSchema, field, key);
         }
     }
 
-    static SchemaValueAbs of(TypeElement typeElement, Method method) {
+    static SchemaValueAbs of(TypeSchema typeSchema, Method method) {
         CSONValueGetter getter = method.getAnnotation(CSONValueGetter.class);
         CSONValueSetter setter = method.getAnnotation(CSONValueSetter.class);
         if(setter == null && getter == null) return null;
         if(SchemaMethodForArrayType.isCollectionTypeParameterOrReturns(method)) {
-            return new SchemaMethodForArrayType(typeElement, method);
+            return new SchemaMethodForArrayType(typeSchema, method);
         }
         else if(SchemaMethodForMapType.isMapTypeParameterOrReturns(method)) {
-            return new SchemaMethodForMapType(typeElement, method);
+            return new SchemaMethodForMapType(typeSchema, method);
         }
-        return new SchemaMethod(typeElement, method);
+        return new SchemaMethod(typeSchema, method);
     }
 
 
     boolean appendDuplicatedSchemaValue(SchemaValueAbs node) {
-        if(node.parentsTypeElement != this.parentsTypeElement) {
+        if(node.parentsTypeSchema != this.parentsTypeSchema) {
             return false;
         }
         else if(node instanceof ISchemaArrayValue && !(this instanceof ISchemaArrayValue) ||
@@ -98,23 +98,23 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
     Object newInstance() {
-        if(objectTypeElement == null) return null;
-        return objectTypeElement.newInstance();
+        if(objectTypeSchema == null) return null;
+        return objectTypeSchema.newInstance();
     }
 
 
 
-    SchemaValueAbs(TypeElement parentsTypeElement, String path, Class<?> valueTypeClass, Type genericType) {
+    SchemaValueAbs(TypeSchema parentsTypeSchema, String path, Class<?> valueTypeClass, Type genericType) {
 
         this.path = path;
         this.valueTypeClass = valueTypeClass;
-        this.parentsTypeElement = parentsTypeElement;
+        this.parentsTypeSchema = parentsTypeSchema;
         this.isEnum = valueTypeClass.isEnum();
 
         Types type = Types.Object;
-        if(genericType instanceof TypeVariable && parentsTypeElement != null) {
+        if(genericType instanceof TypeVariable && parentsTypeSchema != null) {
             TypeVariable typeVariable = (TypeVariable)genericType;
-            if(parentsTypeElement.containsGenericType(typeVariable.getName())) {
+            if(parentsTypeSchema.containsGenericType(typeVariable.getName())) {
                 type = Types.GenericType;
             }
         } else {
@@ -124,13 +124,13 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
         if(this.type == Types.Object || this.type == Types.AbstractObject) {
             try {
-                this.objectTypeElement = TypeElements.getInstance().getTypeInfo(valueTypeClass);
+                this.objectTypeSchema = TypeSchemaMap.getInstance().getTypeInfo(valueTypeClass);
             } catch (CSONSerializerException e) {
-                throw new CSONSerializerException("A type that cannot be used as a serialization object : " + valueTypeClass.getName() + ". (path: " + parentsTypeElement.getType().getName() + "." + path + ")", e);
+                throw new CSONSerializerException("A type that cannot be used as a serialization object : " + valueTypeClass.getName() + ". (path: " + parentsTypeSchema.getType().getName() + "." + path + ")", e);
             }
         }
         else {
-            this.objectTypeElement = null;
+            this.objectTypeSchema = null;
         }
 
         this.isPrimitive = valueTypeClass.isPrimitive();

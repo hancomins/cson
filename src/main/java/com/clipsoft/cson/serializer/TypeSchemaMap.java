@@ -3,16 +3,16 @@ package com.clipsoft.cson.serializer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class TypeElements {
+class TypeSchemaMap {
 
-    private static final TypeElements instance = new TypeElements();
+    private static final TypeSchemaMap instance = new TypeSchemaMap();
 
-    private final Map<Class<?>, TypeElement> typeInfoMap = new ConcurrentHashMap<>();
+    private final Map<Class<?>, TypeSchema> typeInfoMap = new ConcurrentHashMap<>();
 
-    private TypeElements() {
+    private TypeSchemaMap() {
     }
 
-    static TypeElements getInstance() {
+    static TypeSchemaMap getInstance() {
         return instance;
     }
 
@@ -39,11 +39,11 @@ class TypeElements {
 
 
 
-    TypeElement getTypeInfo(Class<?> type) {
+    TypeSchema getTypeInfo(Class<?> type) {
         if(type.isAnonymousClass()) {
             type = getSuperClassIfAnonymous(type);
         }
-        return typeInfoMap.computeIfAbsent(type, TypeElement::create);
+        return typeInfoMap.computeIfAbsent(type, TypeSchema::create);
     }
 
 

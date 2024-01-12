@@ -35,11 +35,11 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
 
     private final List<CollectionItems> collectionBundles;
     protected final Types endpointValueType;
-    private final TypeElement objectValueTypeElement;
+    private final TypeSchema objectValueTypeSchema;
 
 
-    SchemaMethodForArrayType(TypeElement parentsTypeElement, Method method) {
-        super(parentsTypeElement, method);
+    SchemaMethodForArrayType(TypeSchema parentsTypeSchema, Method method) {
+        super(parentsTypeSchema, method);
 
 
         boolean isGetter = getMethodType() == MethodType.Getter;
@@ -58,9 +58,9 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
         Class<?> valueClass = lastCollectionItems.getValueClass();
         endpointValueType = lastCollectionItems.isGeneric() ? Types.GenericType : Types.of(valueClass);
         if (endpointValueType == Types.Object) {
-            objectValueTypeElement = TypeElements.getInstance().getTypeInfo(valueClass);
+            objectValueTypeSchema = TypeSchemaMap.getInstance().getTypeInfo(valueClass);
         } else {
-            objectValueTypeElement = null;
+            objectValueTypeSchema = null;
         }
 
     }
@@ -73,8 +73,8 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
     }
 
     @Override
-    public TypeElement getObjectValueTypeElement() {
-        return this.objectValueTypeElement;
+    public TypeSchema getObjectValueTypeElement() {
+        return this.objectValueTypeSchema;
     }
 
     @Override

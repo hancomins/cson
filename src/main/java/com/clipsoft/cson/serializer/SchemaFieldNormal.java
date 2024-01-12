@@ -1,16 +1,13 @@
 package com.clipsoft.cson.serializer;
 
 
-import com.clipsoft.cson.CSONElement;
-import com.clipsoft.cson.CSONObject;
-
 import java.lang.reflect.Field;
 
 public class SchemaFieldNormal extends SchemaField {
 
 
-    protected SchemaFieldNormal(TypeElement typeElement, Field field, String path) {
-        super(typeElement, field, path);
+    protected SchemaFieldNormal(TypeSchema typeSchema, Field field, String path) {
+        super(typeSchema, field, path);
 
         if(this.types() != Types.CSONObject && this.types() != Types.CSONArray &&  this.types() == Types.Object && getField().getType().getAnnotation(CSON.class) == null)  {
             throw new CSONSerializerException("Object type " + this.field.getType().getName() + " is not annotated with @CSON");
@@ -19,7 +16,7 @@ public class SchemaFieldNormal extends SchemaField {
 
 
     public SchemaFieldNormal copy() {
-        SchemaFieldNormal fieldRack = new SchemaFieldNormal(parentsTypeElement, field, path);
+        SchemaFieldNormal fieldRack = new SchemaFieldNormal(parentsTypeSchema, field, path);
         fieldRack.setParentFiled(getParentField());
         return fieldRack;
     }
@@ -39,7 +36,7 @@ public class SchemaFieldNormal extends SchemaField {
 
     @Override
     public boolean isIgnoreError() {
-        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.isIgnoreError();
     }
 
     @Override
@@ -53,7 +50,7 @@ public class SchemaFieldNormal extends SchemaField {
     public Object newInstance(CSONElement csonElement) {
         String fieldName = getField().getName();
         /*if(type == Types.Object) {
-            TypeElement.ObtainTypeValueInvoker rack = parentsTypeElement.findObjectObrainorRack(fieldName);
+            ObtainTypeValueInvoker rack = parentsTypeSchema.findObjectObrainorRack(fieldName);
             if(rack != null) {
                 rack.obtain(csonElement);
 

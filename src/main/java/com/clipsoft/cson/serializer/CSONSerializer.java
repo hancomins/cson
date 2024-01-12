@@ -11,7 +11,7 @@ public class CSONSerializer {
     private CSONSerializer() {}
 
     public static boolean serializable(Class<?> clazz) {
-        if(TypeElements.getInstance().hasTypeInfo(clazz)) {
+        if(TypeSchemaMap.getInstance().hasTypeInfo(clazz)) {
             return true;
         }
         return clazz.getAnnotation(CSON.class) != null;
@@ -20,24 +20,24 @@ public class CSONSerializer {
     public static CSONObject toCSONObject(Object obj) {
         Objects.requireNonNull(obj, "obj is null");
         Class<?> clazz = obj.getClass();
-        TypeElement typeElement = TypeElements.getInstance().getTypeInfo(clazz);
-        return serializeTypeElement(typeElement,obj);
+        TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(clazz);
+        return serializeTypeElement(typeSchema,obj);
     }
 
-    private static CSONObject serializeTypeElement(TypeElement typeElement, final Object rootObject) {
-        Class<?> type = typeElement.getType();
+    private static CSONObject serializeTypeElement(TypeSchema typeSchema, final Object rootObject) {
+        Class<?> type = typeSchema.getType();
         /*if(rootObject.getClass() != type) {
             throw new CSONSerializerException("Type mismatch error. " + type.getName() + "!=" + rootObject.getClass().getName());
         }
         else*/ if(rootObject == null) {
             return null;
         }
-        SchemaObjectNode schemaRoot = typeElement.getSchema();
+        SchemaObjectNode schemaRoot = typeSchema.getSchema();
 
         HashMap<Integer, Object> parentObjMap = new HashMap<>();
         CSONElement csonElement = new CSONObject();
-        String comment = typeElement.getComment();
-        String commentAfter = typeElement.getCommentAfter();
+        String comment = typeSchema.getComment();
+        String commentAfter = typeSchema.getCommentAfter();
         if(comment != null) {
             csonElement.setCommentThis(comment);
         }
@@ -367,7 +367,7 @@ public class CSONSerializer {
         CSONArray resultCsonArray  = new CSONArray();
         CSONArray csonArray = resultCsonArray;
         Iterator<?> iter = collection.iterator();
-        TypeElement objectValueTypeElement = ISchemaArrayValue.getObjectValueTypeElement();
+        TypeSchema objectValueTypeSchema = ISchemaArrayValue.getObjectValueTypeElement();
         Deque<ArraySerializeDequeueItem> arraySerializeDequeueItems = new ArrayDeque<>();
         ArraySerializeDequeueItem currentArraySerializeDequeueItem = new ArraySerializeDequeueItem(iter, csonArray);
         arraySerializeDequeueItems.add(currentArraySerializeDequeueItem);
@@ -382,7 +382,7 @@ public class CSONSerializer {
                 iter = ((Collection<?>)object).iterator();
                 currentArraySerializeDequeueItem = new ArraySerializeDequeueItem(iter, csonArray);
                 arraySerializeDequeueItems.add(currentArraySerializeDequeueItem);
-            } else if(objectValueTypeElement == null) {
+            } else if(objectValueTypeSchema == null) {
                 if(isGeneric || isAbstractObject) {
                     object = object == null ? null :  CSONSerializer.toCSONObject(object);
                 }
@@ -391,7 +391,7 @@ public class CSONSerializer {
                 if(object == null)  {
                     csonArray.add(null);
                 } else {
-                    CSONObject childObject = serializeTypeElement(objectValueTypeElement, object);
+                    CSONObject childObject = serializeTypeElement(objectValueTypeSchema, object);
                     csonArray.add(childObject);
                 }
             }
@@ -518,8 +518,8 @@ public class CSONSerializer {
 
     @SuppressWarnings("unchecked")
     public static<T> T fromCSONObject(CSONObject csonObject, Class<T> clazz) {
-        TypeElement typeElement = TypeElements.getInstance().getTypeInfo(clazz);
-        Object object = typeElement.newInstance();
+        TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(clazz);
+        Object object = typeSchema.newInstance();
         return (T) fromCSONObject(csonObject, object);
     }
 
@@ -536,8 +536,8 @@ public class CSONSerializer {
     }
 
     public static<T> T fromCSONObject(final CSONObject csonObject, T targetObject) {
-        TypeElement typeElement = TypeElements.getInstance().getTypeInfo(targetObject.getClass());
-        SchemaObjectNode schemaRoot = typeElement.getSchema();
+        TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(targetObject.getClass());
+        SchemaObjectNode schemaRoot = typeSchema.getSchema();
         HashMap<Integer, Object> parentObjMap = new HashMap<>();
         CSONElement csonElement = csonObject;
         ArrayDeque<ObjectSerializeDequeueItem> objectSerializeDequeueItems = new ArrayDeque<>();
@@ -634,7 +634,7 @@ public class CSONSerializer {
            else if(!setNull && child == null) {
                 if(schemaField instanceof ObtainTypeValueInvokerGetter) {
                     // TODO 앞으로 제네릭 또는 interface 나 추상 클래스로만 사용 가능하도록 변경할 것.
-                    TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker = ((ObtainTypeValueInvokerGetter)schemaField).getObtainTypeValueInvoker();
+                    ObtainTypeValueInvoker obtainTypeValueInvoker = ((ObtainTypeValueInvokerGetter)schemaField).getObtainTypeValueInvoker();
                     if(obtainTypeValueInvoker != null) {
                         OnObtainTypeValue onObtainTypeValue = makeOnObtainTypeValue((ObtainTypeValueInvokerGetter)schemaField, parent, rootCSON);
                         child = onObtainTypeValue.obtain(csonElement);
@@ -781,7 +781,7 @@ public class CSONSerializer {
 
     private static OnObtainTypeValue makeOnObtainTypeValue(ObtainTypeValueInvokerGetter obtainTypeValueInvokerGetter,Object parents, CSONObject root) {
         return (csonObjectOrValue) -> {
-            TypeElement.ObtainTypeValueInvoker invoker = obtainTypeValueInvokerGetter.getObtainTypeValueInvoker();
+            ObtainTypeValueInvoker invoker = obtainTypeValueInvokerGetter.getObtainTypeValueInvoker();
             if(invoker == null ) {
                 if(obtainTypeValueInvokerGetter.isIgnoreError()) {
                     return null;

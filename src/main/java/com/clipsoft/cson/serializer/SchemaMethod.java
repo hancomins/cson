@@ -9,7 +9,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
 
 
 
-    private  TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
+    private  ObtainTypeValueInvoker obtainTypeValueInvoker;
 
     private static Class<?> getValueType(Method method) {
         CSONValueGetter csonValueGetter = method.getAnnotation(CSONValueGetter.class);
@@ -118,7 +118,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     }
 
     @Override
-    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+    public ObtainTypeValueInvoker getObtainTypeValueInvoker() {
         if(obtainTypeValueInvoker == null) {
             System.out.println(methodGetter.getName());
             System.out.println(methodSetter.getName());
@@ -143,14 +143,14 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         if(methodSetter == null && methodGetter != null) {
             return methodGetter.getDeclaringClass().getName() + ".(Undeclared Setter)()";
         } else if(methodSetter == null && methodGetter == null) {
-            return parentsTypeElement.getType().getName() + ".(Undeclared Setter)()";
+            return parentsTypeSchema.getType().getName() + ".(Undeclared Setter)()";
         }
        return methodSetter.getDeclaringClass().getName() + "." + methodSetter.getName() + "()";
     }
 
     @Override
     public boolean isIgnoreError() {
-        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.isIgnoreError();
     }
 
     static enum MethodType {
@@ -193,8 +193,8 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     private final boolean isStatic;
 
 
-    SchemaMethod(TypeElement parentsTypeElement, Method method) {
-        super(parentsTypeElement,getPath(method), getValueType(method), getGenericType(method));
+    SchemaMethod(TypeSchema parentsTypeSchema, Method method) {
+        super(parentsTypeSchema,getPath(method), getValueType(method), getGenericType(method));
         this.isStatic = java.lang.reflect.Modifier.isStatic(method.getModifiers());
 
 
@@ -210,7 +210,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         else {
             methodPath += "(" + method.getParameterTypes()[0].getName() + ") <return: " + method.getReturnType().getName() + ">";
             ignoreError = method.getAnnotation(CSONValueSetter.class).ignoreError();
-            obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(method.getName());
+            obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(method.getName());
         }
         this.methodPath = methodPath;
 
@@ -249,7 +249,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
             this.methodType = MethodType.Setter;
         }
         if(obtainTypeValueInvoker == null) {
-            obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(method.getName());
+            obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(method.getName());
         }
 
     }
@@ -260,7 +260,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     @Override
     boolean appendDuplicatedSchemaValue(SchemaValueAbs node) {
         if(this.methodType != MethodType.Both &&  node instanceof SchemaMethod &&
-                this.parentsTypeElement == node.parentsTypeElement &&
+                this.parentsTypeSchema == node.parentsTypeSchema &&
                 this.valueTypeClass == node.valueTypeClass) {
 
             if(node instanceof SchemaMethodForMapType &&
@@ -296,7 +296,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
 
     @Override
     public ISchemaNode copyNode() {
-        return new SchemaMethod(parentsTypeElement, methodSetter);
+        return new SchemaMethod(parentsTypeSchema, methodSetter);
     }
 
     @Override

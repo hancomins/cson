@@ -31,8 +31,8 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
 
     private final String methodPath;
 
-    SchemaMethodForMapType(TypeElement parentsTypeElement, Method method) {
-        super(parentsTypeElement, method);
+    SchemaMethodForMapType(TypeSchema parentsTypeSchema, Method method) {
+        super(parentsTypeSchema, method);
 
         boolean isGetter = getMethodType() == MethodType.Getter;
         Type genericType = isGetter ? method.getGenericReturnType() : method.getGenericParameterTypes()[0];
