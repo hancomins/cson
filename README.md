@@ -316,9 +316,10 @@ Convert objects to JSON without much effort. The type of object being serialized
            // OK
            @CSONValue
            Map<String, User> idUserMap = new HashMap<>();
-           // Error
+           // OK
            @CSONValue
            Map<User, String> userAddrMap = new HashMap<>();
+           // Error
            @CSONValue
            Map<String, List<User>> userListMap = new HashMap<>();
            ```
