@@ -117,6 +117,7 @@ dependencies {
     // {"user":{"name":"John","age":25,"friends":["Nancy","Mary","Tom","Jerry","Suji"],"addr":{"city":"Incheon","zipCode":"06164"}}}
    ```
 ## Object serialization/deserialization
+Convert objects to JSON without much effort. The type of object being serialized is cached as a schema upon first execution. Therefore, the initial execution is slow, but thereafter it is fast.
    * **The types that can be serialized and deserialized into JSON are as follows.**
      * Primitive types (int, long, float, double, boolean, char, byte, short)
      * Boxed types (Integer, Long, Float, Double, Boolean, Character, Byte, Short)
