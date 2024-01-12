@@ -20,10 +20,28 @@ class TypeElements {
         return typeInfoMap.containsKey(type);
     }
 
+    private Class<?> getSuperClassIfAnonymous(Class<?> type) {
+        if(!type.isAnonymousClass()) {
+            return type;
+        }
+        Class<?> superClass = type.getSuperclass();
+        if(superClass != null && superClass != Object.class && type.getAnnotation(CSON.class) != null) {
+            return superClass;
+        }
+        Class<?>[] interfaces = type.getInterfaces();
+        for (Class<?> interfaceClass : interfaces) {
+            if (interfaceClass.getAnnotation(CSON.class) != null) {
+                return interfaceClass;
+            }
+        }
+        return type;
+    }
+
+
+
     TypeElement getTypeInfo(Class<?> type) {
-        // 익명 클래스는 캐시하지 않는다.
         if(type.isAnonymousClass()) {
-            return TypeElement.create(type);
+            type = getSuperClassIfAnonymous(type);
         }
         return typeInfoMap.computeIfAbsent(type, TypeElement::create);
     }
