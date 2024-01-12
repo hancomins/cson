@@ -9,9 +9,9 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     private final Class<?> elementClass;
     private final boolean isGenericTypeValue;
     private final boolean isAbstractValue;
-    private TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
-    SchemaFieldMap(TypeElement parentsTypeElement, Field field, String path) {
-        super(parentsTypeElement, field, path);
+    private ObtainTypeValueInvoker obtainTypeValueInvoker;
+    SchemaFieldMap(TypeSchema parentsTypeSchema, Field field, String path) {
+        super(parentsTypeSchema, field, path);
 
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
         Type genericType = field.getGenericType();
@@ -27,7 +27,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         } else {
             this.elementClass = null;
         }
-        obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(field.getName());
+        obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(field.getName());
         isGenericTypeValue = isGenericValue;
         if(elementClass != null && !isGenericValue) {
             ISchemaValue.assertValueType(elementClass, fieldPath);
@@ -83,7 +83,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     }
 
     @Override
-    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+    public ObtainTypeValueInvoker getObtainTypeValueInvoker() {
         return obtainTypeValueInvoker;
     }
 
@@ -94,8 +94,8 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
 
     @Override
     public boolean isIgnoreError() {
-        TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker = getObtainTypeValueInvoker();
-        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
+        ObtainTypeValueInvoker obtainTypeValueInvoker = getObtainTypeValueInvoker();
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.isIgnoreError();
     }
 
     @SuppressWarnings("unchecked")
@@ -104,6 +104,6 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
 
     @Override
     public ISchemaNode copyNode() {
-        return new SchemaFieldMap(parentsTypeElement, field, path);
+        return new SchemaFieldMap(parentsTypeSchema, field, path);
     }
 }

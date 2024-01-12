@@ -9,25 +9,25 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     private final List<CollectionItems> collectionBundles;
     protected final Types ValueType;
-    private final TypeElement objectValueTypeElement;
-    private final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
+    private final TypeSchema objectValueTypeSchema;
+    private final ObtainTypeValueInvoker obtainTypeValueInvoker;
 
 
 
-    protected SchemaFieldArray(TypeElement typeElement, Field field, String path) {
-        super(typeElement, field, path);
+    protected SchemaFieldArray(TypeSchema typeSchema, Field field, String path) {
+        super(typeSchema, field, path);
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
         this.collectionBundles = ISchemaArrayValue.getGenericType(field.getGenericType(), fieldPath);
 
 
-        obtainTypeValueInvoker = typeElement.findObtainTypeValueInvoker(field.getName());
+        obtainTypeValueInvoker = typeSchema.findObtainTypeValueInvoker(field.getName());
 
         CollectionItems collectionItems = this.collectionBundles.get(collectionBundles.size() - 1);
         Class<?> valueClass = collectionItems.getValueClass();
         Types valueType = Types.of(valueClass);
 
         if(collectionItems.isGeneric()) {
-            if( !typeElement.containsGenericType(collectionItems.getGenericTypeName())) {
+            if( !typeSchema.containsGenericType(collectionItems.getGenericTypeName())) {
                 throw new CSONSerializerException("Collection generic type is already defined. (path: " + fieldPath + ")");
             }
             valueType = Types.GenericType;
@@ -37,17 +37,17 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
         ValueType = valueType;
 
         if (ValueType == Types.Object || valueType == Types.AbstractObject ) {
-            objectValueTypeElement = TypeElements.getInstance().getTypeInfo(valueClass);
+            objectValueTypeSchema = TypeSchemaMap.getInstance().getTypeInfo(valueClass);
         } else {
-            objectValueTypeElement = null;
+            objectValueTypeSchema = null;
         }
 
     }
 
 
     @Override
-    public TypeElement getObjectValueTypeElement() {
-        return objectValueTypeElement;
+    public TypeSchema getObjectValueTypeElement() {
+        return objectValueTypeSchema;
     }
 
     @Override
@@ -61,7 +61,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     }
 
     @Override
-    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+    public ObtainTypeValueInvoker getObtainTypeValueInvoker() {
         return obtainTypeValueInvoker;
     }
 
@@ -73,7 +73,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public ISchemaNode copyNode() {
-        return new SchemaFieldArray(parentsTypeElement, field, path);
+        return new SchemaFieldArray(parentsTypeSchema, field, path);
     }
 
     @Override
@@ -104,7 +104,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public boolean isIgnoreError() {
-        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.ignoreError;
+        return obtainTypeValueInvoker != null && obtainTypeValueInvoker.isIgnoreError();
     }
 
 

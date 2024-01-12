@@ -18,7 +18,7 @@ public interface ISchemaMapValue {
 
     boolean isGenericValue();
     boolean isAbstractType();
-    TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker();
+    ObtainTypeValueInvoker getObtainTypeValueInvoker();
 
 
     static Constructor<?> constructorOfMap(Class<?> type) {

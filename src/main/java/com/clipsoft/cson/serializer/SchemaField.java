@@ -11,19 +11,19 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     final String afterComment;
     private final boolean isStatic;
 
-    final TypeElement.ObtainTypeValueInvoker obtainTypeValueInvoker;
+    final ObtainTypeValueInvoker obtainTypeValueInvoker;
 
     //private final boolean isMapField;
 
 
-    SchemaField(TypeElement parentsTypeElement, Field field, String path) {
-        super(parentsTypeElement, path, field.getType(), field.getGenericType());
+    SchemaField(TypeSchema parentsTypeSchema, Field field, String path) {
+        super(parentsTypeSchema, path, field.getType(), field.getGenericType());
         this.field = field;
         this.fieldName = field.getName();
         field.setAccessible(true);
         this.isStatic = java.lang.reflect.Modifier.isStatic(field.getModifiers());
 
-        obtainTypeValueInvoker = parentsTypeElement.findObtainTypeValueInvoker(fieldName);
+        obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(fieldName);
 
 
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
@@ -37,7 +37,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
 
     @Override
-    public TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+    public ObtainTypeValueInvoker getObtainTypeValueInvoker() {
         return obtainTypeValueInvoker;
     }
 

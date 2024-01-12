@@ -1,7 +1,7 @@
 package com.clipsoft.cson.serializer;
 
 public interface ObtainTypeValueInvokerGetter {
-    TypeElement.ObtainTypeValueInvoker getObtainTypeValueInvoker();
+    ObtainTypeValueInvoker getObtainTypeValueInvoker();
 
 
     /**
