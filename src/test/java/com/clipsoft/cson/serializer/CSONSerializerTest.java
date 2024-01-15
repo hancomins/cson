@@ -1492,6 +1492,14 @@ public class CSONSerializerTest {
         CSONObject csonObject = CSONObject.fromObject(resultMessage);
         System.out.println(csonObject.toString(JSONOptions.json5()));
         assertEquals(csonObject.getCSONObject("data").getLong("time"), 123123);
+
+        CSONObject parsedObject = CSONObject.fromObject(resultMessage);
+
+        System.out.println(parsedObject.toString(JSONOptions.json5()));
+
+        assertEquals(csonObject.toString(JSONOptions.json5()), parsedObject.toString(JSONOptions.json5()));
+
+
     }
 
 
