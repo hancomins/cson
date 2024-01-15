@@ -196,7 +196,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
             value = duplicatedSchemaValueAbs.onGetValue(parent);
             if(value != null && duplicatedSchemaValueAbs.getType() == Types.GenericType) {
                 Types inType = Types.of(value.getClass());
-                if(Types.isSingleType(inType)) {
+                if(Types.isSingleType(inType) || Types.isCsonType(inType)) {
                     return value;
                 } else {
                     return CSONObject.fromObject(value);
