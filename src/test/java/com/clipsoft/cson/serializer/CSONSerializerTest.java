@@ -1463,6 +1463,38 @@ public class CSONSerializerTest {
 
 
 
+    @CSON
+    public interface ResultMessage<T> {
+
+        @CSONValueGetter
+        T getData();
+    }
+
+    @CSON
+    public class ResultMessageImpl<T> implements  ResultMessage<T>{
+
+        T data = null;
+
+        public void setData(T data) {
+            this.data = data;
+        }
+
+        public T getData() {
+            return data;
+        }
+    }
+
+
+    @Test
+    public void interfaceTest() {
+        ResultMessageImpl<CSONObject> resultMessage = new ResultMessageImpl<>();
+        resultMessage.setData(new CSONObject().put("time", 123123));
+        CSONObject csonObject = CSONObject.fromObject(resultMessage);
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+        assertEquals(csonObject.getCSONObject("data").getLong("time"), 123123);
+    }
+
+
 
 
 }
