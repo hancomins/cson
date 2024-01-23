@@ -11,7 +11,7 @@
 
 ```groovy
 dependencies {
-    implementation group: 'io.github.clipsoft-rnd', name: 'cson', version: '0.9.21'
+    implementation group: 'io.github.clipsoft-rnd', name: 'cson', version: '0.9.25'
 }
 ```
 
