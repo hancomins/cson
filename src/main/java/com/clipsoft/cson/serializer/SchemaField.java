@@ -1,6 +1,9 @@
 package com.clipsoft.cson.serializer;
 
+import com.clipsoft.cson.util.DataConverter;
+
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 
 public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeValueInvokerGetter {
 
@@ -85,11 +88,20 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
                     value = null;
                 }
             }
-            field.set(parent, value);
+            if(value != null && !valueTypeClass.isAssignableFrom(value.getClass()) ) {
+                value = DataConverter.convertValue(valueTypeClass, value);
+                field.set(parent, value);
+            } else {
+                field.set(parent, value);
+            }
         } catch (IllegalAccessException e) {
             throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
+
+
+
+
 
     @Override
     void onSetValue(Object parent, short value) {

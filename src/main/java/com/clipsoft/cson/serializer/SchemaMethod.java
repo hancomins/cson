@@ -1,6 +1,8 @@
 package com.clipsoft.cson.serializer;
 
 
+import com.clipsoft.cson.util.DataConverter;
+
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -346,7 +348,12 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
                     value = null;
                 }
             }
-            methodSetter.invoke(parent, value);
+            if(value != null && !valueTypeClass.isAssignableFrom(value.getClass()) ) {
+                value = DataConverter.convertValue(valueTypeClass, value);
+                methodSetter.invoke(parent, value);
+            } else {
+                methodSetter.invoke(parent, value);
+            }
         } catch (Exception e) {
             if(ignoreError) {
                 return;

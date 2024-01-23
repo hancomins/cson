@@ -15,6 +15,7 @@ enum Types {
     Object,
     Map,
     BigDecimal,
+    BigInteger,
     CSONElement,
     CSONObject,
     CSONArray,
@@ -28,7 +29,7 @@ enum Types {
     }
 
     static boolean isSingleType(Types type) {
-        return type == Byte || type == Short || type == Integer || type == Long || type == Float || type == Double || type == Boolean || type == Character || type == String || type == ByteArray || type == BigDecimal;
+        return type == Byte || type == Short || type == Integer || type == Long || type == Float || type == Double || type == Boolean || type == Character || type == String || type == ByteArray || type == BigDecimal || type == BigInteger;
     }
 
     static boolean isCsonType(Types type) {

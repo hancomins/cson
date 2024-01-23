@@ -3,6 +3,7 @@ package com.clipsoft.cson;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 
@@ -212,6 +213,20 @@ class BinaryCSONWriter {
 		writeString(value.toString().getBytes(StandardCharsets.UTF_8));
 		return this;
 	}
+
+	BinaryCSONWriter value(BigInteger value) {
+		if(value== null) {
+			nullValue();
+			return this;
+		}
+		if(mTypeStack.getLast() != ObjectType.ObjectKey) {
+			throw new CSONWriteException();
+		}
+		mTypeStack.removeLast();
+		mBufferStream.write(BinaryCSONDataType.TYPE_BIGDECIMAL);
+		writeString(value.toString().getBytes(StandardCharsets.UTF_8));
+		return this;
+	}
 	 
 	 BinaryCSONWriter value(byte value) {
 		 if(mTypeStack.getLast() != ObjectType.ObjectKey) {
@@ -330,6 +345,20 @@ class BinaryCSONWriter {
 
 	@SuppressWarnings("unused")
 	BinaryCSONWriter add(BigDecimal value) {
+		if(value== null) {
+			addNull();
+			return this;
+		}
+		if(mTypeStack.getLast() != ObjectType.Array) {
+			throw new CSONWriteException();
+		}
+		mBufferStream.write(BinaryCSONDataType.TYPE_BIGDECIMAL);
+		writeString(value.toString().getBytes(StandardCharsets.UTF_8));
+		return this;
+	}
+
+	@SuppressWarnings("unused")
+	BinaryCSONWriter add(BigInteger value) {
 		if(value== null) {
 			addNull();
 			return this;

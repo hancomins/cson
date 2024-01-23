@@ -64,6 +64,13 @@ public class NumberConversionUtilTest extends TestCase {
         assertEquals(-40000, value.intValue());
 
 
+        //BIG Integer
+        value = NumberConversionUtil.stringToNumber(new char[]{'1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9','0'}, 0, 42, NumberConversionUtil.DEFAULT_NUMBER_CONVERSION_OPTION);
+        System.out.println(value);
+        System.out.println(value.getClass());
+
+
+
 
     }
 

@@ -166,7 +166,7 @@ public class NumberConversionUtil {
             if(bi.bitLength() <= 63){
                 return bi.longValue();
             }
-            return bi;
+            return bi.toBigInteger();
         } else if(numberConversionOption.isIgnoreNonNumeric()) {
             return null;
         }
