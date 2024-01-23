@@ -2,6 +2,7 @@ package com.clipsoft.cson.util;
 
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.Arrays;
 
 public class MockBigInteger extends Number implements Comparable<MockBigInteger> {
@@ -134,6 +135,10 @@ public class MockBigInteger extends Number implements Comparable<MockBigInteger>
             i--;
         }
         return i;
+    }
+
+    public BigInteger toBigInteger() {
+        return new BigInteger(toString());
     }
 
 

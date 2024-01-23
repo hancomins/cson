@@ -11,6 +11,7 @@ import com.clipsoft.cson.util.NullValue;
 import java.io.Reader;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -812,6 +813,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 			else if(obj instanceof String) writer.key(key).value((String)obj);
 			else if(obj instanceof Boolean) writer.key(key).value((Boolean)obj);
 			else if(obj instanceof BigDecimal) writer.key(key).value(((BigDecimal)obj));
+			else if(obj instanceof BigInteger) writer.key(key).value(((BigInteger)obj));
 			else if(obj instanceof byte[]) writer.key(key).value((byte[])obj);
 		}
 		writer.closeObject();
@@ -851,6 +853,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 			else if (obj instanceof String) writer.key(key).value((String) obj);
 			else if (obj instanceof Boolean) writer.key(key).value((boolean) obj);
 			else if (obj instanceof BigDecimal) writer.key(key).value(obj);
+			else if(obj instanceof BigInteger) writer.key(key).value(obj);
 			else if (obj instanceof byte[]) writer.key(key).value((byte[]) obj);
 			else if (isAllowRawValue()) {
 				writer.key(key).value(obj.toString());

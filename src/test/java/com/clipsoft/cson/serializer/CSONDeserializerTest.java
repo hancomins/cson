@@ -4,6 +4,7 @@ import com.clipsoft.cson.JSONOptions;
 import com.clipsoft.cson.CSONObject;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -391,8 +392,67 @@ public class CSONDeserializerTest {
         ArrayItemKey arrayItemKey = new ArrayItemKey();
         arrayItemKey.key = "test";
         csonObject.put("key", arrayItemKey);
+    }
+
+
+    @CSON
+    public static class BigDecimalValue {
+        @CSONValue("value")
+        public BigDecimal bigValue;
+
+        @CSONValue("value")
+        public long longValue;
+
+        @CSONValue("value")
+        public byte byteValue;
+
+
+        @CSONValue("bigValue")
+        public BigDecimal bigValueBi;
+
+        @CSONValue("bigValue")
+        public long longValueBi;
+
+        @CSONValue("bigValue")
+        public byte byteValueBi;
+
+        byte bigValueByte;
+        @CSONValueSetter
+        public void setBigValue(byte bigValue) {
+            bigValueByte = bigValue;
+        }
+    }
+
+    @Test
+    public void testBigDecimalValue() {
+        CSONObject csonObjectBigValue  = new CSONObject("{\"bigValue\":68542801231231231231231231231238550}");
+        System.out.println(csonObjectBigValue);
+        csonObjectBigValue = new CSONObject(csonObjectBigValue.toBinary());
+        Object obj = csonObjectBigValue.get("bigValue");
+        System.out.println(obj);
+        assertTrue(obj instanceof BigDecimal);
+
+        CSONObject csonObject = new CSONObject("{\"value\":6.854280855E10, \"bigValue\":68542801231231231231231231231238550}");
+        System.out.println(csonObject);
+        BigDecimalValue bigDecimalValue = CSONSerializer.fromCSONObject(csonObject, new BigDecimalValue());
+        assertEquals(68542808550L, bigDecimalValue.longValue);
+        assertEquals((byte)68542808550L, bigDecimalValue.byteValue);
+        assertEquals(new BigDecimal("6.854280855E10"), bigDecimalValue.bigValue);
+
+        assertEquals("68542801231231231231231231231238550", bigDecimalValue.bigValueBi.toString());
+        assertEquals(bigDecimalValue.bigValueBi.byteValue(), bigDecimalValue.byteValueBi);
+        assertEquals(bigDecimalValue.bigValueBi.longValue(), bigDecimalValue.longValueBi);
+        assertEquals(bigDecimalValue.bigValueBi.byteValue(), bigDecimalValue.bigValueByte);
+
+
+
+
+
 
     }
+
+
+
 
 
 

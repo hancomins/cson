@@ -3,6 +3,7 @@ package com.clipsoft.cson;
 import com.clipsoft.cson.util.EscapeUtil;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayDeque;
 
 
@@ -551,6 +552,18 @@ public class JSONWriter {
 	}
 
 	public JSONWriter add(BigDecimal value) {
+		if(value== null) {
+			addNull();
+			return this;
+		}
+
+		checkAndAppendInArray();
+		stringBuilder.append(value);
+		writeAfterComment(COMMENT_SLASH_STAR);;
+		return this;
+	}
+
+	public JSONWriter add(BigInteger value) {
 		if(value== null) {
 			addNull();
 			return this;

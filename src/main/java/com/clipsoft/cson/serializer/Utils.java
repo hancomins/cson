@@ -117,7 +117,11 @@ public class Utils {
             return Boolean.valueOf(origin);
         } else if(returnType == Types.BigDecimal) {
             return new java.math.BigDecimal(origin);
+        } else if(returnType == Types.BigInteger) {
+            return new java.math.BigInteger(origin);
         }
+
+
         return null;
 
     }
@@ -160,6 +164,8 @@ public class Utils {
             return origin.intValue() != 0;
         } else if(returnType == Types.BigDecimal) {
             return new java.math.BigDecimal(origin.toString());
+        } else if(returnType == Types.BigInteger) {
+            return new java.math.BigInteger(origin.toString());
         } else if(returnType == Types.String) {
             return origin.toString();
         } else if(returnType == Types.ByteArray) {

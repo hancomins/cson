@@ -10,6 +10,7 @@ import com.clipsoft.cson.util.NullValue;
 import java.io.Reader;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 
@@ -1012,6 +1013,7 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			else if(obj instanceof Boolean) writer.add((boolean) obj);
 			else if(obj instanceof byte[]) writer.add((byte[])obj);
 			else if(obj instanceof BigDecimal) writer.add((BigDecimal)obj);
+			else if(obj instanceof BigInteger) writer.add((BigInteger)obj);
 			else  writer.add(obj.toString());
 		}
 

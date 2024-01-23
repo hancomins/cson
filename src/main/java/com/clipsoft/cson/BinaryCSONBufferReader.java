@@ -237,6 +237,7 @@ public class BinaryCSONBufferReader {
 				byte typeOfBigDecimal = byteBuffer.get();
 				byte rawTypeOfBigDecimal = (byte)(typeOfBigDecimal & 0xF0);
 				return new BigDecimal(readString(typeOfBigDecimal,rawTypeOfBigDecimal,byteBuffer));
+
 			case BinaryCSONDataType.TYPE_NULL:
 				return null;
 
