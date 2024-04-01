@@ -11,7 +11,7 @@
 
 ```groovy
 dependencies {
-    implementation group: 'io.github.clipsoft-rnd', name: 'cson', version: '0.9.25'
+    implementation group: 'io.github.clipsoft-rnd', name: 'cson', version: '0.9.26'
 }
 ```
 
@@ -103,15 +103,25 @@ dependencies {
    ```java
     String json5 = "{user: { name: 'John',  age: 25,  friends: [ 'Nancy', 'Mary', 'Tom', 'Jerry' ], addr: { city: 'seoul', zipCode: '06164'  } }}";
     CSONObject user = new CSONObject(json5, JSONOptions.json5());
-    String firstFriend = user.getCsonPath().optString("user.friends[0]");
-    String city = user.getCsonPath().optString("user.addr.city");
+
+    String firstFriend = user.optString("$.user.friends[0]");
+    String city = user.optString("$.user.addr.city");
+
+    // other options
+    // user.setAllowJsonPathKey(false)
+    // String firstFriend = user.getCsonPath().optString("user.friends[0]");
+    // String city = user.getCsonPath().optString("user.addr.city");
+
     System.out.println("firstFriend: "  + firstFriend);
     System.out.println("city: "  + city);
     // firstFriend: Nancy
     // city: seoul
-    
-    user.getCsonPath().put("user.friends[4]", "Suji");
-    user.getCsonPath().put("user.addr.city", "Incheon");
+
+    user.put("$.user.friends[4]", "Suji");
+    user.put("$.user.addr.city", "Incheon");
+
+    //user.getCsonPath().put("user.friends[4]", "Suji");
+    //user.getCsonPath().put("user.addr.city", "Incheon");
     
     System.out.println(user);
     // {"user":{"name":"John","age":25,"friends":["Nancy","Mary","Tom","Jerry","Suji"],"addr":{"city":"Incheon","zipCode":"06164"}}}
