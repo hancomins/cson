@@ -98,7 +98,7 @@ dependencies {
     byte[] bytes = obj.toBytes();
     CSONObject parsed = new CSONObject(bytes, 0, bytes.length);
     ```
-## CSON Path
+## JSON Path
  * CSONPath is a way to access specific values in a CSON object. This is similar to XPath for XML.
    ```java
     String json5 = "{user: { name: 'John',  age: 25,  friends: [ 'Nancy', 'Mary', 'Tom', 'Jerry' ], addr: { city: 'seoul', zipCode: '06164'  } }}";
