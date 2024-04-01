@@ -99,6 +99,8 @@ public class CSONPath {
         return optShort(path, null);
     }
 
+
+
     public Short optShort(String path, Short defaultValue) {
         Object obj = get(path);
         if (obj instanceof Number) {
@@ -318,6 +320,55 @@ public class CSONPath {
         }
         return this;
     }
+
+
+    public boolean remove(String path) {
+        List<PathItem> pathItemList = PathItem.parseMultiPath2(path);
+        Object parents = csonElement;
+        //noinspection ForLoopReplaceableByForEach
+        for (int i = 0, n = pathItemList.size(); i < n; ++i) {
+            PathItem pathItem = pathItemList.get(i);
+
+            if (pathItem.isEndPoint()) {
+                if (pathItem.isInArray()) {
+                    if(pathItem.isObject()) {
+                        CSONObject endPointObject = ((CSONArray) parents).optCSONObject(pathItem.getIndex());
+                        if(endPointObject == null) return false;
+                        endPointObject.remove(pathItem.getName());
+                        return true;
+                    }
+                    else {
+                        ((CSONArray)parents).remove(pathItem.getIndex());
+                        return true;
+                    }
+                } else {
+                    ((CSONObject) parents).remove(pathItem.getName());
+                    return true;
+                }
+            }
+            else if((parents instanceof CSONObject && pathItem.isInArray()) || (parents instanceof CSONArray && !pathItem.isInArray())) {
+                return false;
+            }
+            else {
+                if (pathItem.isInArray()) {
+                    assert parents instanceof CSONArray;
+                    parents = ((CSONArray) parents).opt(pathItem.getIndex());
+                    if(pathItem.isObject() && parents instanceof CSONObject) {
+                        parents = ((CSONObject) parents).opt(pathItem.getName());
+                    }
+                } else {
+                    assert parents instanceof CSONObject;
+                    parents = ((CSONObject) parents).opt(pathItem.getName());
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean has(String path) {
+        return get(path) != null;
+    }
+
 
 
     public Object get(String path) {

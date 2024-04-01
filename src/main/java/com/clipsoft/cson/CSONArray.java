@@ -834,6 +834,15 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		return list.remove(o);
 	}
 
+	public boolean remove(int index) {
+		try {
+			list.remove(index);
+			return true;
+		} catch (IndexOutOfBoundsException e) {
+			return false;
+		}
+	}
+
 	@Override
 	public boolean containsAll(@SuppressWarnings({"rawtypes", "RedundantSuppression"}) Collection c) {
 		return list.containsAll(c);

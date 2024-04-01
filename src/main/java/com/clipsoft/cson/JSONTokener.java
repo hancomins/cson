@@ -429,6 +429,9 @@ class JSONTokener {
             case '\'':
                 if(jsonOption.isAllowCharacter()) {
                     String value = this.nextString(c);
+                    if(value.isEmpty()) {
+                        return "";
+                    }
                     return this.stringToCharValue(value);
 
                 }

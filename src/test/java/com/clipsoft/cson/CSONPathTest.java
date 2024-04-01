@@ -3,7 +3,9 @@ package com.clipsoft.cson;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import java.util.Optional;
+
+import static org.junit.Assert.*;
 
 public class CSONPathTest {
     CSONObject json;
@@ -64,6 +66,22 @@ public class CSONPathTest {
         assertEquals(Float.valueOf((float)Math.PI), jsonPath.optFloat("b.d"));
         assertEquals(Float.valueOf(10.0f), jsonPath.optFloat("b.e.h[4].j"));
         assertEquals(Float.valueOf(11.0f), jsonPath.optFloat("b.e.h[4].k"));
+
+
+        assertEquals(Float.valueOf(9.1234f),(Float)json.optFloat("$.b.e.h[3]"));
+        assertEquals(Float.valueOf(5.123132f), (Float)json.optFloat("$.b.e.g"));
+        assertEquals(Float.valueOf(4.0f), (Float)json.optFloat("$.b.e.f"));
+        assertEquals(Float.valueOf(1.0f),(Float) json.optFloat("$.a"));
+        assertEquals(Float.valueOf((float) Math.PI), (Float)json.optFloat("$.b.d"));
+        assertEquals(Float.valueOf(10.0f), (Float)json.optFloat("$.b.e.h[4].j"));
+        assertEquals(Float.valueOf(11.0f), (Float)json.optFloat("$.b.e.h[4].k"));
+
+        assertTrue(json.remove("$.b.e.h[3]"));
+        assertEquals((Float)Float.NaN,(Float)json.optFloat("$.b.e.h[3]"));
+        assertTrue(json.remove("$.b.e.g"));
+        assertEquals((Float)Float.NaN,(Float)json.optFloat("$.b.e.g"));
+
+
     }
 
     @Test

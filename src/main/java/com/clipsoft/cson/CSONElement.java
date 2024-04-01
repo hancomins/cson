@@ -8,7 +8,9 @@ public abstract  class CSONElement {
 
 
 
+
 	private static StringFormatOption<?> DefaultJSONOptions = StringFormatOption.jsonPure();
+
 	private final static Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
 	private final static Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");
 	private CommentObject commentAfterElement = null;
@@ -18,11 +20,19 @@ public abstract  class CSONElement {
 
 	StringFormatOption<?> defaultJSONOptions = DefaultJSONOptions;
 
+
+	protected boolean allowJsonPathKey = true;
 	private boolean allowRawValue = false;
 	private boolean unknownObjectToString = false;
 	protected CSONElement setAllowRawValue(boolean allowRawValue) {
 		this.allowRawValue = allowRawValue;
 		return this;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends CSONElement> T setAllowJsonPathKey(boolean allowJsonPathKey) {
+		this.allowJsonPathKey = allowJsonPathKey;
+		return (T)this;
 	}
 
 	public void setUnknownObjectToString(boolean unknownObjectToString) {

@@ -164,7 +164,7 @@ public class DataConverter {
 
 
 	public static float toFloat(Object value) {
-		return toFloat(value, 0);
+		return toFloat(value, Float.NaN);
 	}
 	
 	@SuppressWarnings({"SameParameterValue", "UnnecessaryUnboxing"})
@@ -191,7 +191,7 @@ public class DataConverter {
 	}
 
 	public static double toDouble(Object value) {
-		return toDouble(value, 0);
+		return toDouble(value, Double.NaN);
 	}
 	
 	@SuppressWarnings("SameParameterValue")
