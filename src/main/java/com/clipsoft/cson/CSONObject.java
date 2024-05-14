@@ -790,6 +790,27 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	}
 
+	@Override
+	public void clear() {
+		dataMap.clear();
+	}
+
+	public boolean containsValue(Object value) {
+		boolean result = dataMap.containsValue(value);
+		if(value == null && !result) {
+			return dataMap.containsValue(NullValue.Instance);
+		}
+		return result;
+	}
+
+	public boolean containsValueNoStrict(Object value) {
+		Collection<Object> values = dataMap.values();
+		return containsNoStrict(values, value);
+
+	}
+
+
+
 
 	/**
 	 * @deprecated use toBinary instead of this method @see toBinary
@@ -958,7 +979,67 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return true;
 	}
 
+	public Collection<Object> values() {
+		return dataMap.values();
+	}
+
+	public Iterator<Entry<String, Object>> iteratorEntry() {
+		return new Iterator<Entry<String, Object>>() {
+			final Iterator<Entry<String, Object>> entryIter = new ArrayList<>(dataMap.entrySet()).iterator();
+			String key = null;
+			@Override
+			public boolean hasNext() {
+				return entryIter.hasNext();
+			}
+
+			@Override
+			public Entry<String, Object> next() {
+				Entry<String, Object> entry = entryIter.next();
+				Object object = entry.getValue();
+				key = entry.getKey();
+				if(object == NullValue.Instance) {
+					entry.setValue(null);
+				}
+				return entry;
+			}
+
+			@Override
+			public void remove() {
+				if(key == null) {
+					throw new IllegalStateException();
+				}
+				dataMap.remove(key);
+			}
+		};
 
 
 
+	}
+
+
+
+	@Override
+	public Iterator<Object> iterator() {
+
+
+
+		return new Iterator<Object>() {
+			final Iterator<Entry<String, Object>> entryIterator = iteratorEntry();
+
+			@Override
+			public boolean hasNext() {
+				return entryIterator.hasNext();
+			}
+
+			@Override
+			public Object next() {
+				return entryIterator.next().getValue();
+			}
+
+			@Override
+			public void remove() {
+				entryIterator.remove();
+			}
+		};
+	}
 }

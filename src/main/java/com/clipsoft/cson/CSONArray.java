@@ -117,7 +117,15 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 	@Override
 	public boolean contains(Object o) {
-		return list.contains(o);
+		boolean result = list.contains(o);
+		if(!result && o == null) {
+			return list.contains(NullValue.Instance);
+		}
+		return result;
+	}
+
+	public boolean containsNoStrict(Object value) {
+		return containsNoStrict(list, value);
 	}
 
 	@Override

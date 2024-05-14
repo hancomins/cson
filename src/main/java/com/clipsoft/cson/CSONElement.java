@@ -1,12 +1,14 @@
 package com.clipsoft.cson;
 
 
+import com.clipsoft.cson.util.NullValue;
+
 import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
-public abstract  class CSONElement {
-
-
+public abstract  class CSONElement implements Iterable<Object>  {
 
 
 	private static StringFormatOption<?> DefaultJSONOptions = StringFormatOption.jsonPure();
@@ -29,7 +31,7 @@ public abstract  class CSONElement {
 		return this;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "unused"})
 	public <T extends CSONElement> T setAllowJsonPathKey(boolean allowJsonPathKey) {
 		this.allowJsonPathKey = allowJsonPathKey;
 		return (T)this;
@@ -176,6 +178,27 @@ public abstract  class CSONElement {
 
 	}
 
-	
+	public abstract void clear();
+
+	protected static boolean containsNoStrict(Collection<Object> valueList, Object value) {
+		for(Object obj : valueList) {
+			boolean result = Objects.equals(obj, value);
+			if(result) return true;
+			else if(obj == NullValue.Instance || obj == null) {
+				if(value == NullValue.Instance || value == null) return true;
+				else continue;
+			} else if(value == null) {
+				return false;
+			}
+			String strObj = obj instanceof byte[] ? Base64.encode((byte[]) obj) : obj.toString();
+			String strValue = value instanceof byte[] ? Base64.encode((byte[])value) : value.toString();
+			if(strObj.equals(strValue)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 
 }

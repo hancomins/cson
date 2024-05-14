@@ -59,6 +59,9 @@ public class CSONPathTest {
 
     @Test
     public  void optFloat() {
+
+
+
         assertEquals(Float.valueOf(9.1234f),jsonPath.optFloat("b.e.h[3]"));
         assertEquals(Float.valueOf(5.123132f), jsonPath.optFloat("b.e.g"));
         assertEquals(Float.valueOf(4.0f), jsonPath.optFloat("b.e.f"));
