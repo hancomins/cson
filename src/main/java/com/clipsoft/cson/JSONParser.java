@@ -238,55 +238,7 @@ class JSONParser {
         //}
     }
 
-    /*
-    void parseObjectFromPureJson(CSONObject csonObject) {
-        char c;
-        String key = null;
-        char nextClean = tokener.nextClean();
-        if (nextClean != '{') {
-            throw tokener.syntaxError("A JSONObject text must begin with '{'");
-        }
-        for (;;) {
-            c = tokener.nextClean();
-            switch (c) {
-                case 0:
-                    throw tokener.syntaxError("A JSONObject text must end with '}'");
-                case '}':
-                    return;
-                case ',':
-                    tokener.next();
 
-                    //throw tokener.syntaxError("Missing \"key\":\"value\" after comma.");
-                default:
-                    tokener.back();
-                    key = tokener.nextPureKey(options).toString();
-            }
-
-            c = tokener.nextClean();
-            if (c == '=') {
-                if (tokener.next() != '>') {
-                    tokener.back();
-                }
-            } else if (c != ':') {
-                throw tokener.syntaxError("Expected a ':' after a key");
-            }
-            Object value = tokener.nextPureValue(options);
-            if (key != null) {
-                putAtJSONParsing(csonObject, key, value);
-            }
-
-            switch (tokener.nextClean()) {
-                case ';':
-                case ',':
-                    tokener.back();
-                    break;
-                case '}':
-                    return;
-                default:
-                    throw tokener.syntaxError("Expected a ',' or '}'");
-            }
-        }
-    }*/
 
     void parseObjectFromJson5(CSONObject csonObject) {
         char c;

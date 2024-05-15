@@ -532,19 +532,6 @@ class JSONTokener {
                     err = e;
                 }
             }
-            else if(length == 5 && (initial == 'u' || initial == 'U')) {
-                try {
-                    return (char) Integer.parseInt(string.substring(1), 16);
-                } catch (NumberFormatException e) {
-                    err = e;
-                }
-            }  else if(length == 6 && (initial == 'u' || initial == 'U') && string.charAt(1) == '+') {
-                try {
-                    return (char) Integer.parseInt(string.substring(2), 16);
-                } catch (NumberFormatException e) {
-                    err = e;
-                }
-            }
             if(!jsonOption.isIgnoreNonNumeric()) {
                 if(err != null) {
                     throw syntaxError("Invalid char value: " + string, err);
