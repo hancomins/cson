@@ -10,7 +10,7 @@ import java.util.ArrayDeque;
 class PureJSONParser {
 
 
-    private final static String NULL = "null";
+    private static final String NULL = "null";
 
 
     private PureJSONParser() {

@@ -3,6 +3,8 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.util.NullValue;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Objects;
@@ -13,8 +15,8 @@ public abstract  class CSONElement implements Iterable<Object>  {
 
 	private static StringFormatOption<?> DefaultJSONOptions = StringFormatOption.jsonPure();
 
-	private final static Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
-	private final static Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");
+	private static final Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
+	private static final Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");
 	private CommentObject commentAfterElement = null;
 	private CommentObject commentBeforeElement = null;
 	private CSONPath csonPath = null;
@@ -179,6 +181,9 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	}
 
 	public abstract void clear();
+	public abstract byte[] toCSONBinary();
+	public abstract void writeCSONBinary(OutputStream outputStream) throws IOException;
+
 
 	protected static boolean containsNoStrict(Collection<Object> valueList, Object value) {
 		for(Object obj : valueList) {

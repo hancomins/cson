@@ -2,6 +2,7 @@ package com.hancomins.cson.util;
 
 import com.hancomins.cson.Base64;
 import com.hancomins.cson.CSONArray;
+import com.hancomins.cson.CSONException;
 import com.hancomins.cson.CSONObject;
 
 import java.math.BigDecimal;
@@ -13,17 +14,38 @@ public class DataConverter {
 
 
 
-	public static CSONArray toArray(Object value) {
+	public static CSONArray toArray(Object value, boolean allowFromData) {
 		if(value instanceof CSONArray) {
 			return (CSONArray)value;
+		}
+		if(allowFromData && value instanceof String) {
+			try {
+				return CSONArray.fromJson((String) value);
+			} catch (CSONException ignored) {}
+		}
+		if(allowFromData && value instanceof byte[]) {
+			try {
+				return CSONArray.fromBinaryCSON((byte[]) value);
+			} catch (CSONException ignored) {}
 		}
 		return null; 
 	}
 
-	public static CSONObject toObject(Object value) {
+	public static CSONObject toObject(Object value, boolean allowFromData) {
 		if(value instanceof CSONObject) {
 			return (CSONObject)value;
 		}
+		if(allowFromData && value instanceof String) {
+			try {
+				return CSONObject.fromJson((String) value);
+			} catch (CSONException ignored) {}
+		}
+		if(allowFromData && value instanceof byte[]) {
+			try {
+				return CSONObject.fromBinaryCSON((byte[]) value);
+			} catch (CSONException ignored) {}
+		}
+
 		return null; 
 	}
 
@@ -61,10 +83,10 @@ public class DataConverter {
 			return toByteArray(value);
 		}
 		else if(objectType == CSONArray.class) {
-			return toArray(value);
+			return toArray(value, false);
 		}
 		else if(objectType == CSONObject.class) {
-			return toObject(value);
+			return toObject(value, false);
 		}
 		else if(objectType == BigDecimal.class) {
 			return new BigDecimal(toString(value));

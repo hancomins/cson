@@ -2,16 +2,22 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.DataConverter;
+import com.hancomins.cson.util.DataReadFailException;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
 import com.hancomins.cson.util.NullValue;
 
-import java.io.Reader;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
 
+@SuppressWarnings("unused")
 public class CSONObject extends CSONElement implements Cloneable {
 
 
@@ -23,6 +29,94 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
+	public static CSONObject fromJson(String value,StringFormatOption<?> stringFormatOption)  {
+		return new CSONObject(value, stringFormatOption);
+	}
+
+	public static CSONObject fromJson(String value)  {
+		return new CSONObject(value, getDefaultStringFormatOption());
+	}
+
+	public static CSONObject fromJson(Path path, Charset charset, StringFormatOption<?> stringFormatOption) throws IOException {
+		try (Reader reader = Files.newBufferedReader(path, charset)) {
+			return new CSONObject(reader, stringFormatOption);
+		}
+	}
+
+	public static CSONObject fromJson(Path path, Charset charset) throws IOException {
+		try (Reader reader = Files.newBufferedReader(path, charset)) {
+			return new CSONObject(reader, getDefaultStringFormatOption());
+		}
+	}
+
+	public static CSONObject fromJson(InputStream inputStream) throws IOException {
+		try(InputStreamReader inputStreamReader = new InputStreamReader(inputStream)) {
+			return new CSONObject(inputStreamReader, getDefaultStringFormatOption());
+		}
+	}
+
+
+	public static CSONObject fromJson(Reader reader) {
+		return new CSONObject(reader, getDefaultStringFormatOption());
+	}
+
+
+	public static CSONObject fromBinaryCSON(Path path) throws IOException {
+		try(InputStream inputStream = Files.newInputStream(path)) {
+			return fromBinaryCSON(inputStream);
+		}
+	}
+
+	public static CSONObject fromBinaryCSON(InputStream inputStream) throws IOException {
+		try {
+			return (CSONObject) BinaryCSONParser.parse(inputStream);
+		} catch (DataReadFailException e) {
+			Throwable cause = e.getCause();
+			if(cause instanceof IOException) {
+				throw (IOException)cause;
+			}
+			throw e;
+		}
+	}
+
+	public static CSONObject fromBinaryCSON(ByteBuffer byteBuffer) {
+		return ((CSONObject)BinaryCSONParser.parse(byteBuffer));
+	}
+
+
+	public static CSONObject fromBinaryCSON(byte[] binaryCSON, int offset, int len) {
+		ByteBuffer byteBuffer = ByteBuffer.wrap(binaryCSON, offset, len);
+		return fromBinaryCSON(byteBuffer);
+	}
+
+	public static CSONObject fromBinaryCSON(byte[] binaryCSON)  {
+		return fromBinaryCSON(binaryCSON, 0, binaryCSON.length);
+	}
+
+
+
+	public static CSONObject fromObject(Object obj) {
+		return CSONSerializer.toCSONObject(obj);
+	}
+
+	@SuppressWarnings("unused")
+	public static CSONObject fromObject(Object obj, StringFormatOption<?> stringFormatOption) {
+		CSONObject csonObject = CSONSerializer.toCSONObject(obj);
+		csonObject.setStringFormatOption(stringFormatOption);
+		return csonObject;
+	}
+
+	@SuppressWarnings("unused")
+	public static <T> T toObject(CSONObject csonObject, Class<T> clazz) {
+		return CSONSerializer.fromCSONObject(csonObject, clazz);
+	}
+	@SuppressWarnings("unused")
+	public static <T> T toObject(CSONObject csonObject, T object) {
+		return CSONSerializer.fromCSONObject(csonObject, object);
+	}
+
+
+
 	public CSONObject(byte[] binaryCSON) {
 		super(ElementType.Object);
 		CSONObject csonObject = (CSONObject) BinaryCSONParser.parse(binaryCSON);
@@ -31,9 +125,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	public CSONObject(byte[] buffer, int offset, int length) {
+	public CSONObject(byte[] binaryCSON, int offset, int length) {
 		super(ElementType.Object);
-		CSONObject csonObject = (CSONObject) BinaryCSONParser.parse(buffer, offset, length);
+		CSONObject csonObject = (CSONObject) BinaryCSONParser.parse(binaryCSON, offset, length);
 		this.dataMap = csonObject.dataMap;
 	}
 
@@ -120,25 +214,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 		super(ElementType.Object);
 	}
 
-	public static CSONObject fromObject(Object obj) {
-		return CSONSerializer.toCSONObject(obj);
-	}
-
-	@SuppressWarnings("unused")
-	public static CSONObject fromObject(Object obj, StringFormatOption<?> stringFormatOption) {
-		CSONObject csonObject = CSONSerializer.toCSONObject(obj);
-		csonObject.setStringFormatOption(stringFormatOption);
-		return csonObject;
-	}
-
-	@SuppressWarnings("unused")
-	public static <T> T toObject(CSONObject csonObject, Class<T> clazz) {
-		return CSONSerializer.fromCSONObject(csonObject, clazz);
-	}
-	@SuppressWarnings("unused")
-	public static <T> T toObject(CSONObject csonObject, T object) {
-		return CSONSerializer.fromCSONObject(csonObject, object);
-	}
 
 
 	@SuppressWarnings("unused")
@@ -211,21 +286,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return this;
 	}
 
-	public <T> T getObject(String key, Class<T> clazz) {
-		CSONObject csonObject = getCSONObject(key);
-		return CSONSerializer.fromCSONObject(csonObject, clazz);
-	}
-	@SuppressWarnings("unused")
-	public <T> T optObject(String key, Class<T> clazz, T defaultObject) {
-		CSONObject obj = optCSONObject(key);
-		if(obj == null) return defaultObject;
-		try {
-			return CSONSerializer.fromCSONObject(obj, clazz);
-		} catch (Exception ignored) {
-			return defaultObject;
-		}
-	}
-
 
 
 
@@ -247,17 +307,180 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return this.dataMap.keySet();
 	}
 
-	public String getString(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toString(obj);
-	}
-
 
 	public boolean isNull(String key) {
 		Object obj = getFromDataMap(key);
 		return obj instanceof NullValue;
 	}
+
+
+
+
+
+
+	public Object get(String key) {
+		Object obj =  getFromDataMap(key);
+		if(obj instanceof NullValue) return null;
+		else if(obj == null) throw new CSONIndexNotFoundException("CSONObject[\" + key + \"] not found");
+		return obj;
+	}
+
+	public boolean getBoolean(String key) {
+		Object obj = get(key);
+		if(obj instanceof Boolean) {
+			return (Boolean)obj;
+		} else if("true".equalsIgnoreCase(obj + "")) {
+			return true;
+		} else if("false".equalsIgnoreCase(obj + "")) {
+			return false;
+		}
+		throw new CSONIndexNotFoundException("CSONObject[\" + key + \"] is not a boolean");
+	}
+
+	public byte getByte(String key) {
+		Object number = get(key);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toByte(number);
+			}
+		} catch (Exception e) {
+			throw new CSONIndexNotFoundException("CSONObject[\" + key + \"] is not a boolean");
+		}
+		throw new CSONIndexNotFoundException("CSONObject[\" + key + \"] is not a boolean");
+	}
+
+
+	public byte[] getByteArray(String key) {
+		Object obj = get(key);
+		if(obj instanceof byte[]) {
+			throw new CSONException("CSONObject[\" + key + \"] is not a byte array.");
+		}
+        //noinspection DataFlowIssue
+        return (byte[])obj;
+	}
+
+
+	public char getChar(String key) {
+		Object number = get(key);
+		try {
+            //noinspection DuplicatedCode
+            if (number instanceof Character || number instanceof Number) {
+				return DataConverter.toChar(number);
+			} else if(number instanceof CharSequence) {
+				String str = number.toString();
+				if(str.length() == 1) {
+					return str.charAt(0);
+				}
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONObject[\" + key + \"] is not a char.", e);
+		}
+		throw new CSONException("CSONObject[\" + key + \"] is not a char.");
+	}
+
+
+
+	public short getShort(String key) {
+		Object number = get(key);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toShort(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONObject[\" + key + \"] is not a number.", e);
+		}
+		throw new CSONException("CSONObject[\" + key + \"] is not a number.");
+	}
+
+
+	public int getInt(String key) {
+		Object number = get(key);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toInteger(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONObject[\" + key + \"] is not a number.", e);
+		}
+		throw new CSONException("CSONObject[\" + key + \"] is not a number.");
+	}
+
+
+	public float getFloat(String key) {
+		Object number = get(key);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toFloat(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONObject[\" + key + \"] is not a number.", e);
+		}
+		throw new CSONException("CSONObject[\" + key + \"] is not a number.");
+	}
+
+
+	public long getLong(String key) {
+		Object number = get(key);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toInteger(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONObject[\" + key + \"] is not a number.", e);
+		}
+		throw new CSONException("CSONObject[\" + key + \"] is not a number.");
+	}
+
+
+
+	public double getDouble(String key) {
+		Object number = get(key);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toInteger(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONObject[\" + key + \"] is not a number.", e);
+		}
+		throw new CSONException("CSONObject[\" + key + \"] is not a number.");
+	}
+
+	public String getString(String key) {
+		Object obj = get(key);
+		if(obj instanceof CharSequence || obj instanceof Boolean) {
+			return DataConverter.toString(obj);
+		}
+		throw new CSONException("CSONObject[\" + key + \"] is not a string.");
+	}
+
+	public CSONObject getCSONObject(String key) {
+		Object obj = get(key);
+		if(obj instanceof CSONObject) {
+			return (CSONObject)obj;
+		}
+		throw new CSONException("CSONObject[\" + key + \"] is not a CSONObject.");
+	}
+
+
+	public CSONArray getCSONArray(String key) {
+		Object obj = get(key);
+		if(obj instanceof CSONArray) {
+			return (CSONArray)obj;
+		}
+		throw new  CSONException("CSONObject[\" + key + \"] is not a CSONArray.");
+	}
+
+	public <T> List<T> getList(String key, Class<T> clazz) {
+		CSONArray csonArray = getCSONArray(key);
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), false, null);
+	}
+
+
+	public <T> T getObject(String key, Class<T> clazz) {
+		CSONObject csonObject = getCSONObject(key);
+		return CSONSerializer.fromCSONObject(csonObject, clazz);
+	}
+
 
 	public Object opt(String key) {
 		Object obj = getFromDataMap(key);
@@ -265,13 +488,253 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return obj;
 	}
 
-	public Object get(String key) {
-		Object obj =  getFromDataMap(key);
-		if(obj instanceof NullValue) return null;
-		else if(obj == null) throw new CSONIndexNotFoundException();
-		return obj;
+
+	public boolean optBoolean(String key) {
+		return optBoolean(key, false);
+	}
+
+	public boolean optBoolean(String key, boolean def) {
+		Object obj = opt(key);
+		return DataConverter.toBoolean(obj, def);
+	}
+
+
+
+	public byte optByte(String key) {
+		return optByte(key, (byte)0);
+	}
+
+	public byte optByte(String key, byte def) {
+		Object number = opt(key);
+		if(number == null) {
+			return def;
+		}
+		return DataConverter.toByte(number, def);
+	}
+
+
+	public byte[] optByteArray(String key) {
+		return optByteArray(key, null);
+	}
+
+	@SuppressWarnings("unused")
+	public byte[] optByteArray(String key,byte[] def) {
+		Object obj = opt(key);
+		if(obj == null) {
+			return def;
+		}
+		byte[] buffer =  DataConverter.toByteArray(obj);
+		if(buffer == null) {
+			return def;
+		}
+		return buffer;
 
 	}
+
+
+
+	public short optShort(String key) {
+		return optShort(index, (short)0);
+	}
+
+	public short optShort(String key, short def) {
+		Object number = opt(key);
+		if(number == null) {
+			return def;
+		}
+		return DataConverter.toShort(number, def);
+	}
+
+	@SuppressWarnings("unused")
+	public char optChar(String key) {
+		return optChar(index, '\0');
+	}
+
+	public char optChar(String key, char def) {
+		Object obj = opt(key);
+		if(obj == null) {
+			return def;
+		}
+		return DataConverter.toChar(obj,def);
+	}
+
+
+	public int optInt(String key) {
+		return optInt(index, 0);
+	}
+
+	public int optInt(String key, int def) {
+		Object number = opt(key);
+		if(number == null) {
+			return def;
+		}
+		return DataConverter.toInteger(number, def);
+
+	}
+
+	public float optFloat(String key) {
+		return optFloat(index, 0);
+	}
+
+
+	public float optFloat(String key, float def) {
+		Object obj = opt(key);
+		if(obj == null) {
+			return def;
+		}
+		return DataConverter.toFloat(obj, def);
+	}
+
+	public long optLong(String key) {
+		return optLong(index, 0);
+	}
+
+	public long optLong(String key, long def) {
+		Object number = opt(key);
+		if(number == null) {
+			return def;
+		}
+		return DataConverter.toLong(number, def);
+	}
+
+	public double optDouble(String key) {
+		return optDouble(index, 0);
+	}
+
+	public double optDouble(String key, double def) {
+		Object obj = opt(key);
+		if(obj == null) {
+			return def;
+		}
+		return DataConverter.toDouble(obj, def);
+	}
+
+	public String optString(String key) {
+		return optString(index, null);
+	}
+
+	public String optString(String key,String def) {
+		Object obj = opt(key);
+		if(obj == null) {
+			return def;
+		}
+		return DataConverter.toString(obj);
+	}
+
+	public CSONArray optCSONArray(String key) {
+		return optCSONArray(index, null);
+	}
+
+	public CSONArray optCSONArray(String key, CSONArray def) {
+		Object obj = opt(key);
+		if(obj == null) {
+			return def;
+		}
+		CSONArray csonArray = DataConverter.toArray(obj, true);
+		if(csonArray == null) {
+			return def;
+		}
+		return csonArray;
+	}
+
+	public CSONArray optWrapCSONArray(String key) {
+		Object object = opt(key);
+		if(object == null) {
+			return new CSONArray();
+		}
+		CSONArray csonArray = DataConverter.toArray(object, true);
+		if(csonArray == null) {
+			return new CSONArray().put(object);
+		}
+		return csonArray;
+	}
+
+	public CSONObject optCSONObject(String key) {
+		return optCSONObject(index, null);
+	}
+
+	public CSONObject optCSONObject(String key, CSONObject def) {
+		Object obj = opt(key);
+		if(obj == null) {
+			return def;
+		}
+		CSONObject csonObject = DataConverter.toObject(obj, true);
+		if(csonObject == null) {
+			return def;
+		}
+		return csonObject;
+	}
+
+
+	public <T> T optObject(String key, Class<T> clazz) {
+		return optObject(index, clazz, null);
+	}
+
+	public <T> T optObject(String key, Class<T> clazz, T defaultObject) {
+		try {
+			CSONObject csonObject = optCSONObject(index);
+			return CSONSerializer.fromCSONObject(csonObject, clazz);
+		} catch (Exception e) {
+			return defaultObject;
+		}
+	}
+
+
+	public <T> List<T> optList(String key, Class<T> valueType) {
+		return optList(index, valueType, null);
+	}
+
+	public <T> List<T> optList(String key, Class<T> valueType, T defaultValue) {
+		try {
+			CSONArray csonArray = optCSONArray(index);
+			if(csonArray == null) {
+				return null;
+			}
+			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), true, defaultValue);
+		} catch (Exception e) {
+			if(defaultValue != null) {
+				List<T> result = new ArrayList<>();
+				result.add(defaultValue);
+				return result;
+			} else {
+				return Collections.EMPTY_LIST;
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+	@SuppressWarnings("unused")
+	public <T> T optObject(String key, Class<T> clazz, T defaultObject) {
+		CSONObject obj = optCSONObject(key);
+		if(obj == null) return defaultObject;
+		try {
+			return CSONSerializer.fromCSONObject(obj, clazz);
+		} catch (Exception ignored) {
+			return defaultObject;
+		}
+	}
+
+
+
+
+
+	public <T> List<T> optList(String key, Class<T> clazz) {
+		CSONArray csonArray = optCSONArray(key);
+		if(csonArray == null) return null;
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), true, null);
+	}
+
+
+
+
 
 	@SuppressWarnings("unused")
 	public Object opt(String key, Object def) {
@@ -282,6 +745,10 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
+	/**
+	 * 다른 CSONObject를 병합한다.
+	 * @param csonObject 병합할 CSONObject
+	 */
 	public void merge(CSONObject csonObject) {
 		Set<String> keys = csonObject.keySet();
 		for(String key : keys) {
@@ -304,6 +771,69 @@ public class CSONObject extends CSONElement implements Cloneable {
 				put(key, value);
 			}
 		}
+	}
+
+	/**
+	 * 교집합을 반환한다.
+	 * @param csonObject 교집합을 구할 CSONObject
+	 * @return 교집합
+	 */
+	public CSONObject intersect(CSONObject csonObject) {
+		CSONObject result = new CSONObject();
+		Set<String> keys = csonObject.keySet();
+		for(String key : keys) {
+			Object value = csonObject.get(key);
+			if(value instanceof CSONObject) {
+				CSONObject childObject = optCSONObject(key);
+				if(childObject == null) {
+					continue;
+				}
+				result.put(key, childObject.intersect((CSONObject)value));
+			} else if(value instanceof CSONArray) {
+				CSONArray childArray = optCSONArray(key);
+				if(childArray == null) {
+					continue;
+				}
+				result.put(key, childArray.intersect((CSONArray)value));
+			} else {
+				if(has(key)) {
+					result.put(key, value);
+				}
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 교집합을 제외한 부분을 반환한다.
+	 * @param csonObject 교집합을 제외할 CSONObject
+	 * @return 교집합을 제외한 부분
+	 */
+	public CSONObject subtractIntersection(CSONObject csonObject) {
+		CSONObject result = new CSONObject();
+		Set<String> keys = csonObject.keySet();
+		for(String key : keys) {
+			Object value = csonObject.get(key);
+			if(value instanceof CSONObject) {
+				CSONObject childObject = optCSONObject(key);
+				if(childObject == null) {
+					continue;
+				}
+				result.put(key, childObject.subtractIntersection((CSONObject)value));
+			} else if(value instanceof CSONArray) {
+				CSONArray childArray = optCSONArray(key);
+				if(childArray == null) {
+					continue;
+				}
+				result.put(key, childArray.subtractIntersection((CSONArray)value));
+			} else {
+				if(!has(key)) {
+					result.put(key, value);
+				}
+			}
+		}
+		return result;
+
 	}
 
 
@@ -334,9 +864,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	}
 
-	public int getInt(String key) {
-		return getInteger(key);
-	}
 
 	public int optInt(String key) {
 		return optInteger(key);
@@ -374,27 +901,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
-	public float getFloat(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toFloat(obj);
-	}
 
-	public boolean optBoolean(String key) {
-		return optBoolean(key, false);
-	}
-
-	public boolean optBoolean(String key, boolean def) {
-		Object obj = getFromDataMap(key);
-		if(obj  == null) return def;
-		return DataConverter.toBoolean(obj);
-	}
-
-	public boolean getBoolean(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toBoolean(obj);
-	}
 
 
 	KeyValueCommentObject getKeyCommentObject(String key) {
@@ -542,23 +1049,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	public long getLong(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toLong(obj);
-	}
 
-	public double getDouble(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toDouble(obj);
-	}
 
-	public char getChar(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toChar(obj);
-	}
+
 
 	public char optChar(String key, char def) {
 		Object obj = getFromDataMap(key);
@@ -574,11 +1067,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
-	public short getShort(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toShort(obj);
-	}
+
 
 	@SuppressWarnings("unused")
 	public short optShort(String key) {
@@ -592,18 +1081,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
-	public byte getByte(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toByte(obj);
-	}
-
-	public byte[] getByteArray(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) throw new CSONIndexNotFoundException();
-		return DataConverter.toByteArray(obj);
-	}
-
 	public byte[] optByteArray(String key,byte[] byteArray) {
 		Object obj = getFromDataMap(key);
 		if(obj == null) return byteArray;
@@ -615,15 +1092,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return optByteArray(key, null);
 	}
 
-	public byte optByte(String key) {
-		return optByte(key, (byte)0);
-	}
-
-	public byte optByte(String key, byte def) {
-		Object obj = getFromDataMap(key);
-		if(obj == null) return def;
-		return DataConverter.toByte(obj, def);
-	}
 
 
 	@SuppressWarnings("unused")
@@ -651,13 +1119,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	public CSONArray getCSONArray(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj instanceof CSONArray) {
-			return (CSONArray)obj;
-		}
-		throw new CSONIndexNotFoundException("key: " + key + ", value: " + obj);
-	}
 
 	/**
 	 * @deprecated use optWrapCSONArray instead of this method @see optWrapCSONArray
@@ -710,13 +1171,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
-	public CSONObject getCSONObject(String key) {
-		Object obj = getFromDataMap(key);
-		if(obj instanceof CSONObject) {
-			return (CSONObject)obj;
-		}
-		throw new CSONIndexNotFoundException("key: " + key + ", value: " + obj);
-	}
 
 
 	/**
@@ -736,24 +1190,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return optCSONObject(key, def);
 	}
 
-	/**
-	 * @deprecated use getCSONObject instead of this method @see getCSONObject
-	 */
-	@Deprecated
-	public CSONObject getObject(String key) {
-		return getCSONObject(key);
-	}
 
-	public <T> List<T> getList(String key, Class<T> clazz) {
-		CSONArray csonArray = getCSONArray(key);
-		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), false, null);
-	}
-
-	public <T> List<T> optList(String key, Class<T> clazz) {
-		CSONArray csonArray = optCSONArray(key);
-		if(csonArray == null) return null;
-		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), true, null);
-	}
 
 
 	public <T> List<T> optList(String key, Class<T> clazz, T defaultValue) {
@@ -821,13 +1258,35 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return toBinary();
 	}
 
+	/**
+	 * @deprecated use toBinary instead of this method @see toCSONBinary
+	 */
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Deprecated
 	public byte[] toBinary() {
-		BinaryCSONWriter writer = new BinaryCSONWriter();
-		write(writer);
-		return writer.toByteArray();
+		return toCSONBinary();
 	}
 
-	void write(BinaryCSONWriter writer) {
+	@Override
+	public byte[] toCSONBinary() {
+		try {
+			BinaryCSONWriter writer = new BinaryCSONWriter();
+			write(writer);
+			return writer.toByteArray();
+		}
+		// 사실상 발생하지 않는다.
+		catch (IOException e) {
+			throw new CSONException(e);
+		}
+	}
+
+	@Override
+	public void writeCSONBinary(OutputStream outputStream) throws IOException {
+		BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
+		write(writer);
+	}
+
+	void write(BinaryCSONWriter writer) throws IOException {
 		Iterator<Entry<String, Object>> iter = dataMap.entrySet().iterator();
 		writer.openObject();
 		while(iter.hasNext()) {

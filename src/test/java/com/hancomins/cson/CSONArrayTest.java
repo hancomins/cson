@@ -1,6 +1,8 @@
 package com.hancomins.cson;
 
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Test;
 
 
@@ -20,7 +22,12 @@ public class CSONArrayTest {
 
         csonArray.set(50, "hahaha");
         assertEquals("hahaha", csonArray.get(50));
-        
+
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("1", 123);
+        jsonObject.getString("1");
+
 
 
     }

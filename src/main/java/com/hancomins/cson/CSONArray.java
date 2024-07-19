@@ -4,30 +4,97 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.DataConverter;
+import com.hancomins.cson.util.DataReadFailException;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
 import com.hancomins.cson.util.NullValue;
 
-import java.io.Reader;
+import javax.xml.stream.events.Characters;
+import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 
-public class CSONArray  extends CSONElement  implements Collection<Object>, Cloneable {
+@SuppressWarnings("ALL")
+public class CSONArray extends CSONElement  implements Collection<Object>, Cloneable {
 
 	private ArrayList<Object> list = new ArrayList<>();
 	private ArrayList<CommentObject> commentObjectList = null;
 
-	public CSONArray setList(Collection<?> collection) {
-		for (Object obj : collection) {
-			if(!add(obj)) {
-				throw new CSONException("new CSONArray(Collection) error. can't put " + obj.getClass() + " to CSONArray.");
-			}
-		}
-		return this;
+
+
+	public static CSONArray fromJson(String value,StringFormatOption<?> stringFormatOption) {
+		return new CSONArray(value, stringFormatOption);
 	}
 
+	public static CSONArray fromJson(String value)  {
+		return new CSONArray(value, getDefaultStringFormatOption());
+	}
+
+	public static CSONArray fromJson(Path path, Charset charset, StringFormatOption<?> stringFormatOption) throws IOException {
+		try (Reader reader = Files.newBufferedReader(path, charset)) {
+			return new CSONArray(reader, stringFormatOption);
+		}
+	}
+
+	public static CSONArray fromJson(Path path, Charset charset) throws IOException {
+		try (Reader reader = Files.newBufferedReader(path, charset)) {
+			return new CSONArray(reader, getDefaultStringFormatOption());
+		}
+	}
+
+	public static CSONArray fromJson(InputStream inputStream) throws IOException {
+		try(InputStreamReader inputStreamReader = new InputStreamReader(inputStream)) {
+			return new CSONArray(inputStreamReader, getDefaultStringFormatOption());
+		}
+	}
+
+
+	public static CSONArray fromJson(Reader reader) throws IOException {
+		return new CSONArray(reader, getDefaultStringFormatOption());
+	}
+
+
+	public static CSONArray fromBinaryCSON(Path path) throws IOException {
+		try(InputStream inputStream = Files.newInputStream(path)) {
+			return fromBinaryCSON(inputStream);
+		}
+	}
+
+	public static CSONArray fromBinaryCSON(InputStream inputStream) throws IOException {
+		CSONArray csonArray = new CSONArray();
+		try {
+			csonArray.list = ((CSONArray) BinaryCSONParser.parse(inputStream)).list;
+		} catch (DataReadFailException e) {
+			Throwable cause = e.getCause();
+			if(cause instanceof IOException) {
+				throw (IOException)cause;
+			}
+			throw e;
+		}
+		return csonArray;
+	}
+
+	public static CSONArray fromBinaryCSON(ByteBuffer byteBuffer) {
+		CSONArray csonArray = new CSONArray();
+		csonArray.list = ((CSONArray) BinaryCSONParser.parse(byteBuffer)).list;
+		return csonArray;
+	}
+
+
+	public static CSONArray fromBinaryCSON(byte[] binaryCSON, int offset, int len){
+		ByteBuffer byteBuffer = ByteBuffer.wrap(binaryCSON, offset, len);
+		return fromBinaryCSON(byteBuffer);
+	}
+
+	public static CSONArray fromBinaryCSON(byte[] binaryCSON) {
+		return fromBinaryCSON(binaryCSON, 0, binaryCSON.length);
+	}
 
 	public static CSONArray fromCollection(Collection<?> collection) {
 		return CSONSerializer.collectionToCSONArray(collection);
@@ -48,10 +115,30 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 
 
+	public CSONArray(Reader stringSource) throws CSONException {
+		super(ElementType.Array);
+		parse(stringSource, defaultJSONOptions);
+	}
+
+	public CSONArray(Reader source, StringFormatOption<?> options) throws CSONException {
+		super(ElementType.Array);
+		parse(source, options);
+	}
 
 
+	public CSONArray(String jsonArray) throws CSONException {
+		super(ElementType.Array);
+		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(jsonArray);
+		parse(noSynchronizedStringReader, defaultJSONOptions);
+		noSynchronizedStringReader.close();;
+	}
 
-
+	public CSONArray(String jsonArray, StringFormatOption<?> options) throws CSONException {
+		super(ElementType.Array);
+		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(jsonArray);
+		parse(noSynchronizedStringReader, options);
+		noSynchronizedStringReader.close();;
+	}
 
 
 	public CSONArray(StringFormatOption<?> stringFormatOption) {
@@ -60,11 +147,11 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	}
 
 
-	CSONArray(JSONTokener x) {
+	public CSONArray(byte[] binary,int offset, int len) {
 		super(ElementType.Array);
-		this.defaultJSONOptions = x.getJsonOption();
-		new JSONParser(x).parseArray(this);
+		this.list = ((CSONArray) BinaryCSONParser.parse(binary, offset, len)).list;
 	}
+
 
 	public CSONArray(JSONOptions jsonOptions) {
 		super(ElementType.Array);
@@ -83,11 +170,16 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 
 
-
-
-	public CSONArray(int size) {
+	CSONArray(JSONTokener x) {
 		super(ElementType.Array);
-		this.list.ensureCapacity(size);
+		this.defaultJSONOptions = x.getJsonOption();
+		new JSONParser(x).parseArray(this);
+	}
+
+
+	public CSONArray(int capacity) {
+		super(ElementType.Array);
+		this.list.ensureCapacity(capacity);
 	}
 
 	public CSONArray(Collection<?> objects) {
@@ -95,16 +187,15 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		list.addAll(objects);
 	}
 
-	public CSONArray(byte[] binary) {
+	public CSONArray(byte[] binaryJson) {
 		super(ElementType.Array);
-		this.list = ((CSONArray) BinaryCSONParser.parse(binary)).list;
+		this.list = ((CSONArray) BinaryCSONParser.parse(binaryJson)).list;
 	}
 
-	public CSONArray(byte[] binary,int offset, int len) {
-		super(ElementType.Array);
-		this.list = ((CSONArray) BinaryCSONParser.parse(binary, offset, len)).list;
-	}
-	
+
+
+
+
 	@Override
 	public int size() {
 		return list.size();
@@ -192,11 +283,6 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 
 
-	public boolean isNull(int index) {
-		Object obj = list.get(index);
-		return obj == null || obj instanceof NullValue;
-	}
-
 
 	public CommentObject getCommentObject(int index) {
 		if(commentObjectList == null) return null;
@@ -262,31 +348,6 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 	}
 
-
-	public CSONArray(Reader stringSource) throws CSONException {
-		super(ElementType.Array);
-		parse(stringSource, defaultJSONOptions);
-	}
-
-	public CSONArray(Reader source, StringFormatOption<?> options) throws CSONException {
-		super(ElementType.Array);
-		parse(source, options);
-	}
-
-
-	public CSONArray(String source) throws CSONException {
-		super(ElementType.Array);
-		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(source);
-		parse(noSynchronizedStringReader, defaultJSONOptions);
-		noSynchronizedStringReader.close();;
-	}
-
-	public CSONArray(String source, StringFormatOption<?> options) throws CSONException {
-		super(ElementType.Array);
-		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(source);
-		parse(noSynchronizedStringReader, options);
-		noSynchronizedStringReader.close();;
-	}
 	
 	public CSONArray put(Object e) {
 		if(!add(e)) {
@@ -340,6 +401,16 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		}
 		return this;
 	}
+
+	public CSONArray setList(Collection<?> collection) {
+		for (Object obj : collection) {
+			if(!add(obj)) {
+				throw new CSONException("new CSONArray(Collection) error. can't put " + obj.getClass() + " to CSONArray.");
+			}
+		}
+		return this;
+	}
+
 
 
 	private Object convert(Object e) {
@@ -412,142 +483,409 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	}
 
 
+
+
+
+	/**
+	 * @deprecated use {@link #getCSONObject(int)} instead.
+	 */
+	@Deprecated
+	public CSONObject getObject(int index) {
+		return getCSONObject(index);
+	}
+
+
+
+
+
+	@Override
+	public void setStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
+		super.setStringFormatOption(defaultJSONOptions);
+		for(Object obj : list) {
+			if(obj instanceof CSONElement) {
+				((CSONElement)obj).setStringFormatOption(defaultJSONOptions);
+			}
+		}
+	}
+
+
+
+
+	public boolean isNull(int index) {
+		Object obj = list.get(index);
+		return obj == null || obj instanceof NullValue;
+	}
+
+
+
+
 	public Object get(int index) {
+		if(index < 0 || index >= list.size()) {
+			throw new CSONIndexNotFoundException("CSONArray[" + index + "] not found.");
+		}
+		Object obj = list.get(index);
+		if(obj instanceof NullValue) return null;
+		if(obj == null) {
+			throw new CSONIndexNotFoundException("CSONArray[" + index + "] not found.");
+		}
+		return obj;
+	}
+
+
+	public boolean getBoolean(int index) {
+		Object obj = get(index);
+		if(obj instanceof Boolean) {
+			return (Boolean)obj;
+		} else if("true".equalsIgnoreCase(obj + "")) {
+			return true;
+		} else if("false".equalsIgnoreCase(obj + "")) {
+			return false;
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a boolean.");
+	}
+
+
+	public byte getByte(int index) {
+		Object number = get(index);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toByte(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONArray[" + index + "] is not a number.", e);
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a number.");
+	}
+
+
+
+
+	public byte[] getByteArray(int index) {
+		Object obj = get(index);
+		if(obj instanceof byte[]) {
+			throw new CSONException("CSONArray[" + index + "] is not a byte array.");
+		}
+		return (byte[]) obj;
+	}
+
+
+	public char getChar(int index) {
+		Object number = get(index);
+		try {
+			if (number instanceof Character || number instanceof Number) {
+				return DataConverter.toChar(number);
+			} else if(number instanceof CharSequence) {
+				String str = number.toString();
+				if(str.length() == 1) {
+					return str.charAt(0);
+				}
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONArray[" + index + "] is not a char.", e);
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a char.");
+	}
+
+
+
+	public short getShort(int index) {
+		Object number = get(index);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toShort(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONArray[" + index + "] is not a number.", e);
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a number.");
+	}
+
+
+	public int getInt(int index) {
+		Object number = get(index);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toInteger(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONArray[" + index + "] is not a number.", e);
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a number.");
+
+	}
+
+
+
+	public float getFloat(int index) {
+		Object number = get(index);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toFloat(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONArray[" + index + "] is not a number.", e);
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a number.");
+	}
+
+
+	public long getLong(int index) {
+		Object number = get(index);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toInteger(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONArray[" + index + "] is not a number.", e);
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a number.");
+	}
+
+
+
+	public double getDouble(int index) {
+		Object number = get(index);
+		try {
+			if (number instanceof Number) {
+				return DataConverter.toInteger(number);
+			}
+		} catch (Exception e) {
+			throw new CSONException("CSONArray[" + index + "] is not a number.", e);
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a number.");
+	}
+
+
+	public String getString(int index) {
+		Object obj = get(index);
+		if(obj instanceof CharSequence || obj instanceof Boolean) {
+			return DataConverter.toString(obj);
+		}
+		throw new CSONException("CSONArray[" + index + "] is not a string.");
+	}
+
+	public CSONArray getCSONArray(int index) {
+		Object obj = get(index);
+		CSONArray csonArray = DataConverter.toArray(obj, false);
+		if(csonArray == null) {
+			throw new CSONException("CSONArray[" + index + "] is not a CSONArray.");
+		}
+		return csonArray;
+	}
+
+	public CSONObject getCSONObject(int index) {
+		Object obj = get(index);
+		CSONObject csonObject = DataConverter.toObject(obj, false);
+		if(csonObject == null) {
+			throw new CSONException("CSONArray[" + index + "] is not a CSONObject.");
+		}
+		return csonObject;
+	}
+
+
+	public <T> List<T> getList(int index, Class<T> valueType) {
+		CSONArray csonArray = getCSONArray(index);
+		return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), false, null);
+	}
+
+
+
+	public <T> T getObject(int index, Class<T> clazz) {
+		CSONObject csonObject = getCSONObject(index);
+		return CSONSerializer.fromCSONObject(csonObject, clazz);
+	}
+
+
+	public Object opt(int index) {
+		if(index < 0 || index >= list.size()) {
+			return null;
+		}
 		Object obj = list.get(index);
 		if(obj instanceof NullValue) return null;
 		return obj;
 	}
-	
-	public Object opt(int index) {
-		try {
-			Object obj = list.get(index);
-			if(obj instanceof NullValue) return null;
-			return obj;
-		} catch (IndexOutOfBoundsException e) {
-			return null;
-		}
+
+
+	public boolean optBoolean(int index, boolean def) {
+		Object obj = opt(index);
+		return DataConverter.toBoolean(obj, def);
 	}
 
-	/**
-	 * @deprecated use {@link #getCSONArray(int)} instead.
-	 */
-	@Deprecated
-	public CSONArray getArray(int index) {
-		return getCSONArray(index);
-	}
-
-	/**
-	 * @deprecated use {@link #optCSONArray(int)} instead.
-	 */
-	@Deprecated
-	public CSONArray optArray(int index) {
-		return optCSONArray(index);
-	}
-
-	/**
-	 * @deprecated use {@link #optCSONArray(int, CSONArray)} instead.
-	 */
-	@Deprecated
-	public CSONArray optArray(int index, CSONArray def) {
-		return optCSONArray(index, def);
+	public boolean optBoolean(int index) {
+		return optBoolean(index, false);
 	}
 
 
-
-	
-	public CSONArray getCSONArray(int index) {
-		try {
-			Object value = list.get(index);
-			CSONArray csonArray = DataConverter.toArray(value);
-			if(csonArray == null) {
-				throw new CSONIndexNotFoundException("index: " + index + ", value: " + value);
-			}
-			return csonArray;
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
+	public byte optByte(int index) {
+		return optByte(index, (byte)0);
 	}
 
-	public CSONArray optCSONArray(int index, CSONArray def) {
-		try {
-			return DataConverter.toArray(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
+	@SuppressWarnings("unused")
+	public byte optByte(int index, byte def) {
+		Object number = opt(index);
+		if(number == null) {
 			return def;
 		}
+		return DataConverter.toByte(number, def);
+	}
+
+
+
+	public byte[] optByteArray(int index) {
+		return optByteArray(index, null);
+	}
+
+	@SuppressWarnings("unused")
+	public byte[] optByteArray(int index,byte[] def) {
+		Object obj = opt(index);
+		if(obj == null) {
+			return def;
+		}
+		byte[] buffer =  DataConverter.toByteArray(obj);
+		if(buffer == null) {
+			return def;
+		}
+		return buffer;
+
+	}
+
+
+
+	public short optShort(int index) {
+		return optShort(index, (short)0);
+	}
+
+	public short optShort(int index, short def) {
+		Object number = opt(index);
+		if(number == null) {
+			return def;
+		}
+		return DataConverter.toShort(number, def);
+	}
+
+	@SuppressWarnings("unused")
+	public char optChar(int index) {
+		return optChar(index, '\0');
+	}
+
+	public char optChar(int index, char def) {
+		Object obj = opt(index);
+		if(obj == null) {
+			return def;
+		}
+		return DataConverter.toChar(obj,def);
+	}
+
+
+	public int optInt(int index) {
+		return optInt(index, 0);
+	}
+
+	public int optInt(int index, int def) {
+		Object number = opt(index);
+		if(number == null) {
+			return def;
+		}
+		return DataConverter.toInteger(number, def);
+
+	}
+
+	public float optFloat(int index) {
+		return optFloat(index, 0);
+	}
+
+
+	public float optFloat(int index, float def) {
+		Object obj = opt(index);
+		if(obj == null) {
+			return def;
+		}
+		return DataConverter.toFloat(obj, def);
+	}
+
+	public long optLong(int index) {
+		return optLong(index, 0);
+	}
+
+	public long optLong(int index, long def) {
+		Object number = opt(index);
+		if(number == null) {
+			return def;
+		}
+		return DataConverter.toLong(number, def);
+	}
+
+	public double optDouble(int index) {
+		return optDouble(index, 0);
+	}
+
+	public double optDouble(int index, double def) {
+		Object obj = opt(index);
+		if(obj == null) {
+			return def;
+		}
+		return DataConverter.toDouble(obj, def);
+	}
+
+	public String optString(int index) {
+		return optString(index, null);
+	}
+
+	public String optString(int index,String def) {
+		Object obj = opt(index);
+		if(obj == null) {
+			return def;
+		}
+		return DataConverter.toString(obj);
 	}
 
 	public CSONArray optCSONArray(int index) {
 		return optCSONArray(index, null);
 	}
 
-	@SuppressWarnings("unused")
+	public CSONArray optCSONArray(int index, CSONArray def) {
+		Object obj = opt(index);
+		if(obj == null) {
+			return def;
+		}
+		CSONArray csonArray = DataConverter.toArray(obj, true);
+		if(csonArray == null) {
+			return def;
+		}
+		return csonArray;
+	}
+
 	public CSONArray optWrapCSONArray(int index) {
-		try {
-			Object object = list.get(index);
-			if (object instanceof CSONArray) {
-				return (CSONArray) object;
-			} else if (object == null) {
-				return new CSONArray();
-			}
-			return new CSONArray().put(object);
-		} catch (IndexOutOfBoundsException e) {
+		Object object = opt(index);
+		if(object == null) {
 			return new CSONArray();
 		}
-
-	}
-	
-	public CSONObject getCSONObject(int index) {
-		try {
-			Object obj = list.get(index);
-			CSONObject csonObject = DataConverter.toObject(obj);
-			if(csonObject == null) {
-				throw new CSONIndexNotFoundException("index: " + index + ", value: " + obj);
-			}
-			return csonObject;
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
+		CSONArray csonArray = DataConverter.toArray(object, true);
+		if(csonArray == null) {
+			return new CSONArray().put(object);
 		}
+		return csonArray;
 	}
-
 
 	public CSONObject optCSONObject(int index) {
-		try {
-			return DataConverter.toObject(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			return null;
-		}
+		return optCSONObject(index, null);
 	}
 
 	public CSONObject optCSONObject(int index, CSONObject def) {
-		try {
-			CSONObject csonObject = DataConverter.toObject(list.get(index));
-			if(csonObject == null) {
-				return def;
-			}
-			return csonObject;
-		} catch (IndexOutOfBoundsException e) {
+		Object obj = opt(index);
+		if(obj == null) {
 			return def;
 		}
+		CSONObject csonObject = DataConverter.toObject(obj, true);
+		if(csonObject == null) {
+			return def;
+		}
+		return csonObject;
 	}
 
-	/**
-	 * @deprecated use {@link #getCSONObject(int)} instead.
-	 */
-	public CSONObject getObject(int index) {
-		return getCSONObject(index);
-	}
 
-
-	/**
-	 * @deprecated use {@link #optCSONObject(int)} instead.
-	 */
-	public CSONObject optObject(int index) {
-		return optCSONObject(index);
-	}
-
-	public <T> T getObject(int index, Class<T> clazz) {
-		CSONObject csonObject = getCSONObject(index);
-		return CSONSerializer.fromCSONObject(csonObject, clazz);
+	public <T> T optObject(int index, Class<T> clazz) {
+		return optObject(index, clazz, null);
 	}
 
 	public <T> T optObject(int index, Class<T> clazz, T defaultObject) {
@@ -560,23 +898,8 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 	}
 
 
-	public <T> List<T> getList(int index, Class<T> valueType) {
-		CSONArray csonArray = getCSONArray(index);
-		return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), false, null);
-	}
-
 	public <T> List<T> optList(int index, Class<T> valueType) {
 		return optList(index, valueType, null);
-	}
-
-	@Override
-	public void setStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
-		super.setStringFormatOption(defaultJSONOptions);
-		for(Object obj : list) {
-			if(obj instanceof CSONElement) {
-				((CSONElement)obj).setStringFormatOption(defaultJSONOptions);
-			}
-		}
 	}
 
 	public <T> List<T> optList(int index, Class<T> valueType, T defaultValue) {
@@ -587,7 +910,13 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			}
 			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), true, defaultValue);
 		} catch (Exception e) {
-			return null;
+			if(defaultValue != null) {
+				List<T> result = new ArrayList<>();
+				result.add(defaultValue);
+				return result;
+			} else {
+				return Collections.EMPTY_LIST;
+			}
 		}
 	}
 
@@ -595,247 +924,13 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 
 
-	@SuppressWarnings("DeprecatedIsStillUsed")
-	@Deprecated
-	public int getInteger(int index) {
-		return getInt(index);
-	}
-
-	public int getInt(int index) {
-		try {
-			return DataConverter.toInteger(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-
-	@SuppressWarnings("DeprecatedIsStillUsed")
-	@Deprecated
-	public int optInteger(int index) {
-		return optInt(index);
-	}
-
-	@Deprecated
-	public int optInteger(int index, int def) {
-		return optInt(index, def);
-	}
 
 
 
-	public int optInt(int index) {
-		return optInt(index, 0);
-	}
-
-	public int optInt(int index, int def) {
-		try {
-			return DataConverter.toInteger(list.get(index), def);
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-
-	public long getLong(int index) {
-		try {
-			return DataConverter.toLong(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-
-	public long optLong(int index) {
-		return optLong(index, 0);
-	}
-
-	public long optLong(int index, long def) {
-		try {
-			return DataConverter.toLong(list.get(index), def);
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-	
-	public short getShort(int index) {
-		try {			
-			return DataConverter.toShort(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-	
-	public short optShort(int index) {
-		return optShort(index, (short)0);
-	}
-	
-	public short optShort(int index, short def) {
-		try {			
-			return DataConverter.toShort(list.get(index),def);
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-
-	public char getChar(int index) {
-		try {
-			return DataConverter.toChar(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-
-	@SuppressWarnings("unused")
-	public char optChar(int index) {
-		return optChar(index, '\0');
-	}
-
-	public char optChar(int index, char def) {
-		try {
-			return DataConverter.toChar(list.get(index),def);
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
 
 
-	public short getByte(int index) {
-		try {
-			return DataConverter.toByte(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-
-	@SuppressWarnings("unused")
-	public byte optByte(int index, byte def) {
-		try {
-			return DataConverter.toByte(list.get(index), def);
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-
-	public byte optByte(int index) {
-		try {
-			return DataConverter.toByte(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			return 0;
-		}
-	}
 
 
-	public double getDouble(int index) {
-		try {
-			return DataConverter.toDouble(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-
-	public double optDouble(int index) {
-		return optDouble(index, 0);
-	}
-
-
-	public double optDouble(int index, double def) {
-		try {
-			return DataConverter.toDouble(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-	
-	public float getFloat(int index) {
-		try {			
-			return DataConverter.toFloat(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-
-	@SuppressWarnings("unused")
-	public float optFloat(int index, float def) {
-		try {			
-			return DataConverter.toFloat(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-	
-	public float optFloat(int index) {
-		try {			
-			return DataConverter.toFloat(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			return Float.NaN;
-		}
-	}
-	
-	
-	public String getString(int index) {
-		try {			
-			return DataConverter.toString(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-	
-	public String optString(int index,String def) {
-		try {			
-			return DataConverter.toString(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-	
-	public String optString(int index) {
-		return optString(index, null);
-	}
-	
-	public byte[] getByteArray(int index) {
-		try {			
-			@SuppressWarnings("UnnecessaryLocalVariable")
-			byte[] buffer = (byte[]) list.get(index);
-			return buffer;
-		} catch (Exception e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-
-	public byte[] optByteArray(int index) {
-		try {
-			return DataConverter.toByteArray(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			return null;
-		}
-	}
-
-	@SuppressWarnings("unused")
-	public byte[] optByteArray(int index,byte[] def) {
-		try {
-			return DataConverter.toByteArray(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-
-	
-	public boolean getBoolean(int index) {
-		try {			
-			return DataConverter.toBoolean(list.get(index));
-		} catch (IndexOutOfBoundsException e) {
-			throw new CSONIndexNotFoundException(e);
-		}
-	}
-	
-	public boolean optBoolean(int index, boolean def) {
-		try {			
-			return DataConverter.toBoolean(list.get(index), def);
-		} catch (IndexOutOfBoundsException e) {
-			return def;
-		}
-	}
-	
-	public boolean optBoolean(int index) {
-		return optBoolean(index, false);
-	}
 
 	@Override
 	public boolean remove(Object o) {
@@ -867,6 +962,12 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		return true;
 	}
 
+	/**
+	 * @Deprecated use {@link #subtractIntersection(CSONArray)} instead.
+	 * @param c collection containing elements to be removed from this collection
+	 * @return
+	 */
+	@Deprecated
 	@Override
 	public boolean removeAll(@SuppressWarnings({"rawtypes", "RedundantSuppression"}) Collection c) {
 		return list.removeAll(c);
@@ -903,24 +1004,44 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			}
 			return null;
 		}
-		
-		
+
+
+		@Deprecated
 		public CSONArray getArray() {
 			return array.getCSONArray(index++);
 		}
 
-		@SuppressWarnings("unused")
+		public CSONArray getCSONArray() {
+			return array.getCSONArray(index++);
+		}
+
+		@Deprecated
 		public CSONArray optArray() {
 			return array.optCSONArray(index++);
 		}
 
+		public CSONArray optCSOMArray() {
+			return array.optCSONArray(index++);
+		}
+
 		@SuppressWarnings("unused")
+		@Deprecated
 		public int getInteger() {
 			return array.getInteger(index++);
 		}
 
+		public int getInt() {
+			return array.getInteger(index++);
+		}
+
 		@SuppressWarnings("unused")
+		@Deprecated
 		public int optInteger() {
+			return array.optInteger(index++);
+		}
+
+
+		public int optInt() {
 			return array.optInteger(index++);
 		}
 		
@@ -966,15 +1087,42 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			return !(index >= array.size());
 		}	
 	}
-	
+
+	/**
+	 * @Deprecated use {@link #toCSONBinary()} instead.
+	 */
+
+	@Deprecated
 	public byte[] toByteArray() {
-		BinaryCSONWriter writer = new BinaryCSONWriter();
-		write(writer);
-		return writer.toByteArray();
+		return toCSONBinary();
 	}
+
+
+
+	@Override
+	public byte[] toCSONBinary() {
+		try {
+			BinaryCSONWriter writer = new BinaryCSONWriter();
+			write(writer);
+			return writer.toByteArray();
+		}
+		// 사실상 발생하지 않는다.
+		catch (IOException ignored) {
+			throw new CSONException(ignored);
+		}
+	}
+
+	@Override
+	public void writeCSONBinary(OutputStream outputStream) throws IOException {
+		BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
+		write(writer);
+	}
+
+
+
 	
 	@SuppressWarnings("ForLoopReplaceableByForEach")
-	void write(BinaryCSONWriter writer) {
+	void write(BinaryCSONWriter writer) throws IOException {
 		writer.openArray();
 		for(int i = 0, n = list.size(); i < n; ++i) {
 			Object obj = list.get(i);
@@ -1036,7 +1184,6 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 		writer.closeArray();
 		if(root) {
-
 			writer.writeComment(getCommentAfterThis(), false, "\n", "");
 		}
 
@@ -1080,6 +1227,10 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		return array;
 	}
 
+	/**
+	 * 다른 CSONArray와 병합한다.
+	 * @param csonArray 병합할 CSONArray
+	 */
 	public void merge(CSONArray csonArray) {
 		for(int i = 0, n = csonArray.size(); i < n; ++i) {
 			Object newObj = csonArray.get(i);
@@ -1095,6 +1246,57 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			}
 		}
 	}
+
+
+	/**
+	 * 교집합을 반환한다.
+	 * @param csonArray 교집합을 구할 CSONArray
+	 * @return 교집합
+	 */
+	public CSONArray intersect(CSONArray csonArray) {
+		CSONArray result = new CSONArray();
+		for(int i = 0, n = csonArray.size(); i < n; ++i) {
+			Object newObj = csonArray.get(i);
+			Object originObj = opt(i);
+			if(originObj == null) {
+				continue;
+			} else if(originObj instanceof CSONArray && newObj instanceof CSONArray) {
+				result.add(((CSONArray)originObj).intersect((CSONArray)newObj));
+			} else if(originObj instanceof CSONObject && newObj instanceof CSONObject) {
+				result.add(((CSONObject)originObj).intersect((CSONObject)newObj));
+			} else if(originObj.equals(newObj)) {
+				result.add(originObj);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 교집합을 제외한 값을 반환한다.
+	 * @param csonArray 교집합을 제외할 CSONArray
+	 * @return 교집합을 제외한 값
+	 */
+	public CSONArray subtractIntersection(CSONArray csonArray) {
+		CSONArray result = new CSONArray();
+		for(int i = 0, n = size(); i < n; ++i) {
+			Object originObj = get(i);
+			Object newObj = csonArray.opt(i);
+			if(originObj == null) {
+				continue;
+			} else if(originObj instanceof CSONArray && newObj instanceof CSONArray) {
+				result.add(((CSONArray)originObj).subtractIntersection((CSONArray)newObj));
+			} else if(originObj instanceof CSONObject && newObj instanceof CSONObject) {
+				result.add(((CSONObject)originObj).subtractIntersection((CSONObject)newObj));
+			} else if(!originObj.equals(newObj)) {
+				result.add(originObj);
+			}
+		}
+		return result;
+
+	}
+
+
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -1137,5 +1339,66 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		}
 		return true;
 	}
+
+
+	/**
+	 * @deprecated use {@link #optCSONObject(int)} instead.
+	 */
+	@Deprecated
+	public CSONObject optObject(int index) {
+		return optCSONObject(index);
+	}
+
+
+
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Deprecated
+	public int optInteger(int index) {
+		return optInt(index);
+	}
+
+	@Deprecated
+	public int optInteger(int index, int def) {
+		return optInt(index, def);
+	}
+
+
+
+	/**
+	 * @deprecated use {@link #getCSONArray(int)} instead.
+	 */
+	@Deprecated
+	public CSONArray getArray(int index) {
+		return getCSONArray(index);
+	}
+
+	/**
+	 * @deprecated use {@link #optCSONArray(int)} instead.
+	 */
+	@Deprecated
+	public CSONArray optArray(int index) {
+		return optCSONArray(index);
+	}
+
+	/**
+	 * @deprecated use {@link #optCSONArray(int, CSONArray)} instead.
+	 */
+	@Deprecated
+	public CSONArray optArray(int index, CSONArray def) {
+		return optCSONArray(index, def);
+	}
+
+	/**
+	 * @deprecated use {@link #getInt(int)} instead.
+	 */
+
+	@SuppressWarnings("DeprecatedIsStillUsed")
+	@Deprecated
+	public int getInteger(int index) {
+		return getInt(index);
+	}
+
+
+
 
 }

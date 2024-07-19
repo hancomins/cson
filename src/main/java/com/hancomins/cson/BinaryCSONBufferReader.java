@@ -1,5 +1,8 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.util.DataReader;
+
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -8,45 +11,60 @@ import java.util.ArrayDeque;
 
 public class BinaryCSONBufferReader {
 	
-	private final static Charset UTF8 = StandardCharsets.UTF_8;
+	private static final Charset UTF8 = StandardCharsets.UTF_8;
 
-	public final static void parse(byte[] buffer, ParseCallback callback) {
+
+	public static void parse(InputStream inputStream, ParseCallback callback) {
+		parse(DataReader.wrapInputStream(inputStream), callback);
+	}
+
+	public static void parse(byte[] buffer, ParseCallback callback) {
 		parse(buffer,0, buffer.length, callback);
 	}
-	public final static void parse(byte[] buffer,int offset, int len, ParseCallback callback) {
-		ByteBuffer byteBuffer = ByteBuffer.wrap(buffer, offset, len);
+
+	public static void parse(ByteBuffer byteBuffer, ParseCallback callback) {
+		parse(DataReader.wrapByteBuffer(byteBuffer), callback);
+	}
+
+	public static void parse(byte[] bytes, int offset, int len, ParseCallback callback) {
+		ByteBuffer byteBuffer = ByteBuffer.wrap(bytes, offset, len);
+		parse(DataReader.wrapByteBuffer(byteBuffer), callback);
+	}
+
+
+	public static void parse(DataReader dataReader, ParseCallback callback) {
+
 		ArrayDeque<Byte> TypeStack = new ArrayDeque<Byte>();
 		TypeStack.addLast(BinaryCSONDataType.TYPE_NULL);
 		byte prefix = 0;
 		byte[] version = new byte[BinaryCSONDataType.VER_RAW.length];
-		prefix = byteBuffer.get();
-		byteBuffer.get(version, 0, version.length);
+		prefix = dataReader.get();
+		dataReader.get(version, 0, version.length);
 		
 		if(prefix != BinaryCSONDataType.PREFIX) {
 			throw new CSONParseException("CSON Prefix does not match.");
 		}
 
 		callback.onVersion(version);
- 		byte type = byteBuffer.get(); 
+ 		byte type = dataReader.get();
 		if(type == BinaryCSONDataType.TYPE_OPEN_OBJECT) {
 			callback.onOpenObject();
 			TypeStack.addLast(BinaryCSONDataType.TYPE_OPEN_OBJECT);
-			read(true,TypeStack, byteBuffer, callback);
+			read(true,TypeStack, dataReader, callback);
 		}
 		else if(type == BinaryCSONDataType.TYPE_OPEN_ARRAY) {
 			callback.onOpenArray();
 			TypeStack.addLast(BinaryCSONDataType.TYPE_OPEN_ARRAY);
-			read(false,TypeStack, byteBuffer, callback);
+			read(false,TypeStack, dataReader, callback);
 		}
-		
- 		
 	}
+
+
 	
-	
-	public final static void read(boolean isReadObject, ArrayDeque<Byte> typeStack, ByteBuffer byteBuffer, ParseCallback callback) {
+	public static final void read(boolean isReadObject, ArrayDeque<Byte> typeStack, DataReader dataReader, ParseCallback callback) {
 		
 		while(true) {
-			byte type = byteBuffer.get();
+			byte type = dataReader.get();
 			if(type == -1) return;
 			if(isReadObject) {
 				if(type == BinaryCSONDataType.TYPE_CLOSE_OBJECT) {
@@ -69,7 +87,7 @@ public class BinaryCSONBufferReader {
 					case BinaryCSONDataType.TYPE_STRING_SHORT :
 					case BinaryCSONDataType.TYPE_STRING_MIDDLE :
 					case BinaryCSONDataType.TYPE_STRING_LONG :
-						String key = readString(type, rawType, byteBuffer);
+						String key = readString(type, rawType, dataReader);
 						if(key == null) {
 							throw new CSONParseException();
 						}
@@ -78,7 +96,7 @@ public class BinaryCSONBufferReader {
 					default:
 						throw new CSONParseException();
 				}
-				byte valueType = byteBuffer.get();
+				byte valueType = dataReader.get();
 				switch (valueType) {
 				case BinaryCSONDataType.TYPE_OPEN_OBJECT:
 					callback.onOpenObject();
@@ -104,7 +122,7 @@ public class BinaryCSONBufferReader {
 					}
 					return;
 				case BinaryCSONDataType.TYPE_NULL:
-					callback.onValue(readValue(valueType, byteBuffer));
+					callback.onValue(readValue(valueType, dataReader));
 					isReadObject = true;
 					continue;
 				case BinaryCSONDataType.TYPE_BYTE:
@@ -117,7 +135,7 @@ public class BinaryCSONBufferReader {
 				case BinaryCSONDataType.TYPE_DOUBLE:
 				case BinaryCSONDataType.TYPE_BIGDECIMAL:
 				//case BinaryCSONDataType.TYPE_NULL:
-					callback.onValue(readValue(valueType, byteBuffer));
+					callback.onValue(readValue(valueType, dataReader));
 					isReadObject = true;
 					continue;
 				default:
@@ -129,7 +147,7 @@ public class BinaryCSONBufferReader {
 					case BinaryCSONDataType.TYPE_RAW_MIDDLE:
 					case BinaryCSONDataType.TYPE_RAW_LONG:
 					case BinaryCSONDataType.TYPE_RAW_WILD:
-						callback.onValue(readValue(valueType, byteBuffer));
+						callback.onValue(readValue(valueType, dataReader));
 						isReadObject = true;
 						continue;
 					}
@@ -176,7 +194,7 @@ public class BinaryCSONBufferReader {
 						continue;
 					}
 				case BinaryCSONDataType.TYPE_NULL:
-					callback.onValue(readValue(type, byteBuffer));
+					callback.onValue(readValue(type, dataReader));
 					isReadObject = false;
 					continue;
 				case BinaryCSONDataType.TYPE_BYTE:
@@ -189,7 +207,7 @@ public class BinaryCSONBufferReader {
 				case BinaryCSONDataType.TYPE_DOUBLE:
 				case BinaryCSONDataType.TYPE_BIGDECIMAL:
 
-					callback.onValue(readValue(type, byteBuffer));
+					callback.onValue(readValue(type, dataReader));
 					isReadObject = false;
 					continue;
 				default:
@@ -201,7 +219,7 @@ public class BinaryCSONBufferReader {
 						case BinaryCSONDataType.TYPE_RAW_MIDDLE:
 						case BinaryCSONDataType.TYPE_RAW_LONG:
 						case BinaryCSONDataType.TYPE_RAW_WILD:
-						callback.onValue(readStreamType(type,rawType, byteBuffer));
+						callback.onValue(readStreamType(type,rawType, dataReader));
 						isReadObject = false;
 						continue;
 					}
@@ -215,7 +233,7 @@ public class BinaryCSONBufferReader {
 
 	
 	
-	public final static Object readValue(byte type,ByteBuffer byteBuffer) {
+	public static final Object readValue(byte type,DataReader byteBuffer) {
 		switch(type) {
 			case BinaryCSONDataType.TYPE_BYTE:
 				return byteBuffer.get();
@@ -248,7 +266,7 @@ public class BinaryCSONBufferReader {
 	}
 	
 	
-	public final static Object readStreamType(byte type,byte rawtype, ByteBuffer byteBuffer) {
+	public static final Object readStreamType(byte type,byte rawtype, DataReader byteBuffer) {
 		switch (rawtype) {
 		case BinaryCSONDataType.TYPE_STRING_SHORT:
 		case BinaryCSONDataType.TYPE_STRING_MIDDLE:
@@ -260,7 +278,7 @@ public class BinaryCSONBufferReader {
 	}
 	
 	
-	public final static String readString(byte type,byte rawtype, ByteBuffer byteBuffer) {
+	public static final String readString(byte type,byte rawtype, DataReader byteBuffer) {
 		byte rawType = (byte)(type & 0xF0);
 		switch(rawType) {
 			case BinaryCSONDataType.TYPE_STRING_SHORT :
@@ -288,7 +306,7 @@ public class BinaryCSONBufferReader {
 	}
 	
 	
-	public final static byte[] readBuffer(byte type,byte rawType, ByteBuffer byteBuffer) {
+	public static final byte[] readBuffer(byte type,byte rawType, DataReader byteBuffer) {
 		switch(rawType) {
 			case BinaryCSONDataType.TYPE_RAW_MIDDLE :
 				int middleLenFirst = ((int)(type & 0x0F) << 8); 

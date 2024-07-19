@@ -214,7 +214,7 @@ public class NumberConversionUtil {
         return value.charAt(index) >= '0' && value.charAt(index) <= '9';
     }
 
-    public final static NumberConversionOption DEFAULT_NUMBER_CONVERSION_OPTION = new NumberConversionOption() {
+    public static final NumberConversionOption DEFAULT_NUMBER_CONVERSION_OPTION = new NumberConversionOption() {
         @Override
         public boolean isAllowNaN() {
             return true;

@@ -10,18 +10,18 @@ import java.util.ArrayDeque;
 @SuppressWarnings("UnusedReturnValue")
 public class JSONWriter {
 
-	private final static int DEFAULT_BUFFER_SIZE = 512;
+	private static final int DEFAULT_BUFFER_SIZE = 512;
 
 	private final JSONOptions jsonOptions;
 
-	private final static int COMMENT_BEFORE_KEY = 1;
+	private static final int COMMENT_BEFORE_KEY = 1;
 
-	private final static int COMMENT_SLASH_STAR = 4;
+	private static final int COMMENT_SLASH_STAR = 4;
 
 
-	private final static int COMMENT_BEFORE_ARRAY_VALUE = 5;
-	private final static int COMMENT_COMMA_AND_SLASH_STAR = 6;
-	private final static int COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE = 7;
+	private static final int COMMENT_BEFORE_ARRAY_VALUE = 5;
+	private static final int COMMENT_COMMA_AND_SLASH_STAR = 6;
+	private static final int COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE = 7;
 
 	private boolean isComment;
 	private boolean isAllowLineBreak;

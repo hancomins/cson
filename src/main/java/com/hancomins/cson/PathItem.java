@@ -5,9 +5,9 @@ import java.util.List;
 
 public class PathItem {
 
-    private final static int READ_MODE_KEY = 0;
-    private final static int READ_MODE_INDEX = 1;
-    private final static int READ_MODE_UNDEFINED = -1;
+    private static final int READ_MODE_KEY = 0;
+    private static final int READ_MODE_INDEX = 1;
+    private static final int READ_MODE_UNDEFINED = -1;
 
     private final String name;
     private final int index;
