@@ -94,7 +94,8 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
         if(!(schemaValueAbs instanceof ISchemaArrayValue)) {
             return false;
         }
-        if(!equalsCollectionTypes(this.getCollectionItems(), ((ISchemaArrayValue)schemaValueAbs).getCollectionItems())) {
+
+        if(!ISchemaArrayValue.equalsCollectionTypes(this.getCollectionItems(), ((ISchemaArrayValue)schemaValueAbs).getCollectionItems())) {
             return false;
         }
         if(this.endpointValueType != ((ISchemaArrayValue)schemaValueAbs).getEndpointValueType()) {

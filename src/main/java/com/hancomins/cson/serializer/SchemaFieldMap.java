@@ -1,7 +1,9 @@
 package com.hancomins.cson.serializer;
 
+;
 import java.lang.reflect.*;
 import java.util.*;
+
 
 class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
 
@@ -15,7 +17,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
 
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
         Type genericType = field.getGenericType();
-        Map.Entry<Class<?>, Type> entry = readKeyValueGenericType(genericType, fieldPath);
+        Map.Entry<Class<?>, Type> entry = ISchemaMapValue.readKeyValueGenericType(genericType, fieldPath);
         Class<?> keyClass = entry.getKey();
         Type valueType = entry.getValue();
         boolean isGenericValue = false;
@@ -32,14 +34,14 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         if(elementClass != null && !isGenericValue) {
             ISchemaValue.assertValueType(elementClass, fieldPath);
         }
-        assertCollectionOrMapValue(elementClass,fieldPath);
+        ISchemaMapValue.assertCollectionOrMapValue(elementClass,fieldPath);
 
 
         isAbstractValue = elementClass != null && elementClass.isInterface() || java.lang.reflect.Modifier.isAbstract(elementClass.getModifiers());
         if(!String.class.isAssignableFrom(keyClass)) {
             throw new CSONSerializerException("Map field '" + fieldPath + "' is not String key. Please use String key.");
         }
-        constructorMap = constructorOfMap(field.getType());
+        constructorMap = ISchemaMapValue.constructorOfMap(field.getType());
     }
 
 
