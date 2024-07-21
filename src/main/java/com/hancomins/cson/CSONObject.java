@@ -196,7 +196,11 @@ public class CSONObject extends CSONElement implements Cloneable {
 		StringFormatType type = options.getFormatType();
 		if(type == StringFormatType.PureJSON) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
-		} else {
+		} else if(type == StringFormatType.JSON) {
+			JSON5Parser.parsePureJSON(stringReader, this, (JSONOptions)options);
+
+		}
+		else {
 			new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseObject(this);
 		}
 	}

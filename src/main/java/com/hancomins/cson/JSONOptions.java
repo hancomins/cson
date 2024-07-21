@@ -20,12 +20,12 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setAllowNaN(true);
             jsonOptions.setAllowPositiveSing(false);
             jsonOptions.setAllowInfinity(true);
-            jsonOptions.setAllowUnquoted(false);
-            jsonOptions.setAllowSingleQuotes(false);
+            jsonOptions.setAllowUnquoted(true);
+            jsonOptions.setAllowSingleQuotes(true);
             jsonOptions.setAllowHexadecimal(true);
             jsonOptions.setLeadingZeroOmission(false);
-            jsonOptions.setAllowCharacter(false);
-            jsonOptions.setAllowTrailingComma(false);
+            jsonOptions.setAllowCharacter(true);
+            jsonOptions.setAllowTrailingComma(true);
             return jsonOptions;
         }
 
