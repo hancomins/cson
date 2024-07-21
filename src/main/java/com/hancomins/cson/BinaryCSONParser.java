@@ -3,7 +3,7 @@ package com.hancomins.cson;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
-public class BinaryCSONParser {
+class BinaryCSONParser {
 	
 	public static CSONElement parse(byte[] buffer) {
 		BinaryCSONParseIterator binaryCsonParseIterator = new BinaryCSONParseIterator();

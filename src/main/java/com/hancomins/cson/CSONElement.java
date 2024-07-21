@@ -1,6 +1,7 @@
 package com.hancomins.cson;
 
 
+import com.hancomins.cson.util.Base64;
 import com.hancomins.cson.util.NullValue;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+@SuppressWarnings("unused")
 public abstract  class CSONElement implements Iterable<Object>  {
 
 
@@ -22,12 +24,23 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	private CSONPath csonPath = null;
 
 
-	StringFormatOption<?> defaultJSONOptions = DefaultJSONOptions;
+	private CSONElement parents = null;
+	private byte[] versionRaw = BinaryCSONDataType.VER_RAW;
+	private final ElementType type;
+
+	private StringFormatOption<?> jsonOptions = DefaultJSONOptions;
 
 
 	protected boolean allowJsonPathKey = true;
 	private boolean allowRawValue = false;
 	private boolean unknownObjectToString = false;
+
+
+	protected CSONElement(ElementType type, StringFormatOption<?> stringFormatOption) {
+		this.type = type;
+		this.jsonOptions = stringFormatOption;
+	}
+
 	protected CSONElement setAllowRawValue(boolean allowRawValue) {
 		this.allowRawValue = allowRawValue;
 		return this;
@@ -58,17 +71,19 @@ public abstract  class CSONElement implements Iterable<Object>  {
 		return DefaultJSONOptions;
 	}
 
+
 	@SuppressWarnings("unused")
 	public static void setDefaultStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
 		DefaultJSONOptions = defaultJSONOptions;
 	}
 
+
 	public void setStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
-		this.defaultJSONOptions = defaultJSONOptions;
+		this.jsonOptions = defaultJSONOptions;
 	}
 
 	public StringFormatOption<?> getStringFormatOption() {
-		return defaultJSONOptions;
+		return this.jsonOptions;
 	}
 
 
@@ -128,28 +143,23 @@ public abstract  class CSONElement implements Iterable<Object>  {
 
 	public enum ElementType { Object, Array}
 
-	private CSONElement mParents = null;
-	private byte[] versionRaw = BinaryCSONDataType.VER_RAW;
-	private final ElementType mType;
 
 
 	protected void setParents(CSONElement parents) {
-		mParents = parents;
+		this.parents = parents;
 	}
 
-	protected CSONElement(ElementType type) {
-		this.mType = type;
-	}
+
 
 	public CSONElement getParents() {
-		return mParents;
+		return parents;
 	}
 
 	public ElementType getType() {
-		return mType;
+		return type;
 	}
 
-	@SuppressWarnings("unused")
+
 	public String getVersion() {
 		return Short.toString(ByteBuffer.wrap(versionRaw).getShort());
 	}

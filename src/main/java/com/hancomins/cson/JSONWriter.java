@@ -1,5 +1,6 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.util.Base64;
 import com.hancomins.cson.util.EscapeUtil;
 
 import java.math.BigDecimal;

@@ -1,6 +1,5 @@
 package com.hancomins.cson.util;
 
-import com.hancomins.cson.Base64;
 import com.hancomins.cson.CSONArray;
 import com.hancomins.cson.CSONException;
 import com.hancomins.cson.CSONObject;
@@ -12,6 +11,18 @@ import java.nio.charset.StandardCharsets;
 
 public class DataConverter {
 
+
+	public static String getTypeName(Object value) {
+		if(value == null || value == NullValue.Instance) return "null";
+		if(value instanceof String) return "String";
+		if(value instanceof Number) return "Number";
+		if(value instanceof Boolean) return "Boolean";
+		if(value instanceof Character) return "Character";
+		if(value instanceof byte[]) return "byte[]";
+		if(value instanceof CSONArray) return "CSONArray";
+		if(value instanceof CSONObject) return "CSONObject";
+		return value.getClass().getSimpleName();
+	}
 
 
 	public static CSONArray toArray(Object value, boolean allowFromData) {
@@ -28,7 +39,7 @@ public class DataConverter {
 				return CSONArray.fromBinaryCSON((byte[]) value);
 			} catch (CSONException ignored) {}
 		}
-		return null; 
+		return null;
 	}
 
 	public static CSONObject toObject(Object value, boolean allowFromData) {
@@ -46,7 +57,7 @@ public class DataConverter {
 			} catch (CSONException ignored) {}
 		}
 
-		return null; 
+		return null;
 	}
 
 	public static Object convertValue(Class<?> objectType,  Object value) {
@@ -99,11 +110,21 @@ public class DataConverter {
 	}
 
 	public static int toInteger(Object value) {
-		return toInteger(value, 0);
+			return toInteger(value, 0, null);
 	}
-	
-	@SuppressWarnings("UnnecessaryUnboxing")
+
 	public static int toInteger(Object value, int def) {
+		return toInteger(value, def, null);
+	}
+
+	public static int toInteger(Object value, OnConvertFail onConvertFail) {
+		return toInteger(value, 0, onConvertFail);
+	}
+
+
+
+	@SuppressWarnings("UnnecessaryUnboxing")
+	public static int toInteger(Object value, int def, OnConvertFail onConvertFail) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).intValue();
@@ -122,6 +143,9 @@ public class DataConverter {
 				return v.intValue();
 			}
 		}
+		if(onConvertFail != null) {
+			onConvertFail.onFail(value, int.class);
+		}
 		return def;
 	}
 
@@ -137,10 +161,18 @@ public class DataConverter {
 	}
 
 	public static short toShort(Object value) {
-		return toShort(value, (short) 0);
+		return toShort(value, (short) 0, null);
 	}
 
 	public static short toShort(Object value, short def) {
+		return toShort(value, def, null);
+	}
+
+	public static short toShort(Object value, OnConvertFail onConvertFail) {
+		return toShort(value, (short) 0, onConvertFail);
+	}
+
+	public static short toShort(Object value, short def, OnConvertFail onConvertFail) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).shortValue();
@@ -157,14 +189,21 @@ public class DataConverter {
 				return v.shortValue();
 			}
 		}
+		if(onConvertFail != null) {
+			onConvertFail.onFail(value, short.class);
+		}
 		return def;
 	}
 
 	public static byte toByte(Object value) {
-		return toByte(value, (byte) 0);
+		return toByte(value, (byte) 0, null);
 	}
 
 	public static byte toByte(Object value, byte def) {
+		return toByte(value, def, null);
+	}
+
+	public static byte toByte(Object value, byte def, OnConvertFail onConvertFail) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).byteValue();
@@ -181,6 +220,9 @@ public class DataConverter {
 				return v.byteValue();
 			}
 		}
+		if(onConvertFail != null) {
+			onConvertFail.onFail(value, byte.class);
+		}
 		return def;
 	}
 
@@ -188,9 +230,17 @@ public class DataConverter {
 	public static float toFloat(Object value) {
 		return toFloat(value, Float.NaN);
 	}
-	
-	@SuppressWarnings({"SameParameterValue", "UnnecessaryUnboxing"})
+
 	public static float toFloat(Object value, float def) {
+		return toFloat(value, def, null);
+	}
+
+	public static float toFloat(Object value, OnConvertFail onConvertFail) {
+		return toFloat(value, Float.NaN, onConvertFail);
+	}
+
+	@SuppressWarnings({"SameParameterValue", "UnnecessaryUnboxing"})
+	public static float toFloat(Object value, float def, OnConvertFail onConvertFail) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).floatValue();
@@ -209,15 +259,26 @@ public class DataConverter {
 				return v.floatValue();
 			}
 		}
+		if(onConvertFail != null) {
+			onConvertFail.onFail(value, float.class);
+		}
 		return def;
 	}
 
 	public static double toDouble(Object value) {
-		return toDouble(value, Double.NaN);
+		return toDouble(value, Double.NaN, null);
 	}
-	
-	@SuppressWarnings("SameParameterValue")
+
+	public static double toDouble(Object value, OnConvertFail onConvertFail) {
+		return toDouble(value, Double.NaN, onConvertFail);
+	}
+
 	public static double toDouble(Object value, double def) {
+		return toDouble(value, def, null);
+	}
+
+	@SuppressWarnings("SameParameterValue")
+	public static double toDouble(Object value, double def, OnConvertFail onConvertFail) {
 		try {
 			if (value instanceof Number) {
 				return ((Number) value).doubleValue();
@@ -235,6 +296,9 @@ public class DataConverter {
 				return v;
 			}
 		}
+		if(onConvertFail != null) {
+			onConvertFail.onFail(value, double.class);
+		}
 		return def;
 	}
 
@@ -245,6 +309,7 @@ public class DataConverter {
 		else if(value instanceof Number) {
 			Number number = (Number)value;
 			if(type == Integer.class) {
+
 				return number.intValue();
 			}
 			else if(type == Long.class) {
@@ -263,9 +328,21 @@ public class DataConverter {
 				return number.doubleValue();
 			}
 			else if(type == BigDecimal.class) {
-				return new BigDecimal(number.toString());
+				if (number instanceof BigDecimal) {
+					return number;
+				} else if (number instanceof BigInteger) {
+					return new BigDecimal((BigInteger) number);
+				} else {
+					return BigDecimal.valueOf(number.doubleValue());
+				}
 			} else if(type == BigInteger.class) {
-				return new BigInteger(number.toString());
+				if (number instanceof BigInteger) {
+					return number;
+				} else if (number instanceof BigDecimal) {
+					return ((BigDecimal) number).toBigInteger();
+				} else {
+					return BigInteger.valueOf(number.longValue());
+				}
 			}
 		}
 		else if(value instanceof String) {
@@ -281,12 +358,20 @@ public class DataConverter {
 
 
 	public static long toLong(Object value) {
-		return toLong(value, 0L);
+		return toLong(value, 0L, null);
 	}
-	
-	
-	@SuppressWarnings("UnnecessaryUnboxing")
+
+	public static long toLong(Object value, OnConvertFail onConvertFail) {
+		return toLong(value, 0L, onConvertFail);
+	}
+
 	public static long toLong(Object value, long def) {
+		return toLong(value, def, null);
+	}
+
+
+	@SuppressWarnings("UnnecessaryUnboxing")
+	public static long toLong(Object value, long def, OnConvertFail onConvertFail) {
 
 		try {
 			if(value instanceof Long) {
@@ -309,14 +394,25 @@ public class DataConverter {
 				return v.longValue();
 			}
 		}
+		if(onConvertFail != null) {
+			onConvertFail.onFail(value, long.class);
+		}
 		return def;
 	}
 
 	public static char toChar(Object value) {
-		return toChar(value, '\0');
+		return toChar(value, '\0', null);
 	}
-	@SuppressWarnings("UnnecessaryUnboxing")
+	public static char toChar(Object value, OnConvertFail onConvertFail) {
+		return toChar(value, '\0', onConvertFail);
+	}
+
 	public static char toChar(Object value, char def) {
+		return toChar(value, def, null);
+	}
+
+	@SuppressWarnings("UnnecessaryUnboxing")
+	public static char toChar(Object value, char def, OnConvertFail onConvertFail) {
 		if(value instanceof Number) {
 			return (char)((Number)value).shortValue();
 		}
@@ -330,11 +426,15 @@ public class DataConverter {
 			if(((String)value).length() == 1) {
 				return ((String) value).charAt(0);
 			}
-  			return (char) Short.parseShort((String) value);
-		} 
-		else if(value instanceof byte[] && ((byte[])value).length > 1 ) {
-  			return (char) ByteBuffer.wrap((byte[])value).getShort();
+			return (char) Short.parseShort((String) value);
 		}
+		else if(value instanceof byte[] && ((byte[])value).length > 1 ) {
+			return (char) ByteBuffer.wrap((byte[])value).getShort();
+		}
+		if(onConvertFail != null) {
+			onConvertFail.onFail(value, char.class);
+		}
+
 		return def;
 	}
 
@@ -342,7 +442,7 @@ public class DataConverter {
 
 	public static  String toString(Object value) {
 		if(value == null  || value instanceof NullValue) return null;
-		if(value instanceof String) { 
+		if(value instanceof String) {
 			return (String) value;
 		}
 		if(value instanceof Number) {
@@ -350,7 +450,7 @@ public class DataConverter {
 		}
 		else if(value instanceof byte[]) {
 			byte[] buffer = (byte[])value;
-  			return Base64.encode(buffer);
+			return Base64.encode(buffer);
 		}
 
 		return value + "";
@@ -373,6 +473,31 @@ public class DataConverter {
 			}
 		}catch (Throwable ignored) {}
 		return def;
+	}
+
+	public static <T extends Enum<T>> T toEnum(Class<T> enumType, Object value) {
+		if(value == null || value instanceof NullValue) return null;
+		if(enumType.isInstance(value)) {
+			return (T)value;
+		}
+		if(value instanceof Number) {
+			int ordinal = ((Number)value).intValue();
+			T[] values = enumType.getEnumConstants();
+			if(ordinal >= 0 && ordinal < values.length) {
+				return values[ordinal];
+			}
+		}
+		if(value instanceof String) {
+			// 대소문자 가리지 않고 enum을 찾는다.
+			String strValue = ((String)value).trim();
+			T[] values = enumType.getEnumConstants();
+			for(T t : values) {
+				if(t.name().equalsIgnoreCase(strValue)) {
+					return t;
+				}
+			}
+		}
+		return null;
 	}
 
 
@@ -413,5 +538,10 @@ public class DataConverter {
 
 	}
 
-	
+
+	public interface OnConvertFail {
+		void onFail(Object value, Class<?> type);
+	}
+
+
 }

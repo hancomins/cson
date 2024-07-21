@@ -1,4 +1,4 @@
-package com.hancomins.cson;
+package com.hancomins.cson.util;
 
 
 import java.io.ByteArrayOutputStream;

@@ -9,7 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 
-public class BinaryCSONBufferReader {
+class BinaryCSONBufferReader {
 	
 	private static final Charset UTF8 = StandardCharsets.UTF_8;
 

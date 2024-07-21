@@ -1,14 +1,18 @@
 package com.hancomins.cson;
 
-public class CSONIndexNotFoundException extends RuntimeException {
+public class CSONIndexNotFoundException extends CSONException {
 
-	CSONIndexNotFoundException() {
-		super();
+
+	CSONIndexNotFoundException(String object, int key) {
+		super( object +  "['" + key + "'] is not found.");
 	}
 
+	CSONIndexNotFoundException(String object, String key) {
+		super( object +  "['" + key + "'] is not found.");
+	}
 
-	CSONIndexNotFoundException(String key) {
-		super("'" + key + "' is not found.");
+	CSONIndexNotFoundException(String object) {
+		super(object);
 	}
 	
 	CSONIndexNotFoundException(Exception cause) {
