@@ -161,8 +161,16 @@ public class JSON5ParserTest extends TestCase {
     public void testComment() {
         String complexJson5 = "{\n" +
                 "  // This is a comment\n" +
+                " \"comment\": \"value\",\n" +
                 "}";
-        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json());
+
+        JSONOptions jsonOptions = StringFormatOption.json();
+        jsonOptions.setAllowComments(true);
+        CSONObject csonObject = new CSONObject(complexJson5, jsonOptions);
+
+
+        System.out.println(csonObject);
+
 
     }
 

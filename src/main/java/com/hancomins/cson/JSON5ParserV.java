@@ -6,14 +6,34 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayDeque;
 
-class JSON5Parser {
+class JSON5ParserV {
 
 
     private static final String NULL = "null";
 
+    private boolean singleQuote;
+    private boolean allowUnquotedKey;
+    private boolean allowConsecutiveCommas;
+    private boolean trailingComma;
+    private boolean allowComment;
+    private boolean readyComment = false;
 
-    private JSON5Parser() {
+
+    char currentQuoteChar = '\0';
+
+    private JSONOptions jsonOptions;
+
+    public JSON5ParserV(JSONOptions jsonOption) {
+        singleQuote = jsonOption.isAllowSingleQuotes();
+        allowUnquotedKey = jsonOption.isAllowUnquoted();
+        allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
+        trailingComma = jsonOption.isAllowTrailingComma();
+        allowComment = jsonOption.isAllowComments();
+        readyComment = false;
+        this.jsonOptions = jsonOption;
     }
+
+
     enum Mode {
         String,
         Value,
@@ -35,11 +55,11 @@ class JSON5Parser {
     }
 
 
-    static CSONElement parsePureJSON(Reader reader, JSONOptions jsonOption) {
-        return parsePureJSON(reader, null, jsonOption);
+    CSONElement parsePureJSON(Reader reader) {
+        return parsePureJSON(reader, null);
     }
 
-    static void appendSpecialChar(Reader reader, CharacterBuffer dataStringBuilder, int c) throws IOException {
+    void appendSpecialChar(Reader reader, CharacterBuffer dataStringBuilder, int c) throws IOException {
         switch (c) {
             case 'b':
                 dataStringBuilder.append('\b');
@@ -74,18 +94,9 @@ class JSON5Parser {
         }
     }
 
-    static CSONElement parsePureJSON(Reader reader, CSONElement rootElement,JSONOptions jsonOption) {
-
-        boolean singleQuote = jsonOption.isAllowSingleQuotes();
-        boolean allowUnquotedKey = jsonOption.isAllowUnquoted();
-        boolean allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
-        boolean trailingComma = jsonOption.isAllowTrailingComma();
-        boolean allowComment = jsonOption.isAllowComments();
-
-        boolean readyComment = false;
+    CSONElement parsePureJSON(Reader reader, CSONElement rootElement) {
 
 
-        char currentQuoteChar = '\0';
 
         //ArrayDeque<Mode> modeStack = new ArrayDeque<>();
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
@@ -99,7 +110,7 @@ class JSON5Parser {
         int line = 1;
 
         int index = 0;
-        ValueParseState valueParseState = new ValueParseState(jsonOption);
+        ValueParseState valueParseState = new ValueParseState(jsonOptions);
 
         CommentObject keyCommentObject = null;
         CommentObject valueCommentObject = null;
