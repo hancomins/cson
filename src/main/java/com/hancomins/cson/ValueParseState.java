@@ -10,6 +10,7 @@ class ValueParseState {
     private CharacterBuffer characterBuffer = new CharacterBuffer();
 
     private static final char[] NaNSign = new char[]{'n','a','n'};
+    private static final char[] Null = new char[]{'n','u','l','l'};
     private static final char[] InfinitySign = new char[]{'i','n','f','i','n','i','t','y'};
     private static final char[] HexadecimalSign = new char[]{'0','x'};
 
@@ -21,6 +22,7 @@ class ValueParseState {
     enum DoubtMode {
         None,
         NaN,
+        Null,
         Infinity,
         NegativeInfinity,
         HexadecimalStart,
@@ -312,6 +314,7 @@ class ValueParseState {
                     break;
                 default:
                     characterBuffer.append(c);
+                    isSpecialChar = false;
                     break;
             }
         } else if(!allowControlChar && Character.isISOControl(c)) {

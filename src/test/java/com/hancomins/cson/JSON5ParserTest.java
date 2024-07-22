@@ -51,28 +51,6 @@ public class JSON5ParserTest extends TestCase {
 
 
 
-        /**JSON5Parser parser = new JSON5Parser();
-        String json = "{\n" +
-                "  // comments\n" +
-                "  unquoted: 'and you can quote me on that',\n" +
-                "  singleQuotes: 'I can use \"double quotes\" here',\n" +
-                "  lineBreaks: \"Look, Mom!\\\nNo \\\\nnewlines!\",\n" +
-                "  hexadecimal: 0xdecaf,\n" +
-                "  leadingDecimalPoint: .8675309, andTrailing: 8675309.,\n" +
-                "  positiveSign: +1,\n" +
-                "  trailingComma: 'in objects', andIn: ['arrays',],\n" +
-                "  \"backwardsCompatible\": \"with JSON\",\n" +
-                "}";
-        CSONObject csonObject =
-        assertEquals("and you can quote me on that", csonObject.optString("unquoted"));
-        assertEquals("I can use \"double quotes\" here", csonObject.optString("singleQuotes"));
-        assertEquals("Look, Mom!\nNo \\\nnewlines!", csonObject.optString("lineBreaks"));
-        assertEquals(0xdecaf, csonObject.optInt("hexadecimal"));
-        assertEquals(0.8675309, csonObject.optDouble("leadingDecimalPoint"));
-        assertEquals(8675309.0, csonObject.optDouble("andTrailing"));
-        assertEquals(1, csonObject.optInt("positiveSign"));
-        assertEquals("in objects", csonObject.optString("trailingComma"));
-        assertEquals("with JSON", csonObject.optString("backwardsCompatible"));**/
     }
 
     @Test
@@ -106,6 +84,47 @@ public class JSON5ParserTest extends TestCase {
     }
 
     @Test
+    public void testLineBreak() {
+
+        String json = "{\n" +
+                //"  // comments\n" +
+                "  lineBreaks: \"Look, Mom!\\\nNo \\\\nnewlines!\",\n" +
+                "}";
+
+
+
+        CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+        assertEquals("Look, Mom!\nNo \\nnewlines!", csonObject.optString("lineBreaks"));
+
+    }
+
+    @Test
+    public void testSimpleJson5Parse() {
+
+         String json = "{\n" +
+         //"  // comments\n" +
+         "  unquoted: 'and you can quote me on that',\n" +
+         "  singleQuotes: 'I can use \"double quotes\" here',\n" +
+         "  lineBreaks: \"Look, Mom!\\\nNo \\\\nnewlines!\",\n" +
+         "  hexadecimal: 0xdecaf,\n" +
+         "  leadingDecimalPoint: .8675309, andTrailing: 8675309.,\n" +
+         "  positiveSign: +1,\n" +
+         "  trailingComma: 'in objects', andIn: ['arrays',],\n" +
+         "  \"backwardsCompatible\": \"with JSON\",\n" +
+         "}";
+         CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+         assertEquals("and you can quote me on that", csonObject.optString("unquoted"));
+         assertEquals("I can use \"double quotes\" here", csonObject.optString("singleQuotes"));
+         assertEquals("Look, Mom!\nNo \\nnewlines!", csonObject.optString("lineBreaks"));
+         assertEquals(0xdecaf, csonObject.optInt("hexadecimal"));
+         assertEquals(0.8675309, csonObject.optDouble("leadingDecimalPoint"));
+         assertEquals(8675309.0, csonObject.optDouble("andTrailing"));
+         assertEquals(1, csonObject.optInt("positiveSign"));
+         assertEquals("in objects", csonObject.optString("trailingComma"));
+         assertEquals("with JSON", csonObject.optString("backwardsCompatible"));
+    }
+
+    @Test
     public void testTrailingComma() {
 
             String json = "{\n" +
@@ -125,7 +144,42 @@ public class JSON5ParserTest extends TestCase {
             } catch (Exception e) {
 
             }
+    }
 
+    @Test
+    public void testComplexJson5Parsing() {
+        String complexJson5 = "{\n" +
+                "  unquotedKey: 'unquoted string value',\n" +
+                "  'singleQuotes': \"can use double quotes inside\",\n" +
+                "  nestedObject: {\n" +
+                "    array: [1, 2, 3, { nestedKey: 'nestedValue' }, ['nested', 'array']],\n" +
+                "    boolean: true,\n" +
+                "  },\n" +
+                "  nullValue: null,\n" +
+                "  // This is a comment\n" +
+                "  trailingComma: 'this is fine',\n" +
+                "}";
+
+        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json());
+
+        // Assert basic values
+        assertEquals("unquoted string value", csonObject.optString("unquotedKey"));
+        assertEquals("can use double quotes inside", csonObject.optString("singleQuotes"));
+        assertNull(csonObject.opt("nullValue"));
+        assertTrue(csonObject.optCSONObject("nestedObject").optBoolean("boolean"));
+
+        // Assert nested object and array
+        CSONObject nestedObject = csonObject.optCSONObject("nestedObject");
+        assertNotNull(nestedObject);
+        assertEquals(3, nestedObject.optCSONArray("array").getInt(1));
+
+        // Assert nested array within an array
+        CSONArray nestedArray = nestedObject.optCSONArray("array").optCSONArray(4);
+        assertEquals("nested", nestedArray.optString(0));
+
+        // Assert nested object within an array
+        CSONObject nestedObjectInArray = nestedObject.optCSONArray("array").optCSONObject(3);
+        assertEquals("nestedValue", nestedObjectInArray.optString("nestedKey"));
     }
 
     @Test
@@ -149,7 +203,7 @@ public class JSON5ParserTest extends TestCase {
                 jsonObject.getString("unquoted");
                 jsonObject.getFloat("unquoted_integer");
             }
-            System.out.println("JSON: " + (System.currentTimeMillis() - start));
+            System.out.println("org.json: " + (System.currentTimeMillis() - start));
 
 
             start = System.currentTimeMillis();

@@ -1,7 +1,6 @@
 package com.hancomins.cson;
 
 import com.hancomins.cson.serializer.CSONSerializer;
-import com.hancomins.cson.serializer.CSONSerializerException;
 import com.hancomins.cson.util.DataConverter;
 import com.hancomins.cson.util.DataReadFailException;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
@@ -25,8 +24,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	protected LinkedHashMap<String, Object> dataMap = new LinkedHashMap<>();
 	private LinkedHashMap<String, KeyValueCommentObject> keyValueCommentMap;
-
-
 
 
 
@@ -176,10 +173,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	public CSONObject(StringFormatOption<?> stringFormatOption) {
 		super(ElementType.Object, stringFormatOption);
-
 	}
-
-
 
 	public CSONObject(String json, StringFormatOption<?> options) {
 		super(ElementType.Object, options);
