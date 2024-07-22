@@ -48,12 +48,37 @@ public class CharacterBuffer {
         return chars;
     }
 
-    public int getLength() {
+    public int length() {
         return length;
     }
 
 
 
+
+
+    public void setLength(int length) {
+        this.length = length;
+    }
+
+    public void decreaseLength(int length) {
+        this.length -= length;
+    }
+
+
+    public char charAt(int index) {
+        return chars[index];
+    }
+
+    public void insert(int index, String str) {
+        ensureCapacity(length + str.length());
+        System.arraycopy(chars, index, chars, index + str.length(), length - index);
+        str.getChars(0, str.length(), chars, index);
+        length += str.length();
+    }
+
+    public String subSequence(int start, int end) {
+        return new String(chars, start, end - start);
+    }
 
 
     private void ensureCapacity(int minCapacity) {
@@ -68,6 +93,9 @@ public class CharacterBuffer {
             capacity = newCapacity;
         }
     }
+
+
+
 
 
 }

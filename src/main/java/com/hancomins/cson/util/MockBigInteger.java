@@ -142,6 +142,75 @@ public class MockBigInteger extends Number implements Comparable<MockBigInteger>
     }
 
 
+    public MockBigInteger(char[] val, int offset, int len, int radix) {
+        if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
+            throw new NumberFormatException("Radix out of range");
+
+        if (len == 0)
+            throw new NumberFormatException("Zero length RefBigInteger");
+
+        int sign = 1;
+        if (val[offset] == '-') {
+            sign = -1;
+            offset++;
+            len--;
+        } else if (val[offset] == '+') {
+            offset++;
+            len--;
+        }
+
+        if (len == 0)
+            throw new NumberFormatException("Zero length RefBigInteger");
+
+        // Skip leading zeros
+        while (len > 0 && Character.digit(val[offset], radix) == 0) {
+            offset++;
+            len--;
+        }
+
+        if (len == 0) {
+            signum = 0;
+            mag = ZERO.mag;
+            return;
+        }
+
+        signum = sign;
+
+        int numDigits = len;
+        long numBits = ((numDigits * bitsPerDigit[radix]) >>> 10) + 1;
+        if (numBits + 31 >= (1L << 32)) {
+            reportOverflow();
+        }
+        int numWords = (int) (numBits + 31) >>> 5;
+        int[] magnitude = new int[numWords];
+
+        int firstGroupLen = numDigits % digitsPerInt[radix];
+        if (firstGroupLen == 0)
+            firstGroupLen = digitsPerInt[radix];
+        String group = new String(val, offset, firstGroupLen);
+        magnitude[numWords - 1] = Integer.parseInt(group, radix);
+        if (magnitude[numWords - 1] < 0)
+            throw new NumberFormatException("Illegal digit");
+
+        int superRadix = intRadix[radix];
+        while (firstGroupLen < numDigits) {
+            offset += firstGroupLen;
+            group = new String(val, offset, Math.min(digitsPerInt[radix], numDigits - firstGroupLen));
+            firstGroupLen += digitsPerInt[radix];
+            int groupVal = Integer.parseInt(group, radix);
+            if (groupVal < 0)
+                throw new NumberFormatException("Illegal digit");
+            destructiveMulAdd(magnitude, superRadix, groupVal);
+        }
+
+        mag = trustedStripLeadingZeroInts(magnitude);
+        if (mag.length >= MAX_MAG_LENGTH) {
+            checkRange();
+        }
+    }
+
+
+
     public MockBigInteger(char[] val,int offset, int len) {
 
         int lastIndex = offset + len - 1;

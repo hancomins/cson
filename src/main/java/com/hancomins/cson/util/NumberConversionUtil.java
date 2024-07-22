@@ -157,8 +157,6 @@ public class NumberConversionUtil {
                 }
             }
 
-
-
             MockBigInteger bi = new MockBigInteger(input, offset, len);
             if(bi.bitLength() <= 31){
                 return bi.intValue();

@@ -26,6 +26,8 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setLeadingZeroOmission(false);
             jsonOptions.setAllowCharacter(true);
             jsonOptions.setAllowTrailingComma(true);
+            jsonOptions.setAllowConsecutiveCommas(true);
+
             return jsonOptions;
         }
 
@@ -76,6 +78,8 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
 
         private boolean allowBreakLine = false;
 
+        private boolean allowConsecutiveCommas = false;
+
         private String keyQuote = "\"";
         private String valueQuote = "\"";
 
@@ -110,6 +114,15 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         public boolean isAllowTrailingComma() {
             return allowTrailingComma;
+        }
+
+        public boolean isAllowConsecutiveCommas() {
+            return allowConsecutiveCommas;
+        }
+
+        public JSONOptions setAllowConsecutiveCommas(boolean allowConsecutiveCommas) {
+            this.allowConsecutiveCommas = allowConsecutiveCommas;
+            return this;
         }
 
         public boolean isAllowLineBreak() {

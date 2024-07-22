@@ -1,7 +1,6 @@
 package com.hancomins.cson;
 
 import com.hancomins.cson.util.CharacterBuffer;
-import com.hancomins.cson.util.NumberConversionUtil;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -17,7 +16,7 @@ class JSON5Parser {
     }
     enum Mode {
         String,
-        Number,
+        Value,
         WaitValue,
         OpenArray,
         CloseObject,
@@ -73,41 +72,49 @@ class JSON5Parser {
 
         boolean singleQuote = jsonOption.isAllowSingleQuotes();
         boolean allowUnquotedKey = jsonOption.isAllowUnquoted();
+        boolean allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
+        boolean trailingComma = jsonOption.isAllowTrailingComma();
+
+        char currentQuoteChar = '\0';
 
         //ArrayDeque<Mode> modeStack = new ArrayDeque<>();
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
         CSONElement currentElement = null;
 
         Mode currentMode = null;
-        CharacterBuffer dataStringBuilder = new CharacterBuffer();
+        //CharacterBuffer dataStringBuilder = new CharacterBuffer();
         String key = null;
 
+        int line = 1;
+
         int index = 0;
+        ValueParseState valueParseState = new ValueParseState(jsonOption);
+
         try {
             int c;
-            boolean isSpecialChar = false;
+
+
 
             while((c = reader.read()) != -1) {
+                if(c == '\n') {
+                    ++line;
+                }
+
+                if(currentMode == Mode.InKeyUnquoted && (Character.isWhitespace(c) || c == ':')) {
+                    String keyString = valueParseState.toString();
+                    if(keyString.isEmpty()) {
+                        throw new CSONParseException(ExceptionMessages.getKeyNotFound(line, index));
+                    }
+                    key = keyString;
+                    currentMode = Mode.WaitValueSeparator;
+                }
 
                 ++index;
-                //Mode currentMode = modeStack.peekLast();
-                if((c != '"' || isSpecialChar) && (currentMode == Mode.String || currentMode == Mode.InKey)) {
-                    if(isSpecialChar) {
-                        isSpecialChar = false;
-                        appendSpecialChar(reader, dataStringBuilder, c);
-                    } else if(c == '\\') {
-                        isSpecialChar = true;
-                    }
-                    else dataStringBuilder.append((char)c);
-                } else if(currentMode == Mode.Number &&  (isSpecialChar ||  (c != ',' && c != '}' && c != ']'))) {
-                    if(isSpecialChar) {
-                        isSpecialChar = false;
-                        appendSpecialChar(reader, dataStringBuilder, c);
-                    }
-                    else if(c == '\\') {
-                        isSpecialChar = true;
-                    }
-                    else dataStringBuilder.append((char)c);
+
+                if((c != currentQuoteChar) && (currentMode == Mode.String || currentMode == Mode.InKey || currentMode == Mode.InKeyUnquoted)) {
+                    valueParseState.append((char)c);
+                } else if((currentMode == Mode.Value) &&  (c != ',' && c != '}' && c != ']')) {
+                    valueParseState.append((char)c);
                 }
                 else if(c == '{') {
                     if(currentMode != Mode.WaitValue && currentMode != null) {
@@ -153,17 +160,21 @@ class JSON5Parser {
                     csonElements.offerLast(currentElement);
                 } else if(c == ']'  || c == '}') {
 
-
                     if(currentMode == Mode.WaitValue || currentMode == Mode.WaitKey) {
-
+                        if(!trailingComma) {
+                            throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
+                        }
                     }
-                    else if(currentMode == Mode.Number) {
-                        char[] numberString = dataStringBuilder.getChars();
-                        int len = dataStringBuilder.getLength();
-                        processNumber(currentElement, numberString, len, key, index, jsonOption);
-                        key = null;
-                    } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
+                    else if(currentMode == Mode.Value) {
 
+                        if(valueParseState.isNumber()) {
+                            putNumberData(currentElement, valueParseState.getNumber(), key);
+                        } else {
+                            putStringData(currentElement, valueParseState.toString(), key);
+                        }
+
+                        key = null;
+                    } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
                         throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                     }
 
@@ -173,73 +184,126 @@ class JSON5Parser {
                         return currentElement;
                     }
                     currentElement = csonElements.getLast();
-                } else if(c == ',') {
-                    if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
-                        throw new CSONParseException("Unexpected character ',' at " + index);
+                }
+
+                else if(c == ',') {
+
+                    if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
+                        if(allowConsecutiveCommas) {
+                            if(currentElement instanceof CSONArray) {
+                                ((CSONArray)currentElement).add(null);
+                            } else if(currentMode == Mode.WaitValue && currentElement instanceof CSONObject) {
+                                ((CSONObject)currentElement).put(key, null);
+                                key = null;
+                            }
+                        } else {
+                            throw new CSONParseException("Unexpected character ',' at " + index);
+                        }
                     }
-                    if(currentMode == Mode.Number) {
-                        char[] numberString = dataStringBuilder.getChars();
-                        int len = dataStringBuilder.getLength();
-                        processNumber(currentElement, numberString, len, key, index, jsonOption);
+                    if(currentMode == Mode.Value) {
+                        if(valueParseState.isNumber()) {
+                            putNumberData(currentElement, valueParseState.getNumber(), key);
+                        } else {
+                            putStringData(currentElement, valueParseState.toString(), key);
+                        }
                         key = null;
                     }
 
-                    if(currentElement instanceof CSONArray) {
-                        currentMode  = Mode.WaitValue;
-                    } else {
-                        currentMode  = Mode.WaitKey;
-                    }
+                    currentMode = afterComma(currentElement);
+
                 }
-                else if(c == '"') {
+
+                else if(c == currentQuoteChar) {
+
+                    if(currentMode == Mode.String) {
+                        String value = valueParseState.toString();
+                        putStringData(currentElement, value, key);
+                        key = null;
+                        currentMode  = Mode.NextStoreSeparator;
+                    }
+                    else if(currentMode == Mode.InKey) {
+                        key = valueParseState.toString();
+                        currentMode  = Mode.WaitValueSeparator;
+                    }
+
+                    currentQuoteChar = '\0';
+                }
+
+                else if(isQuotedString((char)c, singleQuote)) {
+                    currentQuoteChar = (char) c;
                     if(currentMode != Mode.String && currentMode != Mode.WaitKey && currentMode != Mode.WaitValue && currentMode != Mode.InKey) {
                         throw new CSONParseException("Unexpected character '\"' at " + index);
                     }
-                    else if(currentMode == Mode.InKey) {
-                        key = dataStringBuilder.toString();
-                        currentMode  = Mode.WaitValueSeparator;
-                    }
-                    else if(currentMode == Mode.String) {
-                        String value = dataStringBuilder.toString();
-                        putStringData(currentElement, value, key);
-                        key = null;
-
-                        currentMode  = Mode.NextStoreSeparator;
-                    }
                     else if(currentMode == Mode.WaitValue) {
-
-                        dataStringBuilder.reset();
-                        currentMode  = Mode.String;
+                        valueParseState.reset();
+                        valueParseState.setOnlyString(true);
+                        currentMode = Mode.String;
                     }
                     else if(currentMode == Mode.WaitKey) {
-                        dataStringBuilder.reset();
+                        valueParseState.reset();
+                        valueParseState.setOnlyString(true);
                         currentMode  = Mode.InKey;
                     }
-                } else if(c == ':') {
-                    if(allowUnquotedKey && Mode.InKey == currentMode) {
-                        key = dataStringBuilder.toString();
-                        currentMode = Mode.WaitValue;
-                    } else if(currentMode != Mode.WaitValueSeparator) {
+                }
+
+                else if(c == ':') {
+                    if(currentMode != Mode.WaitValueSeparator) {
                         throw new CSONParseException("Unexpected character ':' at " + index);
                     } else {
                         currentMode  = Mode.WaitValue;
                     }
-                } else if(currentMode == Mode.WaitValue && !Character.isSpaceChar(c)  && c != '\n' && c != '\r' && c != '\t' && c != '\b' && c != '\f' && c != '\0' && c != 0xFEFF) {
-                    dataStringBuilder.reset();
-                    dataStringBuilder.append((char)c);
-                    currentMode  = Mode.Number;
-                } else if(currentMode == Mode.WaitKey && allowUnquotedKey && !Character.isSpaceChar(c) &&!Character.isWhitespace(c)) {
-                    dataStringBuilder.append((char)c);
-                    currentMode  = Mode.InKey;
-                } else if(currentMode == Mode.InKey && c == ':' && allowUnquotedKey) {
-                    currentMode = Mode.WaitKey;
                 }
+
+                else if(currentMode == Mode.WaitValue && !isQuotedString((char)c, singleQuote)  && !Character.isSpaceChar(c)  && c != '\n' && c != '\r' && c != '\t' && c != '\b' && c != '\f' && c != '\0' && c != 0xFEFF) {
+                    valueParseState.reset();
+                    valueParseState.setOnlyNumber(!allowUnquotedKey);
+                    valueParseState.setAllowControlChar(true);
+                    valueParseState.append((char)c);
+                    currentMode  = Mode.Value;
+                    currentQuoteChar = '\0';
+                }
+
+
+                else if(currentMode == Mode.WaitKey && allowUnquotedKey && !Character.isWhitespace(c)) {
+                    valueParseState.reset();
+                    valueParseState.append((char)c);
+                    currentMode  = Mode.InKeyUnquoted;
+                }
+
+                else if(currentMode == Mode.WaitValue && !Character.isWhitespace(c)) {
+                    valueParseState.reset();
+                    valueParseState.setOnlyNumber(!allowUnquotedKey);
+                    valueParseState.append((char)c);
+                    currentMode  = Mode.Value;
+                }
+
+
             }
+
+
         } catch (CSONParseException e) {
             throw e;
         } catch (IOException e) {
             throw new CSONParseException(e.getMessage());
         }
         throw new CSONParseException("Unexpected end of stream");
+    }
+
+
+
+    private static Mode afterComma(CSONElement element) {
+        if(element instanceof CSONArray) {
+            return Mode.WaitValue;
+        } else {
+            return Mode.WaitKey;
+        }
+    }
+
+
+
+
+    private static boolean isQuotedString(char c, boolean singleQuote) {
+        return c == '"' || (singleQuote && c == '\'');
     }
 
     private static void putStringData(CSONElement currentElement, String value, String key) {
@@ -263,42 +327,6 @@ class JSON5Parser {
         return lastIndex + 1;
     }
 
-    private static void processNumber(CSONElement currentElement, char[] numberString, int len, String key, int index, NumberConversionUtil.NumberConversionOption numberConversionOption) {
-        if(len == 0) {
-            throw new CSONParseException("Unexpected character ',' at " + index);
-        }
-
-        len = trimLast(numberString, len);
-
-
-        if((numberString[0] == 'n' || numberString[0] == 'N') && (numberString[1] == 'u' || numberString[1] == 'U') && (numberString[2] == 'l' || numberString[2] == 'L')
-                && (numberString[3] == 'l' || numberString[3] == 'L') )//NULL.equalsIgnoreCase(numberString)) {
-        {
-            putStringData(currentElement, null, key);
-        } else {
-            Number numberValue = null;
-            Boolean booleanValue = null;
-            char firstChar = numberString[0];
-
-            try {
-                if (firstChar == 't' || firstChar == 'T' || firstChar == 'F' ||   firstChar == 'f' ) {
-                    String booleanString = new String(numberString, 0, len);
-                    booleanValue = Boolean.parseBoolean(booleanString);
-                } else {
-                    numberValue = NumberConversionUtil.stringToNumber(numberString, 0, len, numberConversionOption);
-                }
-            } catch (NumberFormatException e) {
-                    //throw new CSONParseException("Number format error value '" + numberString + "' at " + index, e);
-                putStringData(currentElement, new String(numberString, 0, len), key);
-                return;
-            }
-            if(booleanValue != null) {
-                putBooleanData(currentElement, booleanValue, key);
-            } else {
-                putNumberData(currentElement, numberValue, key);
-            }
-        }
-    }
 
 
     private static void putBooleanData(CSONElement currentElement, boolean value, String key) {

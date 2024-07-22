@@ -154,7 +154,7 @@ class PureJSONParser {
                     }
                     else if(currentMode == Mode.Number) {
                         char[] numberString = dataStringBuilder.getChars();
-                        int len = dataStringBuilder.getLength();
+                        int len = dataStringBuilder.length();
                         processNumber(currentElement, numberString, len, key, index, numberConversionOption);
                         key = null;
                     } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
@@ -174,7 +174,7 @@ class PureJSONParser {
                     }
                     if(currentMode == Mode.Number) {
                         char[] numberString = dataStringBuilder.getChars();
-                        int len = dataStringBuilder.getLength();
+                        int len = dataStringBuilder.length();
                         processNumber(currentElement, numberString, len, key, index, numberConversionOption);
                         key = null;
                     }

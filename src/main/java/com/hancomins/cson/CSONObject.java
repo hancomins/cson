@@ -460,15 +460,11 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 	}
 
-
 	public Object opt(String key) {
 		Object obj = getFromDataMap(key);
 		if(obj instanceof NullValue) return null;
 		return obj;
 	}
-
-
-
 
 	public boolean optBoolean(String key) {
 		return optBoolean(key, false);
@@ -478,8 +474,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 		Object obj = opt(key);
 		return DataConverter.toBoolean(obj, def);
 	}
-
-
 
 	public byte optByte(String key) {
 		return optByte(key, (byte)0);
