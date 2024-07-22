@@ -177,7 +177,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	public CSONObject(String json, StringFormatOption<?> options) {
 		super(ElementType.Object, options);
-		NoSynchronizedStringReader reader =  new NoSynchronizedStringReader(json);
+		NoSynchronizedStringReader reader = new NoSynchronizedStringReader(json);
 		parse(reader, options);
 		reader.close();
 	}

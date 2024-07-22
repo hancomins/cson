@@ -5,9 +5,13 @@ import com.hancomins.cson.util.MockBigInteger;
 import com.hancomins.cson.util.NumberConversionUtil;
 
 import java.math.BigDecimal;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 class ValueParseState {
-    private CharacterBuffer characterBuffer = new CharacterBuffer();
+
+    private static ConcurrentLinkedDeque<CharacterBuffer> characterBufferPool = new ConcurrentLinkedDeque<>();
+
+    private CharacterBuffer characterBuffer;
 
     private static final char[] NaNSign = new char[]{'n','a','n'};
     private static final char[] Null = new char[]{'n','u','l','l'};
@@ -50,9 +54,15 @@ class ValueParseState {
     private boolean allowPositiveSign = false;
     private boolean ignoreNonNumeric = false;
 
+
+
     private boolean isoCtrlInNumber = false;
 
+    /**
+     * 제어문자를 허용할 것인지 여부를 설정한다.
+     */
     private boolean allowControlChar = false;
+
 
 
     private DoubtMode doubtMode = DoubtMode.Number;
@@ -63,6 +73,10 @@ class ValueParseState {
 
 
     ValueParseState(NumberConversionUtil.NumberConversionOption numberConversionOption) {
+        characterBuffer = characterBufferPool.poll();
+        if(characterBuffer == null) {
+            characterBuffer = new CharacterBuffer();
+        }
         allowNaN = numberConversionOption.isAllowNaN();
         allowInfinity = numberConversionOption.isAllowInfinity();
         allowHexadecimal = numberConversionOption.isAllowHexadecimal();
@@ -121,14 +135,13 @@ class ValueParseState {
 
     void append(char c) {
 
-
-
         if(index == 0) {
             if(this.doubtMode == DoubtMode.String) {
                 appendChar(c);
                 return;
             }
-            if (NaNSign[specialSymbolIndex] == Character.toLowerCase(c)) {
+            char lowChar = Character.toLowerCase(c);
+            if (NaNSign[specialSymbolIndex] == lowChar) {
                 if(allowNaN) {
                     doubtMode = DoubtMode.NaN;
                     ++specialSymbolIndex;
@@ -136,7 +149,7 @@ class ValueParseState {
                     doubtMode = DoubtMode.String;
                 }
                 appendChar(c);
-            } else if (InfinitySign[specialSymbolIndex] == Character.toLowerCase(c)) {
+            } else if (InfinitySign[specialSymbolIndex] == lowChar) {
                 if(allowInfinity) {
                     doubtMode = DoubtMode.Infinity;
                     ++specialSymbolIndex;
@@ -144,7 +157,7 @@ class ValueParseState {
                     doubtMode = DoubtMode.String;
                 }
                 appendChar(c);
-            } else if (HexadecimalSign[specialSymbolIndex] == Character.toLowerCase(c)) {
+            } else if (HexadecimalSign[specialSymbolIndex] == lowChar) {
                 if (allowHexadecimal) {
                     doubtMode = DoubtMode.HexadecimalStart;
                     ++specialSymbolIndex;
@@ -180,6 +193,7 @@ class ValueParseState {
                 appendChar(c);
             }
         } else {
+
             if(doubtMode == DoubtMode.NaN) {
                 if(specialSymbolIndex == NaNSign.length) {
                     doubtMode = DoubtMode.String;
@@ -187,10 +201,27 @@ class ValueParseState {
                 else if(NaNSign[specialSymbolIndex] == Character.toLowerCase(c)) {
                     ++specialSymbolIndex;
                 } else {
+                    if(Null[specialSymbolIndex] == Character.toLowerCase(c)) {
+                        doubtMode = DoubtMode.Null;
+                        ++specialSymbolIndex;
+                    } else {
+                        doubtMode = DoubtMode.String;
+                    }
+                }
+                appendChar(c);
+            } else if(doubtMode == DoubtMode.Null) {
+                if(specialSymbolIndex == Null.length) {
+                    doubtMode = DoubtMode.String;
+                }
+                else if(Null[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
                     doubtMode = DoubtMode.String;
                 }
                 appendChar(c);
-            } else if(doubtMode == DoubtMode.Infinity) {
+            }
+
+            else if(doubtMode == DoubtMode.Infinity) {
                 if(specialSymbolIndex == InfinitySign.length) {
                     doubtMode = DoubtMode.String;
                 }
@@ -335,6 +366,10 @@ class ValueParseState {
     }
 
     Number getNumber() {
+        if(doubtMode == DoubtMode.Null) {
+            return null;
+        }
+
         if(isoCtrlInNumber) {
             String value = characterBuffer.toString();
             // ctrl 문자 제거
@@ -453,6 +488,10 @@ class ValueParseState {
 
     @Override
     public String toString() {
+        if(doubtMode == DoubtMode.Null) {
+            return null;
+        }
+
         return characterBuffer.toString();
     }
 
@@ -469,6 +508,11 @@ class ValueParseState {
     }
 
 
+
+    void release() {
+        characterBuffer.reset();
+        //characterBufferPool.add(characterBuffer);
+    }
 
 
 

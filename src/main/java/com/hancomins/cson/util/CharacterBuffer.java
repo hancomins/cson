@@ -1,10 +1,10 @@
 package com.hancomins.cson.util;
 
 public class CharacterBuffer {
-    private char[] chars = new char[32];
+    private char[] chars = new char[64];
 
     private int length = 0;
-    private int capacity = 32;
+    private int capacity = 64;
 
 
     public CharacterBuffer() {

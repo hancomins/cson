@@ -147,17 +147,39 @@ public class JSON5ParserTest extends TestCase {
     }
 
     @Test
+    public void testNullValue() {
+        String complexJson5 = "{\n" +
+                "  nullValue: \n\n null\n\n,\n" +
+                " okValue: \"ok\",\n" +
+                "}";
+        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json());
+        assertNull(csonObject.opt("nullValue"));
+        assertEquals("ok", csonObject.optString("okValue"));
+    }
+
+    @Test
+    public void testComment() {
+        String complexJson5 = "{\n" +
+                "  // This is a comment\n" +
+                "}";
+        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json());
+
+    }
+
+
+        @Test
     public void testComplexJson5Parsing() {
         String complexJson5 = "{\n" +
                 "  unquotedKey: 'unquoted string value',\n" +
                 "  'singleQuotes': \"can use double quotes inside\",\n" +
                 "  nestedObject: {\n" +
-                "    array: [1, 2, 3, { nestedKey: 'nestedValue' }, ['nested', 'array']],\n" +
+                "    array: [1, 2, 3\n, { nestedKey: 'nestedValue' }, ['nested', 'array']],\n" +
                 "    boolean: true,\n" +
                 "  },\n" +
                 "  nullValue: null,\n" +
                 "  // This is a comment\n" +
-                "  trailingComma: 'this is fine',\n" +
+                "  trailingComma: \n'this is fine',\n" +
+                "  trailing1Comma: 'this is fine',\n" +
                 "}";
 
         CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json());
@@ -171,7 +193,7 @@ public class JSON5ParserTest extends TestCase {
         // Assert nested object and array
         CSONObject nestedObject = csonObject.optCSONObject("nestedObject");
         assertNotNull(nestedObject);
-        assertEquals(3, nestedObject.optCSONArray("array").getInt(1));
+        assertEquals(3, nestedObject.optCSONArray("array").getInt(2));
 
         // Assert nested array within an array
         CSONArray nestedArray = nestedObject.optCSONArray("array").optCSONArray(4);
@@ -180,16 +202,20 @@ public class JSON5ParserTest extends TestCase {
         // Assert nested object within an array
         CSONObject nestedObjectInArray = nestedObject.optCSONArray("array").optCSONObject(3);
         assertEquals("nestedValue", nestedObjectInArray.optString("nestedKey"));
+
+        System.out.println(csonObject);
     }
 
     @Test
     public void testPerformance() {
+        String speedTest = "{\"name\":\"John Doe\",\"age\":30,\"isEmployed\":true,\"address\":{\"street\":\"123 Main St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"},\"phoneNumbers\":[{\"type\":\"home\",\"number\":\"555-555-5555\"},{\"type\":\"work\",\"number\":\"555-555-5556\"}],\"email\":\"johndoe@example.com\",\"website\":\"http://www.johndoe.com\",\"children\":[{\"name\":\"Jane Doe\",\"age\":10,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}},{\"name\":\"Jim Doe\",\"age\":8,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}}],\"hobbies\":[\"reading\",\"hiking\",\"coding\"],\"education\":{\"highSchool\":{\"name\":\"Anytown High School\",\"yearGraduated\":2005},\"university\":{\"name\":\"State University\",\"yearGraduated\":2009,\"degree\":\"Bachelor of Science\",\"major\":\"Computer Science\"}},\"workExperience\":[{\"company\":\"Tech Corp\",\"position\":\"Software Engineer\",\"startDate\":\"2010-01-01\",\"endDate\":\"2015-01-01\",\"responsibilities\":[\"Developed web applications\",\"Led a team of 5 developers\",\"Implemented new features\"]},{\"company\":\"Web Solutions\",\"position\":\"Senior Developer\",\"startDate\":\"2015-02-01\",\"endDate\":\"2020-01-01\",\"responsibilities\":[\"Architected software solutions\",\"Mentored junior developers\",\"Managed project timelines\"]}],\"skills\":[{\"name\":\"Java\",\"level\":\"expert\"},{\"name\":\"JavaScript\",\"level\":\"advanced\"},{\"name\":\"Python\",\"level\":\"intermediate\"}],\"certifications\":[{\"name\":\"Certified Java Developer\",\"issuedBy\":\"Oracle\",\"date\":\"2012-06-01\"},{\"name\":\"Certified Scrum Master\",\"issuedBy\":\"Scrum Alliance\",\"date\":\"2014-09-01\"}],\"languages\":[{\"name\":\"English\",\"proficiency\":\"native\"},{\"name\":\"Spanish\",\"proficiency\":\"conversational\"}],\"projects\":[{\"name\":\"Project Alpha\",\"description\":\"A web application for managing tasks\",\"technologies\":[\"Java\",\"Spring Boot\",\"React\"],\"role\":\"Lead Developer\",\"startDate\":\"2018-01-01\",\"endDate\":\"2019-01-01\"},{\"name\":\"Project Beta\",\"description\":\"A mobile app for tracking fitness\",\"technologies\":[\"Kotlin\",\"Android\",\"Firebase\"],\"role\":\"Developer\",\"startDate\":\"2019-02-01\",\"endDate\":\"2020-01-01\"}]}";
 
 
-        String speedTest = "{\n" +
+
+                /*"{\n" +
                 "  unquoted: and you can quote me on that," +
                 " unquoted_integer: 123" +
-                "}";
+                "}";*/
 
         StringFormatOption<?> jsonOption = StringFormatOption.json();
 
@@ -198,19 +224,19 @@ public class JSON5ParserTest extends TestCase {
 
 
             start = System.currentTimeMillis();
-            for (int i = 0; i < 10000000; i++) {
+            for (int i = 0; i < 100000; i++) {
                 JSONObject jsonObject = new JSONObject(speedTest);
-                jsonObject.getString("unquoted");
-                jsonObject.getFloat("unquoted_integer");
+                //jsonObject.getString("unquoted");
+                //jsonObject.getFloat("unquoted_integer");
             }
             System.out.println("org.json: " + (System.currentTimeMillis() - start));
 
 
             start = System.currentTimeMillis();
-            for (int i = 0; i < 10000000; i++) {
+            for (int i = 0; i < 100000; i++) {
                 CSONObject csonObject1 = new CSONObject(speedTest, jsonOption);
-                csonObject1.getString("unquoted");
-                csonObject1.getFloat("unquoted_integer");
+                //csonObject1.getString("unquoted");
+                //csonObject1.getFloat("unquoted_integer");
             }
             System.out.println("CSON: " + (System.currentTimeMillis() - start));
 
