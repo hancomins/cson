@@ -11,7 +11,6 @@ import com.hancomins.cson.util.NullValue;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -218,6 +217,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		return containsNoStrict(list, value);
 	}
 
+
 	@Override
 	public Iterator<Object> iterator() {
 		return list.iterator();
@@ -344,7 +344,6 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 			commentObjectList = new ArrayList<>();
 		}
 		commentObjectList.add(commentObject);
-
 	}
 
 

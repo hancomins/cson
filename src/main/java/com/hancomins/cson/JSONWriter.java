@@ -8,7 +8,6 @@ import com.hancomins.cson.util.NullValue;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -28,6 +27,7 @@ public class JSONWriter {
 	private static final int COMMENT_BEFORE_ARRAY_VALUE = 5;
 	private static final int COMMENT_COMMA_AND_SLASH_STAR = 6;
 	private static final int COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE = 7;
+	private static final int COMENT_SIMPLE = 8;
 
 	private boolean isComment;
 	private boolean isAllowLineBreak;
@@ -196,15 +196,14 @@ public class JSONWriter {
 
 				}
 				else if(commentType == COMMENT_BEFORE_ARRAY_VALUE) {
-
 					stringBuilder.append("//");
 					stringBuilder.append(commentLine);
-
-
-
 					stringBuilder.append("\n");
 					writeDepthTab(stringBuilder);
-
+				} else if(commentType == COMENT_SIMPLE) {
+					writeDepthTab(stringBuilder);
+					stringBuilder.append("//");
+					stringBuilder.append(commentLine);
 
 				}
 				else if(commentType == COMMENT_BEFORE_KEY) {
@@ -526,10 +525,15 @@ public class JSONWriter {
 			throw new CSONWriteException();
 		}
 
-		writeBeforeComment(COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE);
+
 		if(isPretty && !isUnprettyArray) {
 			stringBuilder.append('\n');
+
+			writeBeforeComment(COMENT_SIMPLE);
+			stringBuilder.append('\n');
 			writeDepthTab(stringBuilder);
+		} else {
+			writeBeforeComment(COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE);
 		}
 	}
 
@@ -822,21 +826,33 @@ public class JSONWriter {
 		return stringBuilder.toString();
 	}
 
+	private static class Count {
+		int count = 0;
+
+		int getAndIncrement() {
+			return count++;
+		}
+
+	}
+
 
 	public static void writeJSONElement(CSONElement root,JSONWriter writer) {
 		//JSONWriter writer  = new JSONWriter((JSONOptions) stringFormatOption);
+
 		CSONElement currentElement = root;
 		ArrayDeque<Iterator<?>> iteratorStack = new ArrayDeque<>();
 		ArrayDeque<CSONElement> elementStack = new ArrayDeque<>();
+		ArrayDeque<Count> iteratorCountStack = new ArrayDeque<>();
 
 		Iterator<?> currentIter = null;
+		Count iteratorCount = new Count();
 
 		int step = 0;
 
 		boolean lastClosed = false;
 		boolean skipClose = false;
 		boolean closeRoot = false;
-
+		boolean allowComment = writer.isComment();
 
 
 		writer.writeComment(currentElement.getCommentThis(), false, "", "\n");
@@ -856,7 +872,7 @@ public class JSONWriter {
 					iter = (Iterator<Map.Entry<String, Object>>)currentIter;
 					lastClosed = false;
 				}
-				boolean isComment = writer.isComment() && keyValueCommentMap != null;
+				boolean isComment = allowComment && keyValueCommentMap != null;
 				while (iter.hasNext()) {
 					Map.Entry<String, Object> entry = iter.next();
 					String key = entry.getKey();
@@ -870,6 +886,16 @@ public class JSONWriter {
 						iteratorStack.add(iter);
 						elementStack.add(currentElement);
 						writer.key(key);
+						if(isComment &&
+								keyValueCommentObject != null &&
+								keyValueCommentObject.valueCommentObject != null) {
+							String beforeComment = keyValueCommentObject.valueCommentObject.getBeforeComment();
+							if(beforeComment != null && !beforeComment.isEmpty()) {
+								writer.writeComment(beforeComment, COMMENT_SLASH_STAR);
+							}
+						}
+						iteratorCountStack.add(iteratorCount);
+						iteratorCount = new Count();
 						currentElement = (CSONElement) obj;
 						skipClose = true;
 
@@ -896,6 +922,7 @@ public class JSONWriter {
 					writer.closeObject();
 					currentIter = iteratorStack.pollLast();
 					currentElement = elementStack.pollLast();
+					iteratorCount = iteratorCountStack.pollLast();
 					lastClosed = true;
 				}
 				skipClose = false;
@@ -903,6 +930,11 @@ public class JSONWriter {
 			} else if(currentElement instanceof CSONArray) {
 				CSONArray currentArray = (CSONArray) currentElement;
 				Iterator<Object> iter = null;
+
+
+
+
+
 				if(!lastClosed) {
 					iter = currentArray.iterator();
 					currentIter = iter;
@@ -912,11 +944,20 @@ public class JSONWriter {
 					lastClosed = false;
 				}
 				while(iter.hasNext()) {
+					int index = iteratorCount.getAndIncrement();
+					if(allowComment) {
+						CommentObject commentObject = currentArray.getCommentObject(index);
+						writer.nextCommentObject(commentObject);
+					}
+
 					Object obj = iter.next();
+
 					if(obj == null || obj instanceof NullValue) writer.addNull();
 					else if(obj instanceof CSONElement)  {
 						iteratorStack.add(iter);
 						elementStack.add(currentElement);
+						iteratorCountStack.add(iteratorCount);
+						iteratorCount = new Count();
 						writer.addCSONElement();
 						currentElement = (CSONElement) obj;
 						skipClose = true;
@@ -937,6 +978,7 @@ public class JSONWriter {
 					writer.closeArray();
 					currentIter = iteratorStack.pollLast();
 					currentElement = elementStack.pollLast();
+					iteratorCount = iteratorCountStack.pollLast();
 					lastClosed = true;
 				}
 				skipClose = false;
