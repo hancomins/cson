@@ -192,7 +192,7 @@ public class JSON5ParserTest extends TestCase {
     }
 
 
-        @Test
+    @Test
     public void testComplexJson5Parsing() {
         String complexJson5 = "{\n" +
                 "  unquotedKey: 'unquoted string value',\n" +
