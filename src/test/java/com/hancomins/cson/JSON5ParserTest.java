@@ -189,6 +189,16 @@ public class JSON5ParserTest extends TestCase {
 
         System.out.println(csonObject);
 
+        csonObject = new CSONObject(csonObject.toString(), StringFormatOption.json5());
+
+
+        assertEquals("This is a comment before key", csonObject.getCommentOfKey("comment"));
+        assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
+        assertEquals("Comment before value", csonObject.getCommentOfValue("comment"));
+        assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
+
+
+
 
     }
 
@@ -279,61 +289,6 @@ public class JSON5ParserTest extends TestCase {
         CSONObject csonObject = new CSONObject(rootValue, StringFormatOption.json());
 
 
-
-
-    }
-
-    public static void main(String[] args) throws IOException {
-
-        //String speedTest = new String(Files.readAllBytes(new File("C:\\Work\\git\\_StockMind_Hive\\StockMindCentral\\resources\\conf\\FS.json").toPath()));
-        String speedTest = new String(Files.readAllBytes(new File("C:\\Users\\beom\\Downloads\\archive\\News_Category_Dataset_v3.json").toPath()));
-
-
-
-                /*"{\n" +
-                "  unquoted: and you can quote me on that," +
-                " unquoted_integer: 123" +
-                "}";*/
-
-        JSONOptions jsonOption = StringFormatOption.json();
-        jsonOption.setAllowComments(false);
-        //jsonOption.setAllowConsecutiveCommas(false);
-        //jsonOption.setAllowTrailingComma(true);
-        //jsonOption.setAllowUnquoted(true);
-
-        long start = 0;
-        for(int c = 0; c < 100; ++c) {
-
-
-            /*
-            start = System.currentTimeMillis();
-            for (int i = 0; i < 1; i++) {
-                JSONArray jsonObject = new JSONArray(speedTest);
-                jsonObject.toString();
-            }
-            System.out.println("org.json: " + (System.currentTimeMillis() - start));
-*/
-
-
-
-            start = System.currentTimeMillis();
-            for (int i = 0; i < 1; i++) {
-                CSONArray csonObject1 = new CSONArray(speedTest, StringFormatOption.json());
-                csonObject1.toString();
-            }
-            System.out.println("CSON: " + (System.currentTimeMillis() - start));
-
-
-            if(c == 0) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-
-        }
 
 
     }

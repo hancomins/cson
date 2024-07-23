@@ -17,6 +17,7 @@ class JSON5ParserX {
 
 
     enum Mode {
+        Open,
         String,
         Value,
         WaitValue,
@@ -95,7 +96,7 @@ class JSON5ParserX {
 
 
         Mode commentBeforeMode = null;
-        Mode currentMode = null;
+        Mode currentMode = Mode.Open;
         String key = null;
         String lastKey = null;
 
@@ -137,43 +138,65 @@ class JSON5ParserX {
                 }
 
                 if(allowComment) {
-                    if(currentMode == Mode.InOpenComment) {
-                        if(c == '\n') {
-                            currentMode = commentBeforeMode;
-                            if(currentMode == Mode.WaitKey) {
-                                keyCommentObject = new CommentObject();
-                                keyCommentObject.setBeforeComment(valueParseState.toTrimString());
-                            }
+                    boolean commentWrite = false;
+                    if(currentMode == Mode.InCloseComment) {
+                        if(c == '*') {
+                            readyComment = true;
+                            valueParseState.append((char) c);
+                            continue;
+                        } else if(readyComment && c == '/') {
+                            readyComment = false;
+                            commentWrite = true;
+                        }
 
-                            else if(currentMode == Mode.WaitValueSeparator) {
-                                if(keyCommentObject == null) {
-                                    keyCommentObject = new CommentObject();
-                                }
-                                keyCommentObject.setAfterComment(valueParseState.toTrimString());
-                            } else if(currentMode == Mode.WaitValue) {
-                                if(valueCommentObject == null) {
-                                    valueCommentObject = new CommentObject();
-                                }
-                                valueCommentObject.setBeforeComment(valueParseState.toTrimString());
-                            }
-                            else if(currentMode == Mode.NextStoreSeparator) {
-                                if(currentElement instanceof CSONObject && lastKey != null) {
-                                    ((CSONObject)currentElement).setCommentAfterValue(lastKey, valueParseState.toTrimString());
-                                } else if(currentElement instanceof CSONArray) {
-                                     CSONArray array = (CSONArray)currentElement;
-                                     if(!array.isEmpty()) {
-                                         array.setCommentAfterValue(array.size() - 1, valueParseState.toTrimString());
-                                     }
-                                }
-                            }
+                    } else if(currentMode == Mode.InOpenComment) {
+                        if(c == '\n') {
+                            commentWrite = true;
                         } else {
                             valueParseState.append((char) c);
+                            continue;
                         }
+                    }
+
+                    if(commentWrite) {
+                        currentMode = commentBeforeMode;
+                        if(currentMode == Mode.WaitKey) {
+                            keyCommentObject = new CommentObject();
+                            keyCommentObject.setBeforeComment(valueParseState.toTrimString());
+                        }
+
+                        else if(currentMode == Mode.WaitValueSeparator) {
+                            if(keyCommentObject == null) {
+                                keyCommentObject = new CommentObject();
+                            }
+                            keyCommentObject.setAfterComment(valueParseState.toTrimString());
+                        } else if(currentMode == Mode.WaitValue) {
+                            if(valueCommentObject == null) {
+                                valueCommentObject = new CommentObject();
+                            }
+                            valueCommentObject.setBeforeComment(valueParseState.toTrimString());
+                        }
+                        else if(currentMode == Mode.NextStoreSeparator) {
+                            if(currentElement instanceof CSONObject && lastKey != null) {
+                                ((CSONObject)currentElement).setCommentAfterValue(lastKey, valueParseState.toTrimString());
+                            } else if(currentElement instanceof CSONArray) {
+                                 CSONArray array = (CSONArray)currentElement;
+                                 if(!array.isEmpty()) {
+                                     array.setCommentAfterValue(array.size() - 1, valueParseState.toTrimString());
+                                 }
+                            }
+                        }
+                        valueParseState.reset();
+                        continue;
                     }
                     else if(readyComment && c == '/') {
                         valueParseState.reset();
                         valueParseState.setOnlyString(true);
                         currentMode = Mode.InOpenComment;
+                    } else if(readyComment && c == '*') {
+                        valueParseState.reset();
+                        valueParseState.setOnlyString(false);
+                        currentMode = Mode.InCloseComment;
                     }
                     else if(c == '/' && currentMode != Mode.InKeyUnquoted && currentMode != Mode.Value && currentMode != Mode.String) {
                         commentBeforeMode = currentMode;
@@ -210,7 +233,7 @@ class JSON5ParserX {
                     else valueParseState.append((char)c);
                 }
                 else if(c == '{') {
-                    if(currentMode != Mode.WaitValue && currentMode != null) {
+                    if(currentMode != Mode.WaitValue && currentMode != Mode.Open) {
                         throw new CSONParseException("Unexpected character '{' at " + index);
                     }
                     currentMode = Mode.WaitKey;
@@ -234,7 +257,7 @@ class JSON5ParserX {
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == '[') {
-                    if(currentMode != null && currentMode != Mode.WaitValue) {
+                    if(currentMode != Mode.Open && currentMode != Mode.WaitValue) {
                         throw new CSONParseException("Unexpected character '[' at " + index);
                     }
                     currentMode  = Mode.WaitValue;

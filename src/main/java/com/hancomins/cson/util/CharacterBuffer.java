@@ -35,7 +35,7 @@ public class CharacterBuffer {
         }
         for(int i = length - 1; i >= 0; i--) {
             if(!Character.isWhitespace(chars[i])) {
-                end = i;
+                end = i + 1;
                 break;
             }
         }
@@ -43,7 +43,7 @@ public class CharacterBuffer {
             return "";
         }
 
-        return new String(chars, start, length - (length - end - start) + 1);
+        return new String(chars, start, length - (length - end) - start);
     }
 
     public CharacterBuffer append(char c) {
