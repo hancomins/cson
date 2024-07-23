@@ -1,11 +1,16 @@
 package com.hancomins.cson;
 
 import com.hancomins.cson.util.Base64;
+import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.EscapeUtil;
+import com.hancomins.cson.util.NullValue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 
 @SuppressWarnings("UnusedReturnValue")
@@ -31,6 +36,9 @@ public class JSONWriter {
 	private boolean isUnprettyArray = false;
 	private String depthSpace = "  ";
 
+	private boolean hasValue = false;
+	private int lastCharacterBufferLength = 0;
+
 	private String keyQuote = "\"";
 	private char keyQuoteChar = '"';
 	private String valueQuote = "\"";
@@ -44,7 +52,7 @@ public class JSONWriter {
 
 
 	private final ArrayDeque<ObjectType> typeStack_ = new ArrayDeque<>();
-	private final StringBuilder stringBuilder = new StringBuilder(DEFAULT_BUFFER_SIZE);
+	private final CharacterBuffer stringBuilder = new CharacterBuffer(DEFAULT_BUFFER_SIZE);
 
 
 
@@ -61,7 +69,7 @@ public class JSONWriter {
 		typeStack_.addLast(type);
 	}
 
-	private void writeDepthTab(StringBuilder stringBuilder) {
+	private void writeDepthTab(CharacterBuffer stringBuilder) {
 		if(!isPretty) return;
 		for (int i = 0, n = typeStack_.size(); i < n; i++) {
 			stringBuilder.append(depthSpace);
@@ -353,16 +361,16 @@ public class JSONWriter {
 		if(value instanceof CharSequence || value instanceof Character) {
 			writeString(valueQuote, value.toString());
 		} else if(value instanceof Number) {
-			stringBuilder.append(value);
+			stringBuilder.append(value.toString());
 		} else if(value instanceof Boolean) {
-			stringBuilder.append(value);
+			stringBuilder.append(value.toString());
 		} else if(value instanceof byte[]) {
 			stringBuilder.append("\"base64,");
 			stringBuilder.append(Base64.encode((byte[])value));
 			stringBuilder.append('"');
 		} else  {
 			stringBuilder.append('"');
-			stringBuilder.append(value);
+			stringBuilder.append(value + "");
 			stringBuilder.append('"');
 		}
 		writeAfterComment(COMMENT_SLASH_STAR);;
@@ -397,6 +405,7 @@ public class JSONWriter {
 		}
 		removeStack();
 		writeBeforeComment(COMMENT_SLASH_STAR);
+		hasValue = true;
 		stringBuilder.append(value);
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
@@ -408,6 +417,7 @@ public class JSONWriter {
 		}
 		removeStack();
 		writeBeforeComment(COMMENT_SLASH_STAR);
+		hasValue = true;
 		stringBuilder.append(value);
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
@@ -419,6 +429,7 @@ public class JSONWriter {
 		}
 		removeStack();
 		writeBeforeComment(COMMENT_SLASH_STAR);
+		hasValue = true;
 		stringBuilder.append(value ? "true" : "false");
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
@@ -431,6 +442,7 @@ public class JSONWriter {
 		removeStack();
 		writeBeforeComment(COMMENT_SLASH_STAR);
 		String quote =  jsonOptions.isAllowCharacter() ? "'" : valueQuote;
+		hasValue = true;
 		stringBuilder.append(quote);
 		stringBuilder.append(value);
 		stringBuilder.append(quote);
@@ -446,12 +458,14 @@ public class JSONWriter {
 		}
 		removeStack();
 		writeBeforeComment(COMMENT_SLASH_STAR);
+		hasValue = true;
 		writeFloat(value);
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
 	}
 
  	private void writeFloat(float value) {
+		hasValue = true;
 		if(jsonOptions.isAllowInfinity() && Float.isInfinite(value)) {
 			if(value > 0) {
 				stringBuilder.append("Infinity");
@@ -475,12 +489,14 @@ public class JSONWriter {
 		}
 		removeStack();
 		writeBeforeComment(COMMENT_SLASH_STAR);
+		hasValue = true;
 		writeDouble(value);
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
 	}
 
 	private void writeDouble(double value) {
+		hasValue = true;
 		if(jsonOptions.isAllowInfinity() && Double.isInfinite(value)) {
 			if(value > 0) {
 				stringBuilder.append("Infinity");
@@ -520,6 +536,7 @@ public class JSONWriter {
 	///
 	public JSONWriter addNull() {
 		checkAndAppendInArray();
+		hasValue = true;
 		stringBuilder.append("null");
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
@@ -530,8 +547,8 @@ public class JSONWriter {
 			addNull();
 			return this;
 		}
-
 		checkAndAppendInArray();
+		hasValue = true;
 		writeString(valueQuote, value);
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
@@ -545,6 +562,7 @@ public class JSONWriter {
 		}
 
 		checkAndAppendInArray();
+		hasValue = true;
 		stringBuilder.append("\"base64,");
 		stringBuilder.append(Base64.encode(value));
 		stringBuilder.append('"');
@@ -559,6 +577,7 @@ public class JSONWriter {
 		}
 
 		checkAndAppendInArray();
+		hasValue = true;
 		stringBuilder.append(value);
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
@@ -569,7 +588,7 @@ public class JSONWriter {
 			addNull();
 			return this;
 		}
-
+		hasValue = true;
 		checkAndAppendInArray();
 		stringBuilder.append(value);
 		writeAfterComment(COMMENT_SLASH_STAR);;
@@ -593,8 +612,19 @@ public class JSONWriter {
 
 	public JSONWriter add(CSONElement value) {
 		checkAndAppendInArray();
+		hasValue = true;
 		String afterComment = getAfterComment();
 		value.write(this, false);
+		if(afterComment != null) {
+			writeComment(afterComment, COMMENT_SLASH_STAR);
+		}
+		//writeAfterComment(COMMENT_SLASH_STAR);;
+		return this;
+	}
+
+	public JSONWriter addCSONElement() {
+		checkAndAppendInArray();
+		String afterComment = getAfterComment();
 		if(afterComment != null) {
 			writeComment(afterComment, COMMENT_SLASH_STAR);
 		}
@@ -605,6 +635,7 @@ public class JSONWriter {
 
 	public JSONWriter add(byte value) {
 		checkAndAppendInArray();
+		hasValue = true;
 		stringBuilder.append(value);
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
@@ -612,6 +643,7 @@ public class JSONWriter {
 
 	public JSONWriter add(int value) {
 		checkAndAppendInArray();
+		hasValue = true;
 		stringBuilder.append(value);
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
@@ -620,6 +652,7 @@ public class JSONWriter {
 	public JSONWriter add(long value) {
 
 		checkAndAppendInArray();
+		hasValue = true;
 		stringBuilder.append(value);
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
@@ -628,6 +661,7 @@ public class JSONWriter {
 	public JSONWriter add(short value) {
 
 		checkAndAppendInArray();
+		hasValue = true;
 		stringBuilder.append(value);
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
@@ -636,6 +670,7 @@ public class JSONWriter {
 	public JSONWriter add(boolean value) {
 
 		checkAndAppendInArray();
+		hasValue = true;
 		stringBuilder.append(value ? "true" : "false");
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
@@ -746,7 +781,12 @@ public class JSONWriter {
 		//writeBeforeAndRemoveComment(commentType);
 		stringBuilder.append('{');
 		pushStack(ObjectType.OpenObject);
+		lastCharacterBufferLength = stringBuilder.length();
 		return this;
+	}
+
+	public boolean isEmpty() {
+		return typeStack_.isEmpty();
 	}
 
 	public JSONWriter closeObject() {
@@ -754,14 +794,13 @@ public class JSONWriter {
 			throw new CSONWriteException();
 		}
 		removeStack();
-		/*if(commentStringAfterObjectValue != null) {
-			writeComment(commentStringAfterObjectValue, COMMENT_SLASH_START);
-			commentStringAfterObjectValue = null;
-		}*/
+
 
 		if(isPretty) {
-			stringBuilder.append('\n');
-			writeDepthTab(stringBuilder);
+			if(stringBuilder.length() != lastCharacterBufferLength) {
+				stringBuilder.append('\n');
+				writeDepthTab(stringBuilder);
+			}
 		}
 
 		stringBuilder.append('}');
@@ -781,6 +820,140 @@ public class JSONWriter {
 	public String toString() {
 
 		return stringBuilder.toString();
+	}
+
+
+	public static void writeJSONElement(CSONElement root,JSONWriter writer) {
+		//JSONWriter writer  = new JSONWriter((JSONOptions) stringFormatOption);
+		CSONElement currentElement = root;
+		ArrayDeque<Iterator<?>> iteratorStack = new ArrayDeque<>();
+		ArrayDeque<CSONElement> elementStack = new ArrayDeque<>();
+
+		Iterator<?> currentIter = null;
+
+		int step = 0;
+
+		boolean lastClosed = false;
+		boolean skipClose = false;
+		boolean closeRoot = false;
+
+
+
+		writer.writeComment(currentElement.getCommentThis(), false, "", "\n");
+
+		do {
+
+			if (currentElement instanceof CSONObject) {
+				Iterator<Map.Entry<String, Object>> iter;
+				Map<String, KeyValueCommentObject> keyValueCommentMap;
+				CSONObject currentObject = (CSONObject) currentElement;
+				keyValueCommentMap = currentObject.getKeyValueCommentMap();
+				if(!lastClosed) {
+					iter = currentObject.entrySet().iterator();
+					currentIter = iter;
+					writer.openObject();
+				} else {
+					iter = (Iterator<Map.Entry<String, Object>>)currentIter;
+					lastClosed = false;
+				}
+				boolean isComment = writer.isComment() && keyValueCommentMap != null;
+				while (iter.hasNext()) {
+					Map.Entry<String, Object> entry = iter.next();
+					String key = entry.getKey();
+					Object obj = entry.getValue();
+					KeyValueCommentObject keyValueCommentObject = isComment ? keyValueCommentMap.get(key) : null;
+					writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.keyCommentObject);
+					writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.valueCommentObject);
+
+					if (obj == null || obj instanceof NullValue) writer.key(key).nullValue();
+					else if (obj instanceof CSONElement) {
+						iteratorStack.add(iter);
+						elementStack.add(currentElement);
+						writer.key(key);
+						currentElement = (CSONElement) obj;
+						skipClose = true;
+
+						break;
+						//writer.key(key).value((CSONElement) obj);
+					} else if (obj instanceof Byte) {
+						writer.key(key).value((byte) obj);
+					} else if (obj instanceof Short) writer.key(key).value((short) obj);
+					else if (obj instanceof Character) writer.key(key).value((char) obj);
+					else if (obj instanceof Integer) writer.key(key).value((int) obj);
+					else if (obj instanceof Float) writer.key(key).value((float) obj);
+					else if (obj instanceof Long) writer.key(key).value((long) obj);
+					else if (obj instanceof Double) writer.key(key).value((double) obj);
+					else if (obj instanceof String) writer.key(key).value((String) obj);
+					else if (obj instanceof Boolean) writer.key(key).value((boolean) obj);
+					else if (obj instanceof BigDecimal) writer.key(key).value(obj);
+					else if (obj instanceof BigInteger) writer.key(key).value(obj);
+					else if (obj instanceof byte[]) writer.key(key).value((byte[]) obj);
+					else if (currentObject.isAllowRawValue()) {
+						writer.key(key).value(obj.toString());
+					}
+				}
+				if(!skipClose) {
+					writer.closeObject();
+					currentIter = iteratorStack.pollLast();
+					currentElement = elementStack.pollLast();
+					lastClosed = true;
+				}
+				skipClose = false;
+
+			} else if(currentElement instanceof CSONArray) {
+				CSONArray currentArray = (CSONArray) currentElement;
+				Iterator<Object> iter = null;
+				if(!lastClosed) {
+					iter = currentArray.iterator();
+					currentIter = iter;
+					writer.openArray();
+				} else {
+					iter = (Iterator<Object>) currentIter;
+					lastClosed = false;
+				}
+				while(iter.hasNext()) {
+					Object obj = iter.next();
+					if(obj == null || obj instanceof NullValue) writer.addNull();
+					else if(obj instanceof CSONElement)  {
+						iteratorStack.add(iter);
+						elementStack.add(currentElement);
+						writer.addCSONElement();
+						currentElement = (CSONElement) obj;
+						skipClose = true;
+						break;
+					}
+					else if(obj instanceof Byte)	writer.add((Byte)obj);
+					else if(obj instanceof Short)	writer.add((Short)obj);
+					else if(obj instanceof Character) writer.add((Character)obj);
+					else if(obj instanceof Integer) writer.add((Integer)obj);
+					else if(obj instanceof Float) writer.add((Float)obj);
+					else if(obj instanceof Long) writer.add((Long)obj);
+					else if(obj instanceof Double) writer.add((Double)obj);
+					else if(obj instanceof String) writer.add((String)obj);
+					else if(obj instanceof byte[]) writer.add((byte[])obj);
+					else if(obj instanceof Boolean) writer.add((Boolean)obj);
+				}
+				if(!skipClose) {
+					writer.closeArray();
+					currentIter = iteratorStack.pollLast();
+					currentElement = elementStack.pollLast();
+					lastClosed = true;
+				}
+				skipClose = false;
+			}
+
+		} while (currentElement != null);
+
+		/*if(root instanceof CSONObject) {
+			writer.closeObject();
+ 		} else {
+			writer.closeArray();
+		}*/
+
+
+			writer.writeComment(root.getCommentAfterThis(), false, "\n", "");
+
+
 	}
 
 }

@@ -191,8 +191,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 		if(type == StringFormatType.PureJSON) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else if(type == StringFormatType.JSON) {
-			JSON5Parser.parsePureJSON(stringReader, this, (JSONOptions)options);
-
+			//JSON5Parser.parsePureJSON(stringReader, this, (JSONOptions)options);
+			new JSON5ParserV( (JSONOptions)options).parsePureJSON(stringReader, this);
 		}
 		else {
 			new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseObject(this);
@@ -1012,7 +1012,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 	public String toString(StringFormatOption<?> stringFormatOption) {
-		if(stringFormatOption instanceof  JSONOptions) {
+		if(stringFormatOption instanceof JSONOptions) {
 			JSONWriter jsonWriter = new JSONWriter((JSONOptions) stringFormatOption);
 			write(jsonWriter, true);
 			return jsonWriter.toString();
@@ -1112,9 +1112,16 @@ public class CSONObject extends CSONElement implements Cloneable {
 		writer.closeObject();
 	}
 
+
+	Map<String, KeyValueCommentObject> getKeyValueCommentMap() {
+		return keyValueCommentMap;
+	}
+
+
 	@Override
 	protected void write(JSONWriter writer, boolean root) {
-		Iterator<Entry<String, Object>> iter = dataMap.entrySet().iterator();
+		JSONWriter.writeJSONElement(this, writer);
+		/*Iterator<Entry<String, Object>> iter = dataMap.entrySet().iterator();
 		boolean isComment = writer.isComment() && keyValueCommentMap != null;
 
 		// root 오브젝트가 아닌 경우에는 주석을 무시한다.
@@ -1156,9 +1163,11 @@ public class CSONObject extends CSONElement implements Cloneable {
 		writer.closeObject();
 		if(root) {
 			writer.writeComment(getCommentAfterThis(), false,"\n","" );
-		}
+		}*/
 
 	}
+
+
 
 
 	@SuppressWarnings("MethodDoesntCallSuperMethod")

@@ -3,13 +3,11 @@ package com.hancomins.cson;
 
 
 import com.hancomins.cson.serializer.CSONSerializer;
-import com.hancomins.cson.serializer.CSONSerializerException;
 import com.hancomins.cson.util.DataConverter;
 import com.hancomins.cson.util.DataReadFailException;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
 import com.hancomins.cson.util.NullValue;
 
-import javax.xml.stream.events.Characters;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -111,6 +109,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 	public CSONArray() {
+
 		super(ElementType.Array, getDefaultStringFormatOption());
 	}
 
@@ -154,6 +153,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 	public CSONArray(JSONOptions jsonOptions) {
+
 		super(ElementType.Array,jsonOptions);
 	}
 
@@ -163,7 +163,8 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		if(type == StringFormatType.PureJSON) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else {
-			new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseArray(this);
+			//new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseArray(this);
+			new JSON5ParserV((JSONOptions) options).parsePureJSON(stringReader, this);
 		}
 	}
 
@@ -1138,7 +1139,8 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 	@Override
 	protected void write(JSONWriter writer, boolean root) {
-		if(root) {
+		JSONWriter.writeJSONElement(this, writer);
+		/*if(root) {
 			writer.writeComment(getCommentThis(), false,"","\n" );
 		}
 		writer.openArray();
@@ -1172,7 +1174,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		writer.closeArray();
 		if(root) {
 			writer.writeComment(getCommentAfterThis(), false, "\n", "");
-		}
+		}*/
 
 	}
 

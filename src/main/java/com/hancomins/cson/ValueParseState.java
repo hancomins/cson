@@ -491,9 +491,17 @@ class ValueParseState {
         if(doubtMode == DoubtMode.Null) {
             return null;
         }
-
         return characterBuffer.toString();
     }
+
+    public String toTrimString() {
+        if(doubtMode == DoubtMode.Null) {
+            return null;
+        }
+        return characterBuffer.toString().trim();
+    }
+
+
 
     public String toString(boolean quote) {
         if(quote) {

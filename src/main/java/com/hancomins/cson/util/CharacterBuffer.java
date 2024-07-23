@@ -1,5 +1,8 @@
 package com.hancomins.cson.util;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 public class CharacterBuffer {
     private char[] chars = new char[64];
 
@@ -24,6 +27,53 @@ public class CharacterBuffer {
         ensureCapacity(length + 1);
         chars[length++] = c;
         return this;
+    }
+
+
+    public CharacterBuffer append(int v) {
+        String value = String.valueOf(v);
+        return append(value);
+    }
+
+    public CharacterBuffer append(double v) {
+        String value = String.valueOf(v);
+        return append(value);
+
+    }
+
+    public CharacterBuffer append(long v) {
+        String value = String.valueOf(v);
+        return append(value);
+    }
+
+    public CharacterBuffer append(float v) {
+        String value = String.valueOf(v);
+        return append(value);
+    }
+
+    public CharacterBuffer append(boolean v) {
+        String value = String.valueOf(v);
+        return append(value);
+    }
+
+    public CharacterBuffer append(byte v) {
+        String value = String.valueOf(v);
+        return append(value);
+    }
+
+    public CharacterBuffer append(short v) {
+        String value = String.valueOf(v);
+        return append(value);
+    }
+
+    public CharacterBuffer append(BigInteger v) {
+        String value = String.valueOf(v);
+        return append(value);
+    }
+
+    public CharacterBuffer append(BigDecimal v) {
+        String value = String.valueOf(v);
+        return append(value);
     }
 
     public CharacterBuffer append(String s) {

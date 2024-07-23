@@ -19,6 +19,18 @@ class JSON5ParserV {
     private boolean readyComment = false;
 
 
+
+
+    private Mode commentBeforeMode = null;
+    private Mode currentMode = null;
+    private String key = null;
+    private String lastKey = null;
+
+    private CommentObject keyCommentObject = null;
+    private CommentObject valueCommentObject = null;
+    private ValueParseState valueParseState;
+    private CSONElement currentElement = null;
+
     char currentQuoteChar = '\0';
 
     private JSONOptions jsonOptions;
@@ -97,29 +109,17 @@ class JSON5ParserV {
     CSONElement parsePureJSON(Reader reader, CSONElement rootElement) {
 
 
-
-        //ArrayDeque<Mode> modeStack = new ArrayDeque<>();
+        valueParseState = new ValueParseState(jsonOptions);
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
-        CSONElement currentElement = null;
 
-        Mode commentBeforeMode = null;
-        Mode currentMode = null;
-        //CharacterBuffer dataStringBuilder = new CharacterBuffer();
-        String key = null;
 
         int line = 1;
-
         int index = 0;
-        ValueParseState valueParseState = new ValueParseState(jsonOptions);
-
-        CommentObject keyCommentObject = null;
-        CommentObject valueCommentObject = null;
 
 
 
         try {
             int c;
-
 
             while((c = reader.read()) != -1) {
                 if(c == '\n') {
@@ -132,15 +132,29 @@ class JSON5ParserV {
                             currentMode = commentBeforeMode;
                             if(currentMode == Mode.WaitKey) {
                                 keyCommentObject = new CommentObject();
-                                keyCommentObject.setBeforeComment(valueParseState.toString());
+                                keyCommentObject.setBeforeComment(valueParseState.toTrimString());
                             }
 
                             else if(currentMode == Mode.WaitValueSeparator) {
                                 if(keyCommentObject == null) {
                                     keyCommentObject = new CommentObject();
                                 }
-                                keyCommentObject.setAfterComment(valueParseState.toString());
-
+                                keyCommentObject.setAfterComment(valueParseState.toTrimString());
+                            } else if(currentMode == Mode.WaitValue) {
+                                if(valueCommentObject == null) {
+                                    valueCommentObject = new CommentObject();
+                                }
+                                valueCommentObject.setBeforeComment(valueParseState.toTrimString());
+                            }
+                            else if(currentMode == Mode.NextStoreSeparator) {
+                                if(currentElement instanceof CSONObject && lastKey != null) {
+                                    ((CSONObject)currentElement).setCommentAfterValue(lastKey, valueParseState.toTrimString());
+                                } else if(currentElement instanceof CSONArray) {
+                                     CSONArray array = (CSONArray)currentElement;
+                                     if(!array.isEmpty()) {
+                                         array.setCommentAfterValue(array.size() - 1, valueParseState.toTrimString());
+                                     }
+                                }
                             }
                         } else {
                             valueParseState.append((char) c);
@@ -159,7 +173,6 @@ class JSON5ParserV {
                     }
                 }
 
-
                 if(currentMode == Mode.InKeyUnquoted && (c == ':')) {
                     String keyString = valueParseState.toString();
                     if(keyString.isEmpty()) {
@@ -173,15 +186,11 @@ class JSON5ParserV {
                 ++index;
 
                 if((c != currentQuoteChar) && (currentMode == Mode.String || currentMode == Mode.InKey || currentMode == Mode.InKeyUnquoted)) {
-                    valueParseState.append((char)c);
+                    valueParseState.append((char) c);
                 } else if((currentMode == Mode.Value) &&  (c != ',' && c != '}' && c != ']')) {
                     char cs = (char)c;
                     if(Character.isWhitespace((char)c)) {
-                        if(valueParseState.isNumber()) {
-                            putNumberData(currentElement, valueParseState.getNumber(), key);
-                        } else {
-                            putStringData(currentElement, valueParseState.toString(), key);
-                        }
+                        putData();
                         currentMode = Mode.NextStoreSeparator;
                     }
                     else valueParseState.append((char)c);
@@ -203,8 +212,7 @@ class JSON5ParserV {
                     }
                     else {
                         currentElement = new CSONObject();
-                        putElementData(oldElement, currentElement, key);
-                        key = null;
+                        putElementData(oldElement, currentElement);
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == '[') {
@@ -224,8 +232,7 @@ class JSON5ParserV {
                     }
                     else {
                         currentElement = new CSONArray();
-                        putElementData(oldElement, currentElement, key);
-                        key = null;
+                        putElementData(oldElement, currentElement);
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == ']'  || c == '}') {
@@ -236,14 +243,7 @@ class JSON5ParserV {
                         }
                     }
                     else if(currentMode == Mode.Value) {
-
-                        if(valueParseState.isNumber()) {
-                            putNumberData(currentElement, valueParseState.getNumber(), key);
-                        } else {
-                            putStringData(currentElement, valueParseState.toString(), key);
-                        }
-
-                        key = null;
+                        putData();
                     } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
                         throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                     }
@@ -257,14 +257,7 @@ class JSON5ParserV {
                 }
 
                 else if(currentMode == Mode.Value && Character.isWhitespace((char)c)) {
-                    if(valueParseState.isNumber()) {
-                        putNumberData(currentElement, valueParseState.getNumber(), key);
-                    } else {
-                        putStringData(currentElement, valueParseState.toString(), key);
-                    }
-
-
-                    key = null;
+                    putData();
                     currentMode = Mode.NextStoreSeparator;
                 }
 
@@ -272,28 +265,13 @@ class JSON5ParserV {
 
                     if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
                         if(allowConsecutiveCommas) {
-                            if(currentElement instanceof CSONArray) {
-                                ((CSONArray)currentElement).add(null);
-                            } else if(currentMode == Mode.WaitValue && currentElement instanceof CSONObject) {
-                                ((CSONObject)currentElement).put(key, null);
-                                key = null;
-                            }
+                            putData();
                         } else {
                             throw new CSONParseException("Unexpected character ',' at " + index);
                         }
                     }
                     if(currentMode == Mode.Value) {
-                        if(valueParseState.isNumber()) {
-                            putNumberData(currentElement, valueParseState.getNumber(), key);
-                        } else {
-                            putStringData(currentElement, valueParseState.toString(), key);
-                        }
-                        if(currentElement instanceof CSONObject) {
-                            ((CSONObject)currentElement).setCommentObjects(key, keyCommentObject, valueCommentObject);
-                        }
-
-
-                        key = null;
+                        putData();
                     }
 
                     currentMode = afterComma(currentElement);
@@ -303,9 +281,8 @@ class JSON5ParserV {
                 else if(c == currentQuoteChar) {
 
                     if(currentMode == Mode.String) {
-                        String value = valueParseState.toString();
-                        putStringData(currentElement, value, key);
-                        key = null;
+                        putData();
+
                         currentMode  = Mode.NextStoreSeparator;
                     }
                     else if(currentMode == Mode.InKey) {
@@ -349,7 +326,6 @@ class JSON5ParserV {
                     currentQuoteChar = '\0';
                 }
 
-
                 else if(currentMode == Mode.WaitKey && allowUnquotedKey && !Character.isWhitespace(c)) {
                     valueParseState.reset();
                     valueParseState.setAllowControlChar(false);
@@ -364,9 +340,9 @@ class JSON5ParserV {
                     currentMode  = Mode.Value;
                 }
 
-                else if(currentMode == Mode.NextStoreSeparator && (c == '\n' || c == '\r') ) {
+                /*else if(currentMode == Mode.NextStoreSeparator && (c == '\n' || c == '\r') ) {
                     throw new CSONParseException("Unexpected character '" + (char) c + "' at " + index);
-                }
+                }*/
 
 
 
@@ -395,10 +371,34 @@ class JSON5ParserV {
     }
 
 
+    private void putData() {
+        if(valueParseState.isNumber()) {
+            putNumberData(currentElement, valueParseState.getNumber(), key);
+        } else {
+            putStringData(currentElement, valueParseState.toString(), key);
+        }
+        if(allowComment) {
+            putComment();
+        }
+        lastKey = key;
+        key = null;
+    }
 
+    private void putComment() {
+        if(currentElement instanceof CSONObject) {
+            ((CSONObject)currentElement).setCommentObjects(key, keyCommentObject, valueCommentObject);
+        }
 
-    private static boolean isQuotedString(char c, boolean singleQuote) {
-        return c == '"' || (singleQuote && c == '\'');
+        keyCommentObject = null;
+        valueCommentObject = null;
+    }
+
+    private static void putNumberData(CSONElement currentElement, Number value, String key) {
+        if(key != null) {
+            ((CSONObject)currentElement).put(key, value);
+        } else {
+            ((CSONArray)currentElement).add(value);
+        }
     }
 
     private static void putStringData(CSONElement currentElement, String value, String key) {
@@ -408,6 +408,14 @@ class JSON5ParserV {
             ((CSONArray)currentElement).add(value);
         }
     }
+
+
+
+    private static boolean isQuotedString(char c, boolean singleQuote) {
+        return c == '"' || (singleQuote && c == '\'');
+    }
+
+
 
     private static int trimLast(char[] numberString, int len) {
         int lastIndex = len - 1;
@@ -431,20 +439,19 @@ class JSON5ParserV {
             ((CSONArray)currentElement).add(value);
         }
     }
-    private static void putNumberData(CSONElement currentElement, Number value, String key) {
-        if(key != null) {
-           ((CSONObject)currentElement).put(key, value);
-        } else {
-            ((CSONArray)currentElement).add(value);
-        }
-    }
 
-    private static void putElementData(CSONElement currentElement, CSONElement value, String key) {
+
+    private void putElementData(CSONElement currentElement, CSONElement value) {
         if(key != null) {
             ((CSONObject)currentElement).put(key, value);
         } else {
             ((CSONArray)currentElement).add(value);
         }
+        if(allowComment) {
+            putComment();
+        }
+        lastKey = key;
+        key = null;
     }
 
 

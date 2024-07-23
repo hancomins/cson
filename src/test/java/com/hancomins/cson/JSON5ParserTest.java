@@ -1,5 +1,6 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.serializer.CSON;
 import junit.framework.TestCase;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -160,14 +161,25 @@ public class JSON5ParserTest extends TestCase {
     @Test
     public void testComment() {
         String complexJson5 = "{\n" +
-                "  // This is a comment\n" +
-                " \"comment\": \"value\",\n" +
+                "  // This is a comment before key\n" +
+                " \"comment\"" +
+                " // This is a comment after key\n" +
+                ":" +
+                "// Comment before value \n" +
+                " \"value\" \n" +
+                "  // Comment after value\n" +
                 "}";
 
         JSONOptions jsonOptions = StringFormatOption.json();
         jsonOptions.setAllowComments(true);
+        jsonOptions.setSkipComments(false);
+        jsonOptions.setPretty(true);
         CSONObject csonObject = new CSONObject(complexJson5, jsonOptions);
 
+        assertEquals("This is a comment before key", csonObject.getCommentOfKey("comment"));
+        assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
+        assertEquals("Comment before value", csonObject.getCommentOfValue("comment"));
+        assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
 
         System.out.println(csonObject);
 
@@ -185,12 +197,12 @@ public class JSON5ParserTest extends TestCase {
                 "    boolean: true,\n" +
                 "  },\n" +
                 "  nullValue: null,\n" +
-                "  // This is a comment\n" +
+                //"  // This is a comment\n" +
                 "  trailingComma: \n'this is fine',\n" +
                 "  trailing1Comma: 'this is fine',\n" +
                 "}";
 
-        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json());
+        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json().setPretty(true));
 
         // Assert basic values
         assertEquals("unquoted string value", csonObject.optString("unquotedKey"));
@@ -212,6 +224,57 @@ public class JSON5ParserTest extends TestCase {
         assertEquals("nestedValue", nestedObjectInArray.optString("nestedKey"));
 
         System.out.println(csonObject);
+    }
+
+    @Test
+    public void testStackOverFlow() {
+        /*JSONObject rootJson = new JSONObject();
+        JSONObject currentJson = rootJson;
+        for(int i = 0; i < 10000; ++i) {
+            JSONObject next = new JSONObject();
+            currentJson.put("next", next);
+            currentJson = next;
+        }
+        currentJson.put("value", "ok");
+
+        String rootValueJson = rootJson.toString();
+
+        System.out.println(rootValueJson);
+
+        if(1 < 2) return;*/
+
+        CSONObject ra = new CSONObject();
+        CSONArray arraya = new CSONArray();
+        ra.put("array", arraya);
+
+        ra.toString();
+
+
+        if(1 < 2) return;
+
+
+
+        CSONObject root = new CSONObject();
+        CSONObject current = root;
+        for(int i = 0; i < 1; ++i) {
+            CSONObject next = new CSONObject();
+            CSONArray array = new CSONArray();
+            array.put(1);
+            current.put("next", next);
+            current.put("array", array);
+            current = next;
+        }
+        current.put("value", "ok");
+
+        String rootValue = root.toString();
+
+        System.out.println(rootValue);
+
+        CSONObject csonObject = new CSONObject(rootValue, StringFormatOption.json());
+
+
+
+
     }
 
     @Test
