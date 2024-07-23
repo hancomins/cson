@@ -4,13 +4,14 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class CharacterBuffer {
-    private char[] chars = new char[64];
+    private char[] chars;
 
     private int length = 0;
-    private int capacity = 64;
+    private int capacity = 32;
 
 
     public CharacterBuffer() {
+        chars = new char[capacity];
     }
 
     public CharacterBuffer(int capacity) {

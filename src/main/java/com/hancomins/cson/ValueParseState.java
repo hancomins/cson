@@ -73,10 +73,7 @@ class ValueParseState {
 
 
     ValueParseState(NumberConversionUtil.NumberConversionOption numberConversionOption) {
-        characterBuffer = characterBufferPool.poll();
-        if(characterBuffer == null) {
-            characterBuffer = new CharacterBuffer();
-        }
+        characterBuffer = new CharacterBuffer();
         allowNaN = numberConversionOption.isAllowNaN();
         allowInfinity = numberConversionOption.isAllowInfinity();
         allowHexadecimal = numberConversionOption.isAllowHexadecimal();
@@ -309,6 +306,10 @@ class ValueParseState {
     }
 
     int markStartUnicodeIndex = -1;
+
+    boolean isSpecialChar() {
+        return isSpecialChar;
+    }
     
     private void appendChar(char c) {
         if(doubtMode == DoubtMode.String && c == '\\' && !isSpecialChar) {
@@ -410,12 +411,12 @@ class ValueParseState {
                 if(isNegative) {
                     bi = bi.negate();
                 }
-                /*if(bi.bitLength() <= 31){
+                if(bi.bitLength() <= 31){
                     return bi.intValue();
                 }
                 if(bi.bitLength() <= 63){
                     return bi.longValue();
-                }*/
+                }
                 return bi;
             } else {
                 //String val = characterBuffer.subSequence(2, characterBuffer.length()).toString();

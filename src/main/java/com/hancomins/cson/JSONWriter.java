@@ -27,7 +27,7 @@ public class JSONWriter {
 	private static final int COMMENT_BEFORE_ARRAY_VALUE = 5;
 	private static final int COMMENT_COMMA_AND_SLASH_STAR = 6;
 	private static final int COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE = 7;
-	private static final int COMENT_SIMPLE = 8;
+	private static final int COMMENT_SIMPLE = 8;
 
 	private boolean isComment;
 	private boolean isAllowLineBreak;
@@ -200,7 +200,8 @@ public class JSONWriter {
 					stringBuilder.append(commentLine);
 					stringBuilder.append("\n");
 					writeDepthTab(stringBuilder);
-				} else if(commentType == COMENT_SIMPLE) {
+				} else if(commentType == COMMENT_SIMPLE) {
+					stringBuilder.append("\n");
 					writeDepthTab(stringBuilder);
 					stringBuilder.append("//");
 					stringBuilder.append(commentLine);
@@ -527,9 +528,8 @@ public class JSONWriter {
 
 
 		if(isPretty && !isUnprettyArray) {
-			stringBuilder.append('\n');
-
-			writeBeforeComment(COMENT_SIMPLE);
+			//stringBuilder.append('\n');
+			writeBeforeComment(COMMENT_SIMPLE);
 			stringBuilder.append('\n');
 			writeDepthTab(stringBuilder);
 		} else {
@@ -628,10 +628,13 @@ public class JSONWriter {
 
 	public JSONWriter addCSONElement() {
 		checkAndAppendInArray();
-		String afterComment = getAfterComment();
+
+		/*String afterComment = getAfterComment();
 		if(afterComment != null) {
 			writeComment(afterComment, COMMENT_SLASH_STAR);
-		}
+		}*/
+
+
 		//writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
 	}
@@ -930,9 +933,6 @@ public class JSONWriter {
 			} else if(currentElement instanceof CSONArray) {
 				CSONArray currentArray = (CSONArray) currentElement;
 				Iterator<Object> iter = null;
-
-
-
 
 
 				if(!lastClosed) {

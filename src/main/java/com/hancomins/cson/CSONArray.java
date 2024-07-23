@@ -136,7 +136,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		super(ElementType.Array,options);
 		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(jsonArray);
 		parse(noSynchronizedStringReader, options);
-		noSynchronizedStringReader.close();;
+		noSynchronizedStringReader.close();
 	}
 
 
@@ -163,7 +163,8 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else {
 			//new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseArray(this);
-			new JSON5ParserV((JSONOptions) options).parsePureJSON(stringReader, this);
+			//new JSON5ParserV((JSONOptions) options).parsePureJSON(stringReader, this);
+			JSON5ParserX.parsePureJSON(stringReader, this, (JSONOptions)options);
 		}
 	}
 

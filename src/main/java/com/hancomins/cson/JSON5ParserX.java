@@ -2,48 +2,18 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.util.CharacterBuffer;
 
+import javax.xml.stream.events.Comment;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayDeque;
 
-class JSON5ParserV {
+class JSON5ParserX {
 
 
     private static final String NULL = "null";
 
-    private boolean singleQuote;
-    private boolean allowUnquotedKey;
-    private boolean allowConsecutiveCommas;
-    private boolean trailingComma;
-    private boolean allowComment;
-    private boolean readyComment = false;
 
 
-
-
-    private Mode commentBeforeMode = null;
-    private Mode currentMode = null;
-    private String key = null;
-    private String lastKey = null;
-
-    private CommentObject keyCommentObject = null;
-    private CommentObject valueCommentObject = null;
-    private ValueParseState valueParseState;
-    private CSONElement currentElement = null;
-
-    char currentQuoteChar = '\0';
-
-    private JSONOptions jsonOptions;
-
-    public JSON5ParserV(JSONOptions jsonOption) {
-        singleQuote = jsonOption.isAllowSingleQuotes();
-        allowUnquotedKey = jsonOption.isAllowUnquoted();
-        allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
-        trailingComma = jsonOption.isAllowTrailingComma();
-        allowComment = jsonOption.isAllowComments();
-        readyComment = false;
-        this.jsonOptions = jsonOption;
-    }
 
 
     enum Mode {
@@ -67,9 +37,6 @@ class JSON5ParserV {
     }
 
 
-    CSONElement parsePureJSON(Reader reader) {
-        return parsePureJSON(reader, null);
-    }
 
     void appendSpecialChar(Reader reader, CharacterBuffer dataStringBuilder, int c) throws IOException {
         switch (c) {
@@ -106,10 +73,40 @@ class JSON5ParserV {
         }
     }
 
-    CSONElement parsePureJSON(Reader reader, CSONElement rootElement) {
+    static CSONElement parsePureJSON(Reader reader, CSONElement rootElement, JSONOptions jsonOption) {
+
+        boolean singleQuote;
+        boolean allowUnquotedKey;
+        boolean allowConsecutiveCommas;
+        boolean allowComment;
+        boolean trailingComma;
+        boolean readyComment = false;
 
 
-        valueParseState = new ValueParseState(jsonOptions);
+        singleQuote = jsonOption.isAllowSingleQuotes();
+        allowUnquotedKey = jsonOption.isAllowUnquoted();
+        allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
+        trailingComma = jsonOption.isAllowTrailingComma();
+        allowComment = jsonOption.isAllowComments();
+        readyComment = false;
+
+        char currentQuoteChar = '\0';
+
+
+
+        Mode commentBeforeMode = null;
+        Mode currentMode = null;
+        String key = null;
+        String lastKey = null;
+
+        CommentObject keyCommentObject = null;
+        CommentObject valueCommentObject = null;
+        ValueParseState valueParseState;
+        CSONElement currentElement = null;
+
+
+
+        valueParseState = new ValueParseState(jsonOption);
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
 
 
@@ -188,9 +185,13 @@ class JSON5ParserV {
                 if((c != currentQuoteChar) && (currentMode == Mode.String || currentMode == Mode.InKey || currentMode == Mode.InKeyUnquoted)) {
                     valueParseState.append((char) c);
                 } else if((currentMode == Mode.Value) &&  (c != ',' && c != '}' && c != ']')) {
-                    char cs = (char)c;
                     if(Character.isWhitespace((char)c)) {
-                        putData();
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
+
+
                         currentMode = Mode.NextStoreSeparator;
                     }
                     else valueParseState.append((char)c);
@@ -212,7 +213,11 @@ class JSON5ParserV {
                     }
                     else {
                         currentElement = new CSONObject();
-                        putElementData(oldElement, currentElement);
+                        lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
+
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == '[') {
@@ -232,7 +237,10 @@ class JSON5ParserV {
                     }
                     else {
                         currentElement = new CSONArray();
-                        putElementData(oldElement, currentElement);
+                        lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == ']'  || c == '}') {
@@ -243,7 +251,10 @@ class JSON5ParserV {
                         }
                     }
                     else if(currentMode == Mode.Value) {
-                        putData();
+                        putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
                     } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
                         throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                     }
@@ -257,7 +268,10 @@ class JSON5ParserV {
                 }
 
                 else if(currentMode == Mode.Value && Character.isWhitespace((char)c)) {
-                    putData();
+                    putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                    key = null;
+                    keyCommentObject = null;
+                    valueCommentObject = null;
                     currentMode = Mode.NextStoreSeparator;
                 }
 
@@ -265,23 +279,32 @@ class JSON5ParserV {
 
                     if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
                         if(allowConsecutiveCommas) {
-                            putData();
+                            lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                            key = null;
+                            keyCommentObject = null;
+                            valueCommentObject = null;
                         } else {
                             throw new CSONParseException("Unexpected character ',' at " + index);
                         }
                     }
                     if(currentMode == Mode.Value) {
-                        putData();
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
                     }
 
                     currentMode = afterComma(currentElement);
 
                 }
 
-                else if(c == currentQuoteChar) {
+                else if(c == currentQuoteChar && !valueParseState.isSpecialChar()) {
 
                     if(currentMode == Mode.String) {
-                        putData();
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
 
                         currentMode  = Mode.NextStoreSeparator;
                     }
@@ -371,26 +394,25 @@ class JSON5ParserV {
     }
 
 
-    private void putData() {
+    private static String putData(ValueParseState valueParseState, CSONElement currentElement, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject) {
         if(valueParseState.isNumber()) {
             putNumberData(currentElement, valueParseState.getNumber(), key);
         } else {
             putStringData(currentElement, valueParseState.toString(), key);
         }
         if(allowComment) {
-            putComment();
+            putComment(currentElement, key, keyCommentObject, valueCommentObject);
         }
-        lastKey = key;
-        key = null;
+        String lastKey = key;
+        return lastKey;
     }
 
-    private void putComment() {
+    private static void putComment(CSONElement currentElement, String key, CommentObject keyCommentObject, CommentObject valueCommentObject) {
         if(currentElement instanceof CSONObject) {
             ((CSONObject)currentElement).setCommentObjects(key, keyCommentObject, valueCommentObject);
         }
 
-        keyCommentObject = null;
-        valueCommentObject = null;
+
     }
 
     private static void putNumberData(CSONElement currentElement, Number value, String key) {
@@ -441,28 +463,17 @@ class JSON5ParserV {
     }
 
 
-    private void putElementData(CSONElement currentElement, CSONElement value) {
+    private static String putElementData(CSONElement currentElement, CSONElement value, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject) {
         if(key != null) {
             ((CSONObject)currentElement).put(key, value);
         } else {
             ((CSONArray)currentElement).add(value);
         }
         if(allowComment) {
-            putComment();
+            putComment(currentElement, key, keyCommentObject, valueCommentObject);
         }
-        lastKey = key;
-        key = null;
-    }
-
-
-    void reset() {
-        currentElement = null;
-        currentMode = null;
-        key = null;
-        lastKey = null;
-        keyCommentObject = null;
-        valueCommentObject = null;
-        valueParseState.reset();
+        String lastKey = key;
+        return lastKey;
     }
 
 

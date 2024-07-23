@@ -2,8 +2,13 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.serializer.CSON;
 import junit.framework.TestCase;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 public class JSON5ParserTest extends TestCase {
 
@@ -277,9 +282,10 @@ public class JSON5ParserTest extends TestCase {
 
     }
 
-    @Test
-    public void testPerformance() {
-        String speedTest = "{\"name\":\"John Doe\",\"age\":30,\"isEmployed\":true,\"address\":{\"street\":\"123 Main St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"},\"phoneNumbers\":[{\"type\":\"home\",\"number\":\"555-555-5555\"},{\"type\":\"work\",\"number\":\"555-555-5556\"}],\"email\":\"johndoe@example.com\",\"website\":\"http://www.johndoe.com\",\"children\":[{\"name\":\"Jane Doe\",\"age\":10,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}},{\"name\":\"Jim Doe\",\"age\":8,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}}],\"hobbies\":[\"reading\",\"hiking\",\"coding\"],\"education\":{\"highSchool\":{\"name\":\"Anytown High School\",\"yearGraduated\":2005},\"university\":{\"name\":\"State University\",\"yearGraduated\":2009,\"degree\":\"Bachelor of Science\",\"major\":\"Computer Science\"}},\"workExperience\":[{\"company\":\"Tech Corp\",\"position\":\"Software Engineer\",\"startDate\":\"2010-01-01\",\"endDate\":\"2015-01-01\",\"responsibilities\":[\"Developed web applications\",\"Led a team of 5 developers\",\"Implemented new features\"]},{\"company\":\"Web Solutions\",\"position\":\"Senior Developer\",\"startDate\":\"2015-02-01\",\"endDate\":\"2020-01-01\",\"responsibilities\":[\"Architected software solutions\",\"Mentored junior developers\",\"Managed project timelines\"]}],\"skills\":[{\"name\":\"Java\",\"level\":\"expert\"},{\"name\":\"JavaScript\",\"level\":\"advanced\"},{\"name\":\"Python\",\"level\":\"intermediate\"}],\"certifications\":[{\"name\":\"Certified Java Developer\",\"issuedBy\":\"Oracle\",\"date\":\"2012-06-01\"},{\"name\":\"Certified Scrum Master\",\"issuedBy\":\"Scrum Alliance\",\"date\":\"2014-09-01\"}],\"languages\":[{\"name\":\"English\",\"proficiency\":\"native\"},{\"name\":\"Spanish\",\"proficiency\":\"conversational\"}],\"projects\":[{\"name\":\"Project Alpha\",\"description\":\"A web application for managing tasks\",\"technologies\":[\"Java\",\"Spring Boot\",\"React\"],\"role\":\"Lead Developer\",\"startDate\":\"2018-01-01\",\"endDate\":\"2019-01-01\"},{\"name\":\"Project Beta\",\"description\":\"A mobile app for tracking fitness\",\"technologies\":[\"Kotlin\",\"Android\",\"Firebase\"],\"role\":\"Developer\",\"startDate\":\"2019-02-01\",\"endDate\":\"2020-01-01\"}]}";
+    public static void main(String[] args) throws IOException {
+
+        //String speedTest = new String(Files.readAllBytes(new File("C:\\Work\\git\\_StockMind_Hive\\StockMindCentral\\resources\\conf\\FS.json").toPath()));
+        String speedTest = new String(Files.readAllBytes(new File("C:\\Users\\beom\\Downloads\\archive\\News_Category_Dataset_v3.json").toPath()));
 
 
 
@@ -288,28 +294,96 @@ public class JSON5ParserTest extends TestCase {
                 " unquoted_integer: 123" +
                 "}";*/
 
-        StringFormatOption<?> jsonOption = StringFormatOption.json();
+        JSONOptions jsonOption = StringFormatOption.json();
+        jsonOption.setAllowComments(false);
+        //jsonOption.setAllowConsecutiveCommas(false);
+        //jsonOption.setAllowTrailingComma(true);
+        //jsonOption.setAllowUnquoted(true);
 
         long start = 0;
         for(int c = 0; c < 100; ++c) {
 
 
+            /*
             start = System.currentTimeMillis();
-            for (int i = 0; i < 100000; i++) {
-                JSONObject jsonObject = new JSONObject(speedTest);
-                //jsonObject.getString("unquoted");
-                //jsonObject.getFloat("unquoted_integer");
+            for (int i = 0; i < 1; i++) {
+                JSONArray jsonObject = new JSONArray(speedTest);
+                jsonObject.toString();
             }
             System.out.println("org.json: " + (System.currentTimeMillis() - start));
+*/
+
 
 
             start = System.currentTimeMillis();
-            for (int i = 0; i < 100000; i++) {
-                CSONObject csonObject1 = new CSONObject(speedTest, jsonOption);
-                //csonObject1.getString("unquoted");
-                //csonObject1.getFloat("unquoted_integer");
+            for (int i = 0; i < 1; i++) {
+                CSONArray csonObject1 = new CSONArray(speedTest, StringFormatOption.json());
+                csonObject1.toString();
             }
             System.out.println("CSON: " + (System.currentTimeMillis() - start));
+
+
+            if(c == 0) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+
+        }
+
+
+    }
+
+    @Test
+    public void testPerformance() throws IOException {
+        //String speedTest = "{\"name\":\"John Doe\",\"age\":30,\"isEmployed\":true,\"address\":{\"street\":\"123 Main St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"},\"phoneNumbers\":[{\"type\":\"home\",\"number\":\"555-555-5555\"},{\"type\":\"work\",\"number\":\"555-555-5556\"}],\"email\":\"johndoe@example.com\",\"website\":\"http://www.johndoe.com\",\"children\":[{\"name\":\"Jane Doe\",\"age\":10,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}},{\"name\":\"Jim Doe\",\"age\":8,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}}],\"hobbies\":[\"reading\",\"hiking\",\"coding\"],\"education\":{\"highSchool\":{\"name\":\"Anytown High School\",\"yearGraduated\":2005},\"university\":{\"name\":\"State University\",\"yearGraduated\":2009,\"degree\":\"Bachelor of Science\",\"major\":\"Computer Science\"}},\"workExperience\":[{\"company\":\"Tech Corp\",\"position\":\"Software Engineer\",\"startDate\":\"2010-01-01\",\"endDate\":\"2015-01-01\",\"responsibilities\":[\"Developed web applications\",\"Led a team of 5 developers\",\"Implemented new features\"]},{\"company\":\"Web Solutions\",\"position\":\"Senior Developer\",\"startDate\":\"2015-02-01\",\"endDate\":\"2020-01-01\",\"responsibilities\":[\"Architected software solutions\",\"Mentored junior developers\",\"Managed project timelines\"]}],\"skills\":[{\"name\":\"Java\",\"level\":\"expert\"},{\"name\":\"JavaScript\",\"level\":\"advanced\"},{\"name\":\"Python\",\"level\":\"intermediate\"}],\"certifications\":[{\"name\":\"Certified Java Developer\",\"issuedBy\":\"Oracle\",\"date\":\"2012-06-01\"},{\"name\":\"Certified Scrum Master\",\"issuedBy\":\"Scrum Alliance\",\"date\":\"2014-09-01\"}],\"languages\":[{\"name\":\"English\",\"proficiency\":\"native\"},{\"name\":\"Spanish\",\"proficiency\":\"conversational\"}],\"projects\":[{\"name\":\"Project Alpha\",\"description\":\"A web application for managing tasks\",\"technologies\":[\"Java\",\"Spring Boot\",\"React\"],\"role\":\"Lead Developer\",\"startDate\":\"2018-01-01\",\"endDate\":\"2019-01-01\"},{\"name\":\"Project Beta\",\"description\":\"A mobile app for tracking fitness\",\"technologies\":[\"Kotlin\",\"Android\",\"Firebase\"],\"role\":\"Developer\",\"startDate\":\"2019-02-01\",\"endDate\":\"2020-01-01\"}]}";
+
+
+        String speedTest = new String(Files.readAllBytes(new File("C:\\Work\\git\\_StockMind_Hive\\StockMindCentral\\resources\\conf\\FS.json").toPath()));
+
+
+
+                /*"{\n" +
+                "  unquoted: and you can quote me on that," +
+                " unquoted_integer: 123" +
+                "}";*/
+
+        JSONOptions jsonOption = StringFormatOption.json();
+        jsonOption.setAllowComments(false);
+        //jsonOption.setAllowConsecutiveCommas(false);
+        //jsonOption.setAllowTrailingComma(true);
+        //jsonOption.setAllowUnquoted(true);
+
+        long start = 0;
+        for(int c = 0; c < 100; ++c) {
+
+
+            /*start = System.currentTimeMillis();
+            for (int i = 0; i < 10; i++) {
+                JSONObject jsonObject = new JSONObject(speedTest);
+
+            }
+            System.out.println("org.json: " + (System.currentTimeMillis() - start));*/
+
+
+            start = System.currentTimeMillis();
+            for (int i = 0; i < 10; i++) {
+                CSONObject csonObject1 = new CSONObject(speedTest, StringFormatOption.json());
+
+            }
+            System.out.println("CSON: " + (System.currentTimeMillis() - start));
+
+            if(c == 0) {
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
 
         }
     }

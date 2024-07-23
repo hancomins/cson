@@ -38,12 +38,15 @@ public class JSONWriterTest {
 
         CSONArray csonArray = new CSONArray();
         csonArray.put(0);
-        //csonArray.put(new CSONObject());
+        csonArray.put(new CSONObject());
         csonArray.put(1);
-        //csonArray.setCommentForValue(0, "comment before a value");
-        //csonArray.setCommentAfterValue(0, "comment after a value");
+        csonArray.put(new CSONArray());
+        csonArray.setCommentForValue(0, "comment before a value at index 0");
+        csonArray.setCommentAfterValue(0, "comment after a value at index 0");
         csonArray.setCommentForValue(1, "comment before a value at index 1");
         csonArray.setCommentAfterValue(1, "comment after a value at index 1");
+        csonArray.setCommentForValue(3, "comment before a value at index 3");
+        csonArray.setCommentAfterValue(3, "comment after a value at index 3");
 
         JSONWriter jsonWriter = new JSONWriter((JSONOptions) StringFormatOption.json5().setUnprettyArray(false));
         JSONWriter.writeJSONElement(csonArray, jsonWriter);
