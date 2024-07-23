@@ -24,6 +24,28 @@ public class CharacterBuffer {
         return new String(chars, 0, length);
     }
 
+    public String toTrimString() {
+        int start = 0;
+        int end= 0;
+        for(int i = 0; i < length; i++) {
+            if(!Character.isWhitespace(chars[i])) {
+                start = i;
+                break;
+            }
+        }
+        for(int i = length - 1; i >= 0; i--) {
+            if(!Character.isWhitespace(chars[i])) {
+                end = i;
+                break;
+            }
+        }
+        if(end <= start) {
+            return "";
+        }
+
+        return new String(chars, start, length - (length - end - start) + 1);
+    }
+
     public CharacterBuffer append(char c) {
         ensureCapacity(length + 1);
         chars[length++] = c;

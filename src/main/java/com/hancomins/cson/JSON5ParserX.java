@@ -2,9 +2,9 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.util.CharacterBuffer;
 
-import javax.xml.stream.events.Comment;
 import java.io.IOException;
 import java.io.Reader;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 
 class JSON5ParserX {
@@ -20,15 +20,15 @@ class JSON5ParserX {
         String,
         Value,
         WaitValue,
-        OpenArray,
-        CloseObject,
+        //OpenArray,
+        //CloseObject,
         CloseArray,
         WaitValueSeparator,
         NextStoreSeparator, // , 가 나오기를 기다림
         InKey,
         InKeyUnquoted,
         WaitKey,
-        WaitNextCommentChar,
+        //WaitNextCommentChar,
         InOpenComment,
         InCloseComment
 
@@ -73,7 +73,7 @@ class JSON5ParserX {
         }
     }
 
-    static CSONElement parsePureJSON(Reader reader, CSONElement rootElement, JSONOptions jsonOption) {
+    static CSONElement parse(Reader reader, CSONElement rootElement, JSONOptions jsonOption) {
 
         boolean singleQuote;
         boolean allowUnquotedKey;
@@ -119,8 +119,21 @@ class JSON5ParserX {
             int c;
 
             while((c = reader.read()) != -1) {
-                if(c == '\n') {
+                /*if(c == '\n') {
                     ++line;
+                }*/
+                if(currentMode == Mode.WaitKey || currentMode == Mode.WaitValue || currentMode == Mode.WaitValueSeparator || currentMode == Mode.NextStoreSeparator) {
+                    if(c == '\n' || c == '\r' || c == '\t' || c == ' ') {
+                        while((c = reader.read()) != -1) {
+                            if(c == '\n') {
+                                ++line;
+                            }
+                            if(c == '\r' || c == '\n' || c == '\t' || c == ' ') {
+                                continue;
+                            }
+                            break;
+                        }
+                    }
                 }
 
                 if(allowComment) {
@@ -162,7 +175,7 @@ class JSON5ParserX {
                         valueParseState.setOnlyString(true);
                         currentMode = Mode.InOpenComment;
                     }
-                    else if(c == '/' && currentMode != Mode.InKeyUnquoted) {
+                    else if(c == '/' && currentMode != Mode.InKeyUnquoted && currentMode != Mode.Value && currentMode != Mode.String) {
                         commentBeforeMode = currentMode;
                         readyComment = true;
                     } else {
@@ -171,7 +184,7 @@ class JSON5ParserX {
                 }
 
                 if(currentMode == Mode.InKeyUnquoted && (c == ':')) {
-                    String keyString = valueParseState.toString();
+                    String keyString = valueParseState.toTrimString();
                     if(keyString.isEmpty()) {
                         throw new CSONParseException(ExceptionMessages.getKeyNotFound(line, index));
                     }
@@ -185,7 +198,7 @@ class JSON5ParserX {
                 if((c != currentQuoteChar) && (currentMode == Mode.String || currentMode == Mode.InKey || currentMode == Mode.InKeyUnquoted)) {
                     valueParseState.append((char) c);
                 } else if((currentMode == Mode.Value) &&  (c != ',' && c != '}' && c != ']')) {
-                    if(Character.isWhitespace((char)c)) {
+                    if(c == '\n' || c == '\r') {
                         lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                         key = null;
                         keyCommentObject = null;
@@ -267,7 +280,7 @@ class JSON5ParserX {
                     currentElement = csonElements.getLast();
                 }
 
-                else if(currentMode == Mode.Value && Character.isWhitespace((char)c)) {
+                else if(currentMode == Mode.Value && (c == '\n' || c == '\r')) {
                     putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                     key = null;
                     keyCommentObject = null;
@@ -279,10 +292,14 @@ class JSON5ParserX {
 
                     if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
                         if(allowConsecutiveCommas) {
-                            lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                            // csonOBjcet 는 키가 있을때만 null 넣는다.
+                            if((key != null && currentElement instanceof CSONObject) || currentElement instanceof CSONArray) {
+                                lastKey = putData(null, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                            }
                             key = null;
                             keyCommentObject = null;
                             valueCommentObject = null;
+                            currentMode = Mode.NextStoreSeparator;
                         } else {
                             throw new CSONParseException("Unexpected character ',' at " + index);
                         }
@@ -311,6 +328,7 @@ class JSON5ParserX {
                     else if(currentMode == Mode.InKey) {
                         key = valueParseState.toString();
                         currentMode  = Mode.WaitValueSeparator;
+
                     }
 
                     currentQuoteChar = '\0';
@@ -318,7 +336,7 @@ class JSON5ParserX {
 
                 else if(isQuotedString((char)c, singleQuote)) {
                     currentQuoteChar = (char) c;
-                    if(currentMode != Mode.String && currentMode != Mode.WaitKey && currentMode != Mode.WaitValue && currentMode != Mode.InKey) {
+                    if(currentMode != Mode.String && currentMode != Mode.Value && currentMode != Mode.WaitKey && currentMode != Mode.WaitValue && currentMode != Mode.InKey) {
                         throw new CSONParseException("Unexpected character '\"' at " + index);
                     }
                     else if(currentMode == Mode.WaitValue) {
@@ -333,6 +351,7 @@ class JSON5ParserX {
                 }
 
                 else if(c == ':') {
+
                     if(currentMode != Mode.WaitValueSeparator) {
                         throw new CSONParseException("Unexpected character ':' at " + index);
                     } else {
@@ -395,15 +414,25 @@ class JSON5ParserX {
 
 
     private static String putData(ValueParseState valueParseState, CSONElement currentElement, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject) {
-        if(valueParseState.isNumber()) {
+
+        if(valueParseState == null) {
+            putNullData(currentElement, key);
+        }
+        else if(valueParseState.isNumber()) {
             putNumberData(currentElement, valueParseState.getNumber(), key);
         } else {
-            putStringData(currentElement, valueParseState.toString(), key);
+            Boolean booleanValue = valueParseState.getBoolean();
+            if (booleanValue != null) {
+                putBooleanData(currentElement, booleanValue, key);
+            } else {
+                putStringData(currentElement, valueParseState.toString(), key);
+            }
         }
         if(allowComment) {
             putComment(currentElement, key, keyCommentObject, valueCommentObject);
         }
         String lastKey = key;
+        valueParseState.reset();
         return lastKey;
     }
 
@@ -427,16 +456,31 @@ class JSON5ParserX {
         if(key != null) {
             ((CSONObject)currentElement).put(key, value);
         } else {
-            ((CSONArray)currentElement).add(value);
+            try {
+                ((CSONArray) currentElement).add(value);
+            } catch (Exception e) {
+                throw e;
+            }
         }
     }
 
+
+    private static void putNullData(CSONElement currentElement,String key) {
+        if(key != null) {
+            ((CSONObject)currentElement).put(key, null);
+        } else {
+            try {
+                ((CSONArray) currentElement).add(null);
+            } catch (Exception e) {
+                throw e;
+            }
+        }
+    }
 
 
     private static boolean isQuotedString(char c, boolean singleQuote) {
         return c == '"' || (singleQuote && c == '\'');
     }
-
 
 
     private static int trimLast(char[] numberString, int len) {

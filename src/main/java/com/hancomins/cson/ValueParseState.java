@@ -17,6 +17,8 @@ class ValueParseState {
     private static final char[] Null = new char[]{'n','u','l','l'};
     private static final char[] InfinitySign = new char[]{'i','n','f','i','n','i','t','y'};
     private static final char[] HexadecimalSign = new char[]{'0','x'};
+    private static final char[] TrueSign = new char[]{'t','r','u','e'};
+    private static final char[] FalseSign = new char[]{'f','a','l','s','e'};
 
 
     private int specialSymbolIndex = 0;
@@ -33,6 +35,8 @@ class ValueParseState {
         HexadecimalValue,
         Exponential,
         Number,
+        True,
+        False,
         String
     }
 
@@ -162,7 +166,16 @@ class ValueParseState {
                     doubtMode = DoubtMode.String;
                 }
                 appendChar(c);
-            } else if (c == '+') {
+            } else if (TrueSign[specialSymbolIndex] == lowChar) {
+                doubtMode = DoubtMode.True;
+                ++specialSymbolIndex;
+                appendChar(c);
+            } else if (FalseSign[specialSymbolIndex] == lowChar) {
+                doubtMode = DoubtMode.False;
+                ++specialSymbolIndex;
+                appendChar(c);
+            }
+            else if (c == '+') {
                 if(allowPositiveSign) {
                     doubtMode = DoubtMode.Number;
                     isAppearSign = true;
@@ -216,8 +229,27 @@ class ValueParseState {
                     doubtMode = DoubtMode.String;
                 }
                 appendChar(c);
+            } else if(doubtMode == DoubtMode.True) {
+                if(specialSymbolIndex == TrueSign.length) {
+                    doubtMode = DoubtMode.String;
+                }
+                else if(TrueSign[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
+            } else if(doubtMode == DoubtMode.False) {
+                if(specialSymbolIndex == FalseSign.length) {
+                    doubtMode = DoubtMode.String;
+                }
+                else if(FalseSign[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
             }
-
             else if(doubtMode == DoubtMode.Infinity) {
                 if(specialSymbolIndex == InfinitySign.length) {
                     doubtMode = DoubtMode.String;
@@ -363,14 +395,24 @@ class ValueParseState {
     }
 
     boolean isNumber() {
-        return doubtMode != DoubtMode.String;
+        return doubtMode != DoubtMode.String && doubtMode != DoubtMode.True && doubtMode != DoubtMode.False;
     }
+
+
+    Boolean getBoolean() {
+        if(doubtMode == DoubtMode.True) {
+            return Boolean.TRUE;
+        } else if(doubtMode == DoubtMode.False) {
+            return Boolean.FALSE;
+        }
+        return null;
+    }
+
 
     Number getNumber() {
         if(doubtMode == DoubtMode.Null) {
             return null;
         }
-
         if(isoCtrlInNumber) {
             String value = characterBuffer.toString();
             // ctrl 문자 제거
@@ -378,7 +420,6 @@ class ValueParseState {
             characterBuffer.setLength(0);
             characterBuffer.append(value);
             isoCtrlInNumber = false;
-
         }
 
 
@@ -499,7 +540,7 @@ class ValueParseState {
         if(doubtMode == DoubtMode.Null) {
             return null;
         }
-        return characterBuffer.toString().trim();
+        return characterBuffer.toTrimString();
     }
 
 

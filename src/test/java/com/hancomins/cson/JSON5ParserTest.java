@@ -1,13 +1,13 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.serializer.CSON;
 import junit.framework.TestCase;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 
 public class JSON5ParserTest extends TestCase {
@@ -31,11 +31,12 @@ public class JSON5ParserTest extends TestCase {
 
 
         String jsonValueUnquoted = "{\n" +
-                "  unquoted: and you can quote\n me on that\",\n" +
+                "  unquoted: 'and you can quote\n me on that\"',\n" +
                 " unquoted_integer: 123.0\n" +
                 "}";
 
-        //JSONObject jsonObject = new JSONObject(jsonValueUnquoted);
+
+
         csonObject = new CSONObject(jsonValueUnquoted, StringFormatOption.json());
         System.out.println(csonObject.toString());
         assertEquals(csonObject.get("unquoted"), "and you can quote\n me on that\"");
@@ -43,14 +44,15 @@ public class JSON5ParserTest extends TestCase {
 
 
         String jsonValueSingleUnquoted = "{\n" +
-                "  'singleQuoted': and you can quote\n me on that\",\n" +
-                " 'singleQuoted_float': 123.0\n" +
+                "  'singleQuoted': and you can quote me on that\"," +
+                " 'singleQuoted_float': 123.0" +
                 "}";
 
-        //JSONObject jsonObject = new JSONObject(jsonValueUnquoted);
+
+
         csonObject = new CSONObject(jsonValueSingleUnquoted, StringFormatOption.json());
         System.out.println(csonObject.toString());
-        assertEquals(csonObject.get("singleQuoted"), "and you can quote\n me on that\"");
+        assertEquals(csonObject.get("singleQuoted"), "and you can quote me on that\"");
         assertEquals(Double.valueOf(csonObject.getDouble("singleQuoted_float")),  Double.valueOf( 123.0));
 
 
@@ -66,7 +68,6 @@ public class JSON5ParserTest extends TestCase {
                     "  \"consecutiveCommas\": \"are just fine\",,,\n" +
                     " nullValue :  ,\n" +
                     " arrays: [1,2,,3,],\n" +
-
                     "}";
 
 
@@ -342,7 +343,25 @@ public class JSON5ParserTest extends TestCase {
         //String speedTest = "{\"name\":\"John Doe\",\"age\":30,\"isEmployed\":true,\"address\":{\"street\":\"123 Main St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"},\"phoneNumbers\":[{\"type\":\"home\",\"number\":\"555-555-5555\"},{\"type\":\"work\",\"number\":\"555-555-5556\"}],\"email\":\"johndoe@example.com\",\"website\":\"http://www.johndoe.com\",\"children\":[{\"name\":\"Jane Doe\",\"age\":10,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}},{\"name\":\"Jim Doe\",\"age\":8,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}}],\"hobbies\":[\"reading\",\"hiking\",\"coding\"],\"education\":{\"highSchool\":{\"name\":\"Anytown High School\",\"yearGraduated\":2005},\"university\":{\"name\":\"State University\",\"yearGraduated\":2009,\"degree\":\"Bachelor of Science\",\"major\":\"Computer Science\"}},\"workExperience\":[{\"company\":\"Tech Corp\",\"position\":\"Software Engineer\",\"startDate\":\"2010-01-01\",\"endDate\":\"2015-01-01\",\"responsibilities\":[\"Developed web applications\",\"Led a team of 5 developers\",\"Implemented new features\"]},{\"company\":\"Web Solutions\",\"position\":\"Senior Developer\",\"startDate\":\"2015-02-01\",\"endDate\":\"2020-01-01\",\"responsibilities\":[\"Architected software solutions\",\"Mentored junior developers\",\"Managed project timelines\"]}],\"skills\":[{\"name\":\"Java\",\"level\":\"expert\"},{\"name\":\"JavaScript\",\"level\":\"advanced\"},{\"name\":\"Python\",\"level\":\"intermediate\"}],\"certifications\":[{\"name\":\"Certified Java Developer\",\"issuedBy\":\"Oracle\",\"date\":\"2012-06-01\"},{\"name\":\"Certified Scrum Master\",\"issuedBy\":\"Scrum Alliance\",\"date\":\"2014-09-01\"}],\"languages\":[{\"name\":\"English\",\"proficiency\":\"native\"},{\"name\":\"Spanish\",\"proficiency\":\"conversational\"}],\"projects\":[{\"name\":\"Project Alpha\",\"description\":\"A web application for managing tasks\",\"technologies\":[\"Java\",\"Spring Boot\",\"React\"],\"role\":\"Lead Developer\",\"startDate\":\"2018-01-01\",\"endDate\":\"2019-01-01\"},{\"name\":\"Project Beta\",\"description\":\"A mobile app for tracking fitness\",\"technologies\":[\"Kotlin\",\"Android\",\"Firebase\"],\"role\":\"Developer\",\"startDate\":\"2019-02-01\",\"endDate\":\"2020-01-01\"}]}";
 
 
-        String speedTest = new String(Files.readAllBytes(new File("C:\\Work\\git\\_StockMind_Hive\\StockMindCentral\\resources\\conf\\FS.json").toPath()));
+        String sampleName = "sample1.json";
+        String testData;
+        try(InputStream inputStream = getClass().getClassLoader().getResourceAsStream(sampleName);  ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            if(inputStream == null) {
+                throw new RuntimeException("Cannot find sample data: " + sampleName);
+            }
+            byte[] buffer = new byte[1024];
+
+            int read = 0;
+            while((read = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, read);
+            }
+            testData = new String(outputStream.toByteArray());
+        }
+
+        //testData = testData.replace(" ", "").replace("\n", "").replace("\r", "");
+
+
+        //String speedTest = new String(Files.readAllBytes(new File("C:\\Work\\git\\_StockMind_Hive\\StockMindCentral\\resources\\conf\\FS.json").toPath()));
 
 
 
@@ -357,35 +376,45 @@ public class JSON5ParserTest extends TestCase {
         //jsonOption.setAllowTrailingComma(true);
         //jsonOption.setAllowUnquoted(true);
 
+        final int testCaseInCycle = 10000;
+        final int preheatCycle = 50;
+        final int cycle = 20 + preheatCycle;
+        boolean csonTest = false;
+        long totalCount = 0;
+        long totalTime = 0;
+        int preheatCount = preheatCycle;
+
         long start = 0;
-        for(int c = 0; c < 100; ++c) {
+        for(int c = 0; c < cycle; ++c) {
 
+            long time = 0;
 
-            /*start = System.currentTimeMillis();
-            for (int i = 0; i < 10; i++) {
-                JSONObject jsonObject = new JSONObject(speedTest);
-
-            }
-            System.out.println("org.json: " + (System.currentTimeMillis() - start));*/
-
-
-            start = System.currentTimeMillis();
-            for (int i = 0; i < 10; i++) {
-                CSONObject csonObject1 = new CSONObject(speedTest, StringFormatOption.json());
-
-            }
-            System.out.println("CSON: " + (System.currentTimeMillis() - start));
-
-            if(c == 0) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+            if(csonTest) {
+                start = System.currentTimeMillis();
+                for (int i = 0; i < testCaseInCycle; i++) {
+                    CSONObject csonObject1 = new CSONObject(testData, StringFormatOption.json());
                 }
+                time = System.currentTimeMillis() - start;
+                System.out.println("CSON: " + time);
+            } else {
+                start = System.currentTimeMillis();
+                for (int i = 0; i < testCaseInCycle; i++) {
+                    JSONObject jsonObject = new JSONObject(testData);
+                }
+                time = System.currentTimeMillis() - start;
+                System.out.println("org.json: " + time);
+
             }
-
-
+            if(c >= preheatCycle) {
+                totalTime += time;
+                totalCount += testCaseInCycle;
+            } else {
+                System.out.println("Preheat: " + --preheatCount);
+            }
         }
+
+        System.out.println("Average: " + (totalTime / (double)totalCount) + "ms");
+        System.out.println("Total: " + totalTime + "ms");
     }
 
 }
