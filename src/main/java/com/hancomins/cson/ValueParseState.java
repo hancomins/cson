@@ -382,16 +382,19 @@ class ValueParseState {
                     break;
             }
         } else if(!allowControlChar && Character.isISOControl(c)) {
-
             throw new CSONException(ExceptionMessages.getCtrlCharNotAllowed(c));
         }
-
 
         else {
             characterBuffer.append(c);
         }
+    }
 
-
+    void prev() {
+        int len = characterBuffer.length();
+        if(len > 0) {
+            characterBuffer.setLength(len - 1);
+        }
     }
 
     boolean isNumber() {
@@ -555,6 +558,10 @@ class ValueParseState {
 
     private static boolean isHexadecimalChar(char c) {
         return Character.isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+    }
+
+    boolean isEmpty() {
+        return characterBuffer.isEmpty();
     }
 
 

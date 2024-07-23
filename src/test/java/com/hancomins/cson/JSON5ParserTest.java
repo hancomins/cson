@@ -5,10 +5,8 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 
 public class JSON5ParserTest extends TestCase {
 
@@ -190,6 +188,8 @@ public class JSON5ParserTest extends TestCase {
         System.out.println(csonObject);
 
         csonObject = new CSONObject(csonObject.toString(), StringFormatOption.json5());
+
+        System.out.println(csonObject);
 
 
         assertEquals("This is a comment before key", csonObject.getCommentOfKey("comment"));
