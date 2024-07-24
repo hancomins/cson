@@ -5,6 +5,7 @@ import org.json.JSONObject;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Random;
 
 import static org.junit.Assert.*;
@@ -59,6 +60,10 @@ public class CSONObjectTest {
     public void cloneAndEqualsTest() throws  Exception {
 
 
+        JSONObject jsonObjectX = new JSONObject("{char:'c'}");
+
+
+
 
         JSONObject jsonObject = new JSONObject("{\"key\": \"va \\\" \\n \\r lue\"}");
 
@@ -78,9 +83,10 @@ public class CSONObjectTest {
         JSONObject jsonObject1 = new JSONObject(csonObject.toString(JSONOptions.json()));
         assertEquals(csonObject2,new CSONObject(csonObject.toString(JSONOptions.json())));
 
+        JSONOptions jsonOptions = JSONOptions.json().setPretty(true);
 
 
-        assertEquals(csonObject2.toString(),new CSONObject(csonObject.toString(JSONOptions.json())).toString());
+        assertEquals(csonObject2.toString(jsonOptions),new CSONObject(csonObject.toString(jsonOptions)).toString(jsonOptions));
         assertEquals(csonObject2,new CSONObject(csonObject.toBytes()));
     }
 
@@ -90,7 +96,9 @@ public class CSONObjectTest {
         CSONObject csonObject = makeCSOObject();
 
         byte[] buffer = csonObject.getByteArray("byte[]");
-        byte[] cson = csonObject.toBytes();
+        byte[] cson = csonObject.toCSONBinary();
+
+
 
         CSONObject compareCSONObject = new CSONObject(cson);
 
@@ -106,6 +114,10 @@ public class CSONObjectTest {
         assertEquals((short)32000, compareCSONObject.getShort("short"));
         assertEquals((byte)128, compareCSONObject.getByte("byte"));
         assertEquals("stri \" \n\rng", compareCSONObject.getString("string"));
+
+
+        String aa = compareCSONObject.getString("byte[]");
+
         assertArrayEquals(buffer, compareCSONObject.getByteArray("byte[]"));
 
         CSONArray csonArray = compareCSONObject.getCSONArray("array");
@@ -136,6 +148,7 @@ public class CSONObjectTest {
         CSONObject csonObject = makeCSOObject();
 
         byte[] buffer = csonObject.getByteArray("byte[]");
+        byte[] bufferOrigin = buffer;
         String jsonString = csonObject.toString(JSONOptions.json());
 
 
@@ -144,6 +157,7 @@ public class CSONObjectTest {
 
 
         System.out.println(jsonString);
+        String bufferBase64 = "base64," + Base64.getEncoder().encodeToString(buffer);
         CSONObject compareCSONObject = new CSONObject(jsonString, JSONOptions.json());
 
 
@@ -156,7 +170,10 @@ public class CSONObjectTest {
         assertEquals((short)32000, compareCSONObject.getShort("short"));
         assertEquals((byte)128, compareCSONObject.getByte("byte"));
         assertEquals("stri \" \n\rng", compareCSONObject.getString("string"));
-        assertArrayEquals(buffer, compareCSONObject.getByteArray("byte[]"));
+
+
+        assertEquals(bufferBase64, compareCSONObject.getString("byte[]"));
+        assertArrayEquals(bufferOrigin, compareCSONObject.getByteArray("byte[]"));
 
         CSONArray csonArray = compareCSONObject.getCSONArray("array");
         assertEquals(1, csonArray.get(0));

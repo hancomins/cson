@@ -87,8 +87,9 @@ class ValueParseState {
         ignoreNonNumeric = numberConversionOption.isIgnoreNonNumeric();
     }
 
-    public void setAllowControlChar(boolean allowControlChar) {
+    public ValueParseState setAllowControlChar(boolean allowControlChar) {
         this.allowControlChar = allowControlChar;
+        return this;
     }
 
     /**
@@ -99,9 +100,10 @@ class ValueParseState {
         //this.ignoreNonNumeric = onlyNumber;
     }
 
-    public void setOnlyString(boolean onlyString) {
+    public ValueParseState setOnlyString(boolean onlyString) {
         this.doubtMode = DoubtMode.String;
         this.onlyString = onlyString;
+        return this;
     }
 
     public void setTrimResult(boolean trimResult) {
@@ -119,7 +121,7 @@ class ValueParseState {
         }
     }
 
-    void reset() {
+    ValueParseState reset() {
         characterBuffer.reset();
         index = 0;
         doubtMode = DoubtMode.Number;
@@ -136,6 +138,7 @@ class ValueParseState {
         markStartUnicodeIndex = -1;
         isoCtrlInNumber = false;
         onlyString = false;
+        return this;
     }
 
 

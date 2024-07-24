@@ -1,12 +1,12 @@
 package com.hancomins.cson;
 
 
-import com.hancomins.cson.util.Base64;
 import com.hancomins.cson.util.NullValue;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -190,8 +190,7 @@ public abstract  class CSONElement implements Iterable<Object>  {
 
 	public static byte[] base64StringToByteArray(String value) {
 		value = BASE64_PREFIX_REPLACE_PATTERN.matcher(value).replaceAll("");
-		return Base64.decode(value);
-
+		return Base64.getDecoder().decode(value);
 	}
 
 	public abstract void clear();
@@ -209,8 +208,8 @@ public abstract  class CSONElement implements Iterable<Object>  {
 			} else if(value == null) {
 				return false;
 			}
-			String strObj = obj instanceof byte[] ? Base64.encode((byte[]) obj) : obj.toString();
-			String strValue = value instanceof byte[] ? Base64.encode((byte[])value) : value.toString();
+			String strObj = obj instanceof byte[] ? Base64.getEncoder().encodeToString((byte[]) obj) : obj.toString();
+			String strValue = value instanceof byte[] ? Base64.getEncoder().encodeToString((byte[])value) : value.toString();
 			if(strObj.equals(strValue)) {
 				return true;
 			}

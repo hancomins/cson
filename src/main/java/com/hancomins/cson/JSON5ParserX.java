@@ -402,14 +402,16 @@ class JSON5ParserX {
                     }
                     else if(currentMode == Mode.WaitValue) {
                         currentMode = Mode.String;
+                        currentQuoteChar = (char) c;
+                        valueParseState.reset().setOnlyString(true).setAllowControlChar(true);
                     }
                     else if(currentMode == Mode.WaitKey) {
                         currentMode  = Mode.InKey;
+                        currentQuoteChar = (char) c;
+                        valueParseState.reset().setOnlyString(true).setAllowControlChar(true);
+                    } else {
+                        valueParseState.append((char)c);
                     }
-                    currentQuoteChar = (char) c;
-                    valueParseState.reset();
-                    valueParseState.setOnlyString(true);
-                    valueParseState.setAllowControlChar(true);
                 }
 
                 else if(c == ':') {

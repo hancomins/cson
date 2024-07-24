@@ -24,10 +24,11 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setAllowSingleQuotes(true);
             jsonOptions.setAllowHexadecimal(true);
             jsonOptions.setLeadingZeroOmission(false);
-            jsonOptions.setAllowCharacter(true);
+            //jsonOptions.setAllowCharacter(true);
             jsonOptions.setAllowTrailingComma(true);
             jsonOptions.setAllowConsecutiveCommas(true);
-
+            jsonOptions.setKeyQuote("\"");
+            jsonOptions.setValueQuote("\"");
             return jsonOptions;
         }
 
@@ -48,7 +49,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setAllowSingleQuotes(true);
             jsonOptions.setAllowHexadecimal(true);
             jsonOptions.setLeadingZeroOmission(true);
-            jsonOptions.setAllowCharacter(true);
+            //jsonOptions.setAllowCharacter(true);
             jsonOptions.setAllowTrailingComma(true);
             jsonOptions.setAllowBreakLine(true);
             jsonOptions.formatType = StringFormatType.JSON5;
@@ -72,7 +73,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
 
         private boolean isLeadingZeroOmission = false;
 
-        private boolean allowCharacter = false;
+        //private boolean allowCharacter = false;
 
         private boolean allowTrailingComma = false;
 
@@ -266,14 +267,14 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return this;
         }
 
-        public boolean isAllowCharacter() {
+        /*public boolean isAllowCharacter() {
             return allowCharacter;
-        }
+        }*/
 
-        public JSONOptions setAllowCharacter(boolean allowCharacter) {
+        /*public JSONOptions setAllowCharacter(boolean allowCharacter) {
             this.allowCharacter = allowCharacter;
             return this;
-        }
+        }*/
 
 
     @Override

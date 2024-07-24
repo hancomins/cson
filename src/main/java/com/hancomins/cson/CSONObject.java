@@ -210,11 +210,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	CSONObject(JSONTokener x) throws CSONException {
-		super(ElementType.Object, x.getJsonOption());
-		new JSONParser(x).parseObject(this);
-	}
-
 
 
 	public CSONObject() {

@@ -169,13 +169,6 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	}
 
 
-
-	CSONArray(JSONTokener x) {
-		super(ElementType.Array, x.getJsonOption());
-		new JSONParser(x).parseArray(this);
-	}
-
-
 	public CSONArray(int capacity) {
 		super(ElementType.Array, getDefaultStringFormatOption());
 		this.list.ensureCapacity(capacity);

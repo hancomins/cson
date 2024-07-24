@@ -152,6 +152,41 @@ public class JSON5ParserTest extends TestCase {
     }
 
     @Test
+    public void testCSONArray() {
+        String array = "[1,2,3.3,4,5.5]";
+        CSONArray csonArray = new CSONArray(array, StringFormatOption.json());
+        assertEquals(1, csonArray.getInt(0));
+        assertEquals(2, csonArray.getInt(1));
+        assertEquals(3.3, csonArray.getDouble(2), 0.0001);
+        assertEquals(4, csonArray.getInt(3));
+        assertEquals(5.5, csonArray.getDouble(4), 0.0001);
+
+        System.out.println(csonArray.toString());
+
+        csonArray = new CSONArray(csonArray.toString(), StringFormatOption.json());
+        assertEquals(1, csonArray.getInt(0));
+        assertEquals(2, csonArray.getInt(1));
+        assertEquals(3.3, csonArray.getDouble(2), 0.0001);
+        assertEquals(4, csonArray.getInt(3));
+        assertEquals(5.5, csonArray.getDouble(4), 0.0001);
+
+
+    }
+
+    @Test
+    public void testWeirdString() {
+        CSONObject csonObject = new CSONObject(StringFormatOption.json());
+        csonObject.put("weirdString", "stri \" \n\rng");
+        assertEquals("stri \" \n\rng", csonObject.optString("weirdString"));
+
+        System.out.println(csonObject.toString());
+        csonObject = new CSONObject(csonObject.toString(), StringFormatOption.json());
+        System.out.println(csonObject.toString());
+
+
+    }
+
+    @Test
     public void testNullValue() {
         String complexJson5 = "{\n" +
                 "  nullValue: \n\n null\n\n,\n" +

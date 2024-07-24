@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class DataConverter {
 
@@ -450,7 +451,7 @@ public class DataConverter {
 		}
 		else if(value instanceof byte[]) {
 			byte[] buffer = (byte[])value;
-			return Base64.encode(buffer);
+			return Base64.getEncoder().encodeToString(buffer);
 		}
 
 		return value + "";
@@ -508,6 +509,19 @@ public class DataConverter {
 			return (byte[])obj;
 		}
 		else if(obj instanceof CharSequence) {
+			String strValue = obj.toString();
+			int index = strValue.indexOf(',');
+			if(index < 0) {
+				index = strValue.indexOf(':');
+			}
+			if(index > 0) {
+				String prefix = strValue.substring(0, index);
+				if (prefix.equalsIgnoreCase("base64")) {
+					return Base64.getDecoder().decode(strValue.substring(index + 1));
+				}
+			}
+
+
 			return ((String)obj).getBytes(StandardCharsets.UTF_8);
 		}
 		else if(obj instanceof Boolean) {

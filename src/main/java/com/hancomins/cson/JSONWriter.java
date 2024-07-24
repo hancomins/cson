@@ -1,6 +1,5 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.util.Base64;
 import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.EscapeUtil;
 import com.hancomins.cson.util.NullValue;
@@ -8,6 +7,7 @@ import com.hancomins.cson.util.NullValue;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayDeque;
+import java.util.Base64;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -334,7 +334,7 @@ public class JSONWriter {
 		removeStack();
 		writeBeforeComment(COMMENT_SLASH_STAR);
 		stringBuilder.append("\"base64,");
-		stringBuilder.append(Base64.encode(value));
+		stringBuilder.append(Base64.getEncoder().encodeToString(value));
 		stringBuilder.append('"');
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
@@ -353,6 +353,7 @@ public class JSONWriter {
 			nullValue();
 			return this;
 		}
+
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -366,12 +367,12 @@ public class JSONWriter {
 			stringBuilder.append(value.toString());
 		} else if(value instanceof byte[]) {
 			stringBuilder.append("\"base64,");
-			stringBuilder.append(Base64.encode((byte[])value));
+			stringBuilder.append(Base64.getEncoder().encodeToString((byte[])value));
 			stringBuilder.append('"');
 		} else  {
-			stringBuilder.append('"');
-			stringBuilder.append(value + "");
-			stringBuilder.append('"');
+			stringBuilder.append(valueQuote);
+			stringBuilder.append(String.valueOf(value));
+			stringBuilder.append(valueQuote);
 		}
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
@@ -441,7 +442,7 @@ public class JSONWriter {
 		}
 		removeStack();
 		writeBeforeComment(COMMENT_SLASH_STAR);
-		String quote =  jsonOptions.isAllowCharacter() ? "'" : valueQuote;
+		String quote =  valueQuote;
 		hasValue = true;
 		stringBuilder.append(quote);
 		stringBuilder.append(value);
@@ -568,7 +569,7 @@ public class JSONWriter {
 		checkAndAppendInArray();
 		hasValue = true;
 		stringBuilder.append("\"base64,");
-		stringBuilder.append(Base64.encode(value));
+		stringBuilder.append(Base64.getEncoder().encodeToString(value));
 		stringBuilder.append('"');
 		writeAfterComment(COMMENT_SLASH_STAR);;
 		return this;
@@ -687,7 +688,7 @@ public class JSONWriter {
 
 	public JSONWriter add(char value) {
 		checkAndAppendInArray();
-		String quote =  jsonOptions.isAllowCharacter() ? "'" : valueQuote;
+		String quote =   valueQuote;
 		stringBuilder.append(quote);
 		stringBuilder.append(value);
 		stringBuilder.append(quote);
@@ -904,18 +905,18 @@ public class JSONWriter {
 
 						break;
 						//writer.key(key).value((CSONElement) obj);
-					} else if (obj instanceof Byte) {
-						writer.key(key).value((byte) obj);
-					} else if (obj instanceof Short) writer.key(key).value((short) obj);
+					} else if (obj instanceof Byte) writer.key(key).value((byte) obj);
+					else if (obj instanceof Boolean) writer.key(key).value((boolean) obj);
+					else if (obj instanceof Short) writer.key(key).value((short) obj);
 					else if (obj instanceof Character) writer.key(key).value((char) obj);
 					else if (obj instanceof Integer) writer.key(key).value((int) obj);
 					else if (obj instanceof Float) writer.key(key).value((float) obj);
 					else if (obj instanceof Long) writer.key(key).value((long) obj);
 					else if (obj instanceof Double) writer.key(key).value((double) obj);
 					else if (obj instanceof String) writer.key(key).value((String) obj);
-					else if (obj instanceof Boolean) writer.key(key).value((boolean) obj);
 					else if (obj instanceof BigDecimal) writer.key(key).value(obj);
 					else if (obj instanceof BigInteger) writer.key(key).value(obj);
+					else if (obj instanceof Enum) writer.key(key).value(obj);
 					else if (obj instanceof byte[]) writer.key(key).value((byte[]) obj);
 					else if (currentObject.isAllowRawValue()) {
 						writer.key(key).value(obj.toString());
@@ -971,8 +972,13 @@ public class JSONWriter {
 					else if(obj instanceof Long) writer.add((Long)obj);
 					else if(obj instanceof Double) writer.add((Double)obj);
 					else if(obj instanceof String) writer.add((String)obj);
+					else if (obj instanceof BigDecimal) writer.add((BigDecimal)obj);
+					else if (obj instanceof BigInteger) writer.add((BigInteger)obj);
 					else if(obj instanceof byte[]) writer.add((byte[])obj);
 					else if(obj instanceof Boolean) writer.add((Boolean)obj);
+					else if (currentArray.isAllowRawValue()) {
+						writer.add(obj.toString());
+					}
 				}
 				if(!skipClose) {
 					writer.closeArray();
