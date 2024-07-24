@@ -58,6 +58,7 @@ class ValueParseState {
     private boolean allowPositiveSign = false;
     private boolean ignoreNonNumeric = false;
 
+    private boolean trimResult = false;
 
 
     private boolean isoCtrlInNumber = false;
@@ -101,6 +102,10 @@ class ValueParseState {
     public void setOnlyString(boolean onlyString) {
         this.doubtMode = DoubtMode.String;
         this.onlyString = onlyString;
+    }
+
+    public void setTrimResult(boolean trimResult) {
+        this.trimResult = trimResult;
     }
 
 
@@ -535,6 +540,9 @@ class ValueParseState {
     public String toString() {
         if(doubtMode == DoubtMode.Null) {
             return null;
+        }
+        if(trimResult) {
+            return characterBuffer.toTrimString();
         }
         return characterBuffer.toString();
     }

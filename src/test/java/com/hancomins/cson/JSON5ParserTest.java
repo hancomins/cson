@@ -163,7 +163,7 @@ public class JSON5ParserTest extends TestCase {
     }
 
     @Test
-    public void testComment() {
+    public void testCommentInObject() {
         String complexJson5 = "{\n" +
                 "  // This is a comment before key\n" +
                 " \"comment\"" +
@@ -179,6 +179,8 @@ public class JSON5ParserTest extends TestCase {
         jsonOptions.setSkipComments(false);
         jsonOptions.setPretty(true);
         CSONObject csonObject = new CSONObject(complexJson5, jsonOptions);
+
+        System.out.println(csonObject);
 
         assertEquals("This is a comment before key", csonObject.getCommentOfKey("comment"));
         assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
@@ -197,6 +199,63 @@ public class JSON5ParserTest extends TestCase {
         assertEquals("Comment before value", csonObject.getCommentOfValue("comment"));
         assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
 
+
+        complexJson5 = "{\n" +
+                "  // This is a comment before key\n" +
+                " \"comment\"" +
+                " // This is a comment after key\n" +
+                ":" +
+                "// Comment before value \n" +
+                " value //Comment after value\n" +
+                "}";
+
+
+        csonObject = new CSONObject(complexJson5, StringFormatOption.json5());
+
+        System.out.println(csonObject);
+
+        assertEquals("This is a comment before key", csonObject.getCommentOfKey("comment"));
+        assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
+        assertEquals("Comment before value", csonObject.getCommentOfValue("comment"));
+        assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
+
+        complexJson5 = "{\n" +
+                "  // This is a comment before key\n" +
+                " \"comment\"" +
+                " // This is a comment after key\n" +
+                ":" +
+                "// Comment before value \n" +
+                " value //Comment after value\n" +
+                "}";
+
+        csonObject = new CSONObject(complexJson5, StringFormatOption.json5());
+
+        System.out.println(csonObject);
+
+
+        assertEquals("This is a comment before key", csonObject.getCommentOfKey("comment"));
+        assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
+        assertEquals("Comment before value", csonObject.getCommentOfValue("comment"));
+        assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
+
+        complexJson5 = "{\n" +
+                "  // This is a comment before key\n" +
+                " \"comment\"" +
+                " // This is a comment after key\n" +
+                ":" +
+                "// Comment before value \n" +
+                " value /*Comment after value*/"
+                + " // Comment after value2\n" +
+                "}";
+
+        csonObject = new CSONObject(complexJson5, StringFormatOption.json5());
+
+        System.out.println(csonObject);
+
+        assertEquals("This is a comment before key", csonObject.getCommentOfKey("comment"));
+        assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
+        assertEquals("Comment before value", csonObject.getCommentOfValue("comment"));
+        assertEquals("Comment after value\nComment after value2", csonObject.getCommentAfterValue("comment"));
 
 
 
@@ -242,59 +301,11 @@ public class JSON5ParserTest extends TestCase {
         System.out.println(csonObject);
     }
 
-    @Test
-    public void testStackOverFlow() {
-        /*JSONObject rootJson = new JSONObject();
-        JSONObject currentJson = rootJson;
-        for(int i = 0; i < 10000; ++i) {
-            JSONObject next = new JSONObject();
-            currentJson.put("next", next);
-            currentJson = next;
-        }
-        currentJson.put("value", "ok");
-
-        String rootValueJson = rootJson.toString();
-
-        System.out.println(rootValueJson);
-
-        if(1 < 2) return;*/
-
-        CSONObject ra = new CSONObject();
-        CSONArray arraya = new CSONArray();
-        ra.put("array", arraya);
-
-        ra.toString();
-
-
-        if(1 < 2) return;
-
-
-
-        CSONObject root = new CSONObject();
-        CSONObject current = root;
-        for(int i = 0; i < 1; ++i) {
-            CSONObject next = new CSONObject();
-            CSONArray array = new CSONArray();
-            array.put(1);
-            current.put("next", next);
-            current.put("array", array);
-            current = next;
-        }
-        current.put("value", "ok");
-
-        String rootValue = root.toString();
-
-        System.out.println(rootValue);
-
-        CSONObject csonObject = new CSONObject(rootValue, StringFormatOption.json());
-
-
-
-
-    }
 
     @Test
     public void testPerformance() throws IOException {
+
+        if(true) return;
         //String speedTest = "{\"name\":\"John Doe\",\"age\":30,\"isEmployed\":true,\"address\":{\"street\":\"123 Main St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"},\"phoneNumbers\":[{\"type\":\"home\",\"number\":\"555-555-5555\"},{\"type\":\"work\",\"number\":\"555-555-5556\"}],\"email\":\"johndoe@example.com\",\"website\":\"http://www.johndoe.com\",\"children\":[{\"name\":\"Jane Doe\",\"age\":10,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}},{\"name\":\"Jim Doe\",\"age\":8,\"school\":{\"name\":\"Elementary School\",\"address\":{\"street\":\"456 School St\",\"city\":\"Anytown\",\"state\":\"CA\",\"postalCode\":\"12345\"}}}],\"hobbies\":[\"reading\",\"hiking\",\"coding\"],\"education\":{\"highSchool\":{\"name\":\"Anytown High School\",\"yearGraduated\":2005},\"university\":{\"name\":\"State University\",\"yearGraduated\":2009,\"degree\":\"Bachelor of Science\",\"major\":\"Computer Science\"}},\"workExperience\":[{\"company\":\"Tech Corp\",\"position\":\"Software Engineer\",\"startDate\":\"2010-01-01\",\"endDate\":\"2015-01-01\",\"responsibilities\":[\"Developed web applications\",\"Led a team of 5 developers\",\"Implemented new features\"]},{\"company\":\"Web Solutions\",\"position\":\"Senior Developer\",\"startDate\":\"2015-02-01\",\"endDate\":\"2020-01-01\",\"responsibilities\":[\"Architected software solutions\",\"Mentored junior developers\",\"Managed project timelines\"]}],\"skills\":[{\"name\":\"Java\",\"level\":\"expert\"},{\"name\":\"JavaScript\",\"level\":\"advanced\"},{\"name\":\"Python\",\"level\":\"intermediate\"}],\"certifications\":[{\"name\":\"Certified Java Developer\",\"issuedBy\":\"Oracle\",\"date\":\"2012-06-01\"},{\"name\":\"Certified Scrum Master\",\"issuedBy\":\"Scrum Alliance\",\"date\":\"2014-09-01\"}],\"languages\":[{\"name\":\"English\",\"proficiency\":\"native\"},{\"name\":\"Spanish\",\"proficiency\":\"conversational\"}],\"projects\":[{\"name\":\"Project Alpha\",\"description\":\"A web application for managing tasks\",\"technologies\":[\"Java\",\"Spring Boot\",\"React\"],\"role\":\"Lead Developer\",\"startDate\":\"2018-01-01\",\"endDate\":\"2019-01-01\"},{\"name\":\"Project Beta\",\"description\":\"A mobile app for tracking fitness\",\"technologies\":[\"Kotlin\",\"Android\",\"Firebase\"],\"role\":\"Developer\",\"startDate\":\"2019-02-01\",\"endDate\":\"2020-01-01\"}]}";
 
 

@@ -115,6 +115,10 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	}
 
 
+
+
+
+
 	public String getCommentAfterThis() {
 		return commentAfterElement == null ? null : commentAfterElement.getComment();
 	}

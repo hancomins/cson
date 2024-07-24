@@ -28,6 +28,22 @@ public class CommentObject implements  Cloneable {
         this.afterComment = afterComment;
     }
 
+    void appendBeforeComment(String comment) {
+        if(beforeComment == null) {
+            beforeComment = comment;
+        } else {
+            beforeComment += "\n" + comment;
+        }
+    }
+
+    void appendAfterComment(String comment) {
+        if(afterComment == null) {
+            afterComment = comment;
+        } else {
+            afterComment += "\n" + comment;
+        }
+    }
+
 
     public String getComment() {
         if(beforeComment == null && afterComment == null) {

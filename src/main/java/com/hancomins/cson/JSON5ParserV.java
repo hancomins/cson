@@ -131,28 +131,32 @@ class JSON5ParserV {
                         if(c == '\n') {
                             currentMode = commentBeforeMode;
                             if(currentMode == Mode.WaitKey) {
-                                keyCommentObject = new CommentObject();
-                                keyCommentObject.setBeforeComment(valueParseState.toTrimString());
+                                if(keyCommentObject == null) {
+                                    keyCommentObject = new CommentObject();
+                                }
+                                keyCommentObject.appendBeforeComment(valueParseState.toTrimString());
                             }
 
                             else if(currentMode == Mode.WaitValueSeparator) {
                                 if(keyCommentObject == null) {
                                     keyCommentObject = new CommentObject();
                                 }
-                                keyCommentObject.setAfterComment(valueParseState.toTrimString());
+                                keyCommentObject.appendAfterComment(valueParseState.toTrimString());
                             } else if(currentMode == Mode.WaitValue) {
                                 if(valueCommentObject == null) {
                                     valueCommentObject = new CommentObject();
                                 }
-                                valueCommentObject.setBeforeComment(valueParseState.toTrimString());
+                                valueCommentObject.appendBeforeComment(valueParseState.toTrimString());
                             }
                             else if(currentMode == Mode.NextStoreSeparator) {
                                 if(currentElement instanceof CSONObject && lastKey != null) {
-                                    ((CSONObject)currentElement).setCommentAfterValue(lastKey, valueParseState.toTrimString());
+                                    CommentObject commentObject = ((CSONObject)currentElement).getOrCreateCommentObjectOfValue(lastKey);
+                                    commentObject.appendAfterComment(valueParseState.toTrimString());
                                 } else if(currentElement instanceof CSONArray) {
                                      CSONArray array = (CSONArray)currentElement;
                                      if(!array.isEmpty()) {
-                                         array.setCommentAfterValue(array.size() - 1, valueParseState.toTrimString());
+                                         CommentObject commentObject = array.getOrCreateCommentObject(array.size() - 1);
+                                         commentObject.appendAfterComment(valueParseState.toTrimString());
                                      }
                                 }
                             }

@@ -282,6 +282,14 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	}
 
 
+	protected CommentObject getOrCreateCommentObject(int index) {
+		CommentObject commentObject = getCommentObject(index);
+		if(commentObject == null) {
+			commentObject = new CommentObject();
+			setCommentObject(index, commentObject);
+		}
+		return commentObject;
+	}
 
 
 	public CommentObject getCommentObject(int index) {
