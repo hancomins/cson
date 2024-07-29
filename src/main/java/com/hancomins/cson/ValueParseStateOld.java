@@ -8,21 +8,21 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-class ValueParseState {
+class ValueParseStateOld {
 
     private static ConcurrentLinkedDeque<CharacterBuffer> characterBufferPool = new ConcurrentLinkedDeque<>();
 
     private CharacterBuffer characterBuffer;
 
-    private static final char[] NaNSign = new char[]{'n','a','n'}; // 3
-    private static final char[] Null = new char[]{'n','u','l','l'}; // 4
-    private static final char[] TrueSign = new char[]{'t','r','u','e'}; // 4
-    private static final char[] FalseSign = new char[]{'f','a','l','s','e'}; // 5
-    private static final char[] InfinitySign = new char[]{'i','n','f','i','n','i','t','y'}; // 8
+    private static final char[] NaNSign = new char[]{'n','a','n'};
+    private static final char[] Null = new char[]{'n','u','l','l'};
+    private static final char[] InfinitySign = new char[]{'i','n','f','i','n','i','t','y'};
     private static final char[] HexadecimalSign = new char[]{'0','x'};
+    private static final char[] TrueSign = new char[]{'t','r','u','e'};
+    private static final char[] FalseSign = new char[]{'f','a','l','s','e'};
 
 
-
+    private int specialSymbolIndex = 0;
 
 
 
@@ -32,7 +32,8 @@ class ValueParseState {
         Null,
         Infinity,
         NegativeInfinity,
-        Hexadecimal,
+        HexadecimalStart,
+        HexadecimalValue,
         Exponential,
         Number,
         True,
@@ -41,7 +42,7 @@ class ValueParseState {
     }
 
     boolean isAppearRealNumberSing = false;
-    //boolean isAppearSign = false;
+    boolean isAppearSign = false;
     boolean isAppearExponentialSign = false;
     boolean noneZeroStart = false;
     boolean isSpecialChar = false;
@@ -49,7 +50,7 @@ class ValueParseState {
     boolean unicodeExtend = false;
     int unicodeCharCount = 0;
 
-
+    private int index = 0;
 
     private boolean allowNaN = false;
     private boolean allowInfinity = false;
@@ -61,7 +62,6 @@ class ValueParseState {
     private boolean trimResult = false;
 
 
-
     private boolean isoCtrlInNumber = false;
 
     /**
@@ -71,20 +71,16 @@ class ValueParseState {
 
 
 
-    private DoubtMode doubtMode_ = DoubtMode.Number;
+    private DoubtMode doubtMode = DoubtMode.Number;
     private DoubtMode lastDoubtMode = DoubtMode.None;
 
 
 
     private boolean onlyString = false;
 
-    private String resultString;
-    private Number resultNumber;
-    private Boolean resultBoolean;
 
 
-
-    ValueParseState(NumberConversionUtil.NumberConversionOption numberConversionOption) {
+    ValueParseStateOld(NumberConversionUtil.NumberConversionOption numberConversionOption) {
         characterBuffer = new CharacterBuffer();
         allowNaN = numberConversionOption.isAllowNaN();
         allowInfinity = numberConversionOption.isAllowInfinity();
@@ -94,7 +90,7 @@ class ValueParseState {
         ignoreNonNumeric = numberConversionOption.isIgnoreNonNumeric();
     }
 
-    public ValueParseState setAllowControlChar(boolean allowControlChar) {
+    public ValueParseStateOld setAllowControlChar(boolean allowControlChar) {
         this.allowControlChar = allowControlChar;
         return this;
     }
@@ -107,7 +103,7 @@ class ValueParseState {
         //this.ignoreNonNumeric = onlyNumber;
     }
 
-    public ValueParseState setOnlyString(boolean onlyString) {
+    public ValueParseStateOld setOnlyString(boolean onlyString) {
         this.doubtMode = DoubtMode.String;
         this.onlyString = onlyString;
         return this;
@@ -128,8 +124,9 @@ class ValueParseState {
         }
     }
 
-    ValueParseState reset() {
+    ValueParseStateOld reset() {
         characterBuffer.reset();
+        index = 0;
         doubtMode = DoubtMode.Number;
         specialSymbolIndex = 0;
         isAppearRealNumberSing = false;
@@ -147,236 +144,214 @@ class ValueParseState {
         return this;
     }
 
+
     void append(char c) {
-        appendChar_(c);
-    }
 
-
-    private void readType() {
-        char[] chars = characterBuffer.getChars();
-        int end = characterBuffer.length();
-
-        int start =0;
-
-        for(int i = 0; i < end; ++i) {
-            if(!isSpaceChar(chars[i])) {
-                start = i;
-                break;
+        if(index == 0) {
+            if(this.doubtMode == DoubtMode.String) {
+                appendChar(c);
+                return;
             }
-        }
-
-        for(; start < end; --end) {
-            if(!isSpaceChar(chars[end])) {
-                ++end;
-                break;
-            }
-        }
-        final int len = end - start;
-        int startDigitOffset = start;
-
-        boolean negativeSign = false;
-
-        DoubtMode doubtMode = this.doubtMode_;
-        //int specialSymbolIndex = start;
-
-        boolean isStart = true;
-        for(int i = start; i < end; ++i) {
-            char c = chars[i];
-            if(isStart) {
-                isStart = false;
-                if(doubtMode == DoubtMode.String) {
-                    resultString = new String(chars, start, len);
-                    return;
-                }
-                char lowChar = Character.toLowerCase(c);
-                if (allowNaN && NaNSign[i] == lowChar && len == NaNSign.length) {
+            char lowChar = Character.toLowerCase(c);
+            if (NaNSign[specialSymbolIndex] == lowChar) {
+                if(allowNaN) {
                     doubtMode = DoubtMode.NaN;
-                } else if (allowInfinity && InfinitySign[i] == lowChar && len == InfinitySign.length) {
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
+            } else if (InfinitySign[specialSymbolIndex] == lowChar) {
+                if(allowInfinity) {
                     doubtMode = DoubtMode.Infinity;
-                } else if (allowHexadecimal && HexadecimalSign[i] == lowChar && len > 2) {
-                    if(Character.toLowerCase(HexadecimalSign[i]) != Character.toLowerCase(chars[1])) {
-                        doubtMode_ = DoubtMode.String;
-                        return;
-                    }
-                    doubtMode = DoubtMode.Hexadecimal;
-                    i = 2;
-                } else if (TrueSign[i] == lowChar && len == TrueSign.length) {
-                    doubtMode = DoubtMode.True;
-                } else if (FalseSign[i] == lowChar  && len == FalseSign.length) {
-                    doubtMode = DoubtMode.False;
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
                 }
-                /**
-                 * + 부호가 나오면 숫자로 의심한다.
-                 * 단, allowPositiveSign 이 true 일 경우에만 진행한다.
-                 */
-                else if (allowPositiveSign && c == '+' && len > 1) {
-                    doubtMode = DoubtMode.Number;
-                    ++i;
-                    // + 부호 뒤에 빈 공간을 제거한다.
-                    for(;i < end; ++i) {
-                        c = chars[i];
-                        if(!isSpaceChar(c)) {
-                            --i;
-                            break;
-                        }
-                    }
-                    // infinity 의 앞 글자 i 가 나오면 일단 infinity 의심 모드로 전환한다.
-                    if (allowInfinity && InfinitySign[i] == lowChar && len - i == InfinitySign.length) {
-                        startDigitOffset = i;
-                        doubtMode = DoubtMode.Infinity;
-                    }
+                appendChar(c);
+            } else if (HexadecimalSign[specialSymbolIndex] == lowChar) {
+                if (allowHexadecimal) {
+                    doubtMode = DoubtMode.HexadecimalStart;
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
                 }
-                /**
-                 * - 부호가 나오면 숫자로 의심한다.
-                 */
-                else if(c == '-'  && len > 1) {
+                appendChar(c);
+            } else if (TrueSign[specialSymbolIndex] == lowChar) {
+                doubtMode = DoubtMode.True;
+                ++specialSymbolIndex;
+                appendChar(c);
+            } else if (FalseSign[specialSymbolIndex] == lowChar) {
+                doubtMode = DoubtMode.False;
+                ++specialSymbolIndex;
+                appendChar(c);
+            }
+            else if (c == '+') {
+                if(allowPositiveSign) {
                     doubtMode = DoubtMode.Number;
-                    negativeSign = true;
-                    // - 부호 뒤에 빈 공간을 제거한다.
-                    for(;i < end; ++i) {
-                        c = chars[i];
-                        if(!isSpaceChar(c)) {
-                            --i;
-                            break;
-                        }
-                    }
-                    // infinity 의 앞 글자 i 가 나오면 일단 infinity 의심 모드로 전환한다.
-                    if (allowInfinity && InfinitySign[i] == lowChar && len - i == InfinitySign.length) {
-                        startDigitOffset = i - start;
-                        doubtMode = DoubtMode.Infinity;
-                    }
-                } else if(leadingZeroOmission && c == '.'  && len > 1){
-                    doubtMode = DoubtMode.Number;
+                    isAppearSign = true;
+                } else {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
+            } else if(c == '-') {
+                doubtMode = DoubtMode.Number;
+                appendChar(c);
+                isAppearSign = true;
+            } else if(c == '.'){
+                if(leadingZeroOmission) {
                     isAppearRealNumberSing = true;
                     noneZeroStart = true;
-                } else if(!Character.isDigit(c)) {
-                    doubtMode_ = DoubtMode.String;
-                    resultString = new String(chars, start, len);
-                    return;
                 } else {
-                    doubtMode = DoubtMode.Number;
+                    doubtMode = DoubtMode.String;
+                    appendChar(c);
                 }
+            } else if(!Character.isDigit(c)) {
+                doubtMode = DoubtMode.String;
+                appendChar(c);
             } else {
-                if (doubtMode == DoubtMode.NaN) {
-                    if (NaNSign[i] != Character.toLowerCase(c) && Null[i] == Character.toLowerCase(c)) {
-                        doubtMode = DoubtMode.Null;
-                    } else if (i + 1 == NaNSign.length) {
-                        resultNumber = Double.NaN;
-                        doubtMode_ = doubtMode;
-                        return;
-                    } else {
-                        doubtMode_ = DoubtMode.String;
-                        resultString = new String(chars, start, len);
-                    }
-                }
-                 else if(doubtMode == DoubtMode.Null) {
-                    if(Null[i] != Character.toLowerCase(c)) {
-                        doubtMode_ = DoubtMode.String;
-                        resultString = new String(chars, start, len);
-                    } else if(i + 1 ==  Null.length) {
-                        resultNumber = null;
-                        resultString = null;
-                        doubtMode_ = doubtMode;
-                        return;
-                    }
-                } else if(doubtMode == DoubtMode.True) {
-                    if(TrueSign[i] != Character.toLowerCase(c)) {
-                        doubtMode_ = DoubtMode.String;
-                        resultString = new String(chars, start, len);
-                    } else if(i + 1 == TrueSign.length) {
-                        resultBoolean = Boolean.TRUE;
-                        doubtMode_ = doubtMode;
-                        return;
-                    }
-                } else if(doubtMode == DoubtMode.False) {
-                    if(FalseSign[i] != Character.toLowerCase(c)) {
-                        doubtMode_ = DoubtMode.String;
-                        resultString = new String(chars, start, len);
-                    } else if(i + 1 == FalseSign.length) {
-                        resultBoolean = Boolean.FALSE;
-                        doubtMode_ = doubtMode;
-                        return;
-                    }
-                }
-                else if(doubtMode == DoubtMode.Infinity) {
-                    if(InfinitySign[i - startDigitOffset] != Character.toLowerCase(c)) {
-                        doubtMode_ = DoubtMode.String;
-                        resultString = new String(chars, start, len);
-                    } else if(i + 1 == InfinitySign.length + startDigitOffset) {
-                        resultNumber = negativeSign ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
-                        doubtMode_ = doubtMode;
-                        return;
-                    }
-                } else if(doubtMode == DoubtMode.Hexadecimal) {
-                    if(!(c == '.' || c == 'e' || c == 'E' || Character.isDigit(c))) {
-                        doubtMode_ = DoubtMode.String;
-                        resultString = new String(chars, start, len);
-                        return;
-                    }
+                doubtMode = DoubtMode.Number;
+                appendChar(c);
+            }
+        } else {
 
-                } else if(doubtMode == DoubtMode.HexadecimalValue) {
+            if(doubtMode == DoubtMode.NaN) {
+                if(specialSymbolIndex == NaNSign.length) {
+                    doubtMode = DoubtMode.String;
+                }
+                else if(NaNSign[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
+                    if(Null[specialSymbolIndex] == Character.toLowerCase(c)) {
+                        doubtMode = DoubtMode.Null;
+                        ++specialSymbolIndex;
+                    } else {
+                        doubtMode = DoubtMode.String;
+                    }
+                }
+                appendChar(c);
+            } else if(doubtMode == DoubtMode.Null) {
+
+                if(specialSymbolIndex == Null.length) {
+                    lastDoubtMode = doubtMode;
+                    doubtMode = DoubtMode.String;
+                }
+                else if(Null[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
+            } else if(doubtMode == DoubtMode.True) {
+                if(specialSymbolIndex == TrueSign.length) {
+                    doubtMode = DoubtMode.String;
+                }
+                else if(TrueSign[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
+            } else if(doubtMode == DoubtMode.False) {
+                if(specialSymbolIndex == FalseSign.length) {
+                    doubtMode = DoubtMode.String;
+                }
+                else if(FalseSign[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
+            }
+            else if(doubtMode == DoubtMode.Infinity) {
+                if(specialSymbolIndex == InfinitySign.length) {
+                    doubtMode = DoubtMode.String;
+                }
+                else if(InfinitySign[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
+            } else if(doubtMode == DoubtMode.HexadecimalStart) {
+
+                if(specialSymbolIndex == HexadecimalSign.length) {
+                    doubtMode = DoubtMode.HexadecimalValue;
                     if(!isHexadecimalChar(c)) {
                         doubtMode = DoubtMode.String;
                     }
-                    appendChar(c);
                 }
-                else if(doubtMode == DoubtMode.Number) {
-                    if(Character.isISOControl(c)) {
-                        if(!allowControlChar) {
-                            throw new CSONException(ExceptionMessages.getCtrlCharNotAllowed(c));
-                        }
-                        isoCtrlInNumber = true;
-                        appendChar(c);
-                        return;
-                    }
-                    if(c == '.') {
-                        if(isAppearRealNumberSing) {
-                            doubtMode = DoubtMode.String;
-                        }
+                else if(HexadecimalSign[specialSymbolIndex] == Character.toLowerCase(c)) {
+                    ++specialSymbolIndex;
+                } else {
+                    if(c == '.' || c == 'e' || c == 'E' || Character.isDigit(c)) {
                         isAppearRealNumberSing = true;
-                        appendChar(c);
-                    } else if(c == 'e' || c == 'E') {
-                        doubtMode = DoubtMode.Exponential;
-                        appendChar(c);
-                    } else if((c == 'x' || c == 'X') && allowHexadecimal && index == 2 && isAppearSign && characterBuffer.charAt(index - 1) == '0') {
-                        doubtMode = DoubtMode.HexadecimalValue;
-                        specialSymbolIndex = 2;
-                        appendChar(c);
-                    } else if((c == 'i' || c == 'I') && allowInfinity && index == 1 && isAppearSign) {
-                        doubtMode = DoubtMode.Infinity;
-                        specialSymbolIndex = 1;
-                        appendChar(c);
+                        doubtMode = DoubtMode.Number;
                     }
-                    else if(!Character.isDigit(c)) {
-                        doubtMode = DoubtMode.String;
-                        appendChar(c);
-                    } else {
-                        appendChar(c);
-                    }
-                } else if(doubtMode == DoubtMode.Exponential) {
-                    if(c == '+' || c == '-') {
-                        if(isAppearExponentialSign) {
-                            doubtMode = DoubtMode.String;
-                        }
-                        isAppearExponentialSign = true;
-                    } else if(!Character.isDigit(c)) {
+                    else {
                         doubtMode = DoubtMode.String;
                     }
-                    appendChar(c);
                 }
-                else {
-                    if(lastDoubtMode != DoubtMode.String && Character.isSpaceChar(c)) {
-                        lastDoubtMode = doubtMode;
-                    }
-                    appendChar(c);
+                appendChar(c);
+            } else if(doubtMode == DoubtMode.HexadecimalValue) {
+                if(!isHexadecimalChar(c)) {
+                    doubtMode = DoubtMode.String;
                 }
+                appendChar(c);
             }
-            ++index;
+            else if(doubtMode == DoubtMode.Number) {
+                if(Character.isISOControl(c)) {
+                    if(!allowControlChar) {
+                        throw new CSONException(ExceptionMessages.getCtrlCharNotAllowed(c));
+                    }
+                    isoCtrlInNumber = true;
+                    appendChar(c);
+                    return;
+                }
+                if(c == '.') {
+                    if(isAppearRealNumberSing) {
+                        doubtMode = DoubtMode.String;
+                    }
+                    isAppearRealNumberSing = true;
+                    appendChar(c);
+                } else if(c == 'e' || c == 'E') {
+                    doubtMode = DoubtMode.Exponential;
+                    appendChar(c);
+                } else if((c == 'x' || c == 'X') && allowHexadecimal && index == 2 && isAppearSign && characterBuffer.charAt(index - 1) == '0') {
+                    doubtMode = DoubtMode.HexadecimalValue;
+                    specialSymbolIndex = 2;
+                    appendChar(c);
+                } else if((c == 'i' || c == 'I') && allowInfinity && index == 1 && isAppearSign) {
+                    doubtMode = DoubtMode.Infinity;
+                    specialSymbolIndex = 1;
+                    appendChar(c);
+                }
+                else if(!Character.isDigit(c)) {
+                    doubtMode = DoubtMode.String;
+                    appendChar(c);
+                } else {
+                    appendChar(c);
+                }
+            } else if(doubtMode == DoubtMode.Exponential) {
+                if(c == '+' || c == '-') {
+                    if(isAppearExponentialSign) {
+                        doubtMode = DoubtMode.String;
+                    }
+                    isAppearExponentialSign = true;
+                } else if(!Character.isDigit(c)) {
+                    doubtMode = DoubtMode.String;
+                }
+                appendChar(c);
+            }
+            else {
+                if(lastDoubtMode != DoubtMode.String && Character.isSpaceChar(c)) {
+                    lastDoubtMode = doubtMode;
+                }
+                appendChar(c);
+            }
         }
-
+        ++index;
     }
-
-
 
     int markStartUnicodeIndex = -1;
 
@@ -384,11 +359,10 @@ class ValueParseState {
         return isSpecialChar;
     }
     
-    private void appendChar_(char c) {
-        if(c == '\\' && !isSpecialChar) {
+    private void appendChar(char c) {
+        if(doubtMode == DoubtMode.String && c == '\\' && !isSpecialChar) {
             isSpecialChar = true;
         } else if(isSpecialChar) {
-            doubtMode_ = DoubtMode.String;
             if(unicodeChar) {
                 readUnicode(c);
                 return;
@@ -426,6 +400,7 @@ class ValueParseState {
         } else if(!allowControlChar && Character.isISOControl(c)) {
             throw new CSONException(ExceptionMessages.getCtrlCharNotAllowed(c));
         }
+
         else {
             characterBuffer.append(c);
         }

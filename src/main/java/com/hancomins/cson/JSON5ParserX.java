@@ -125,6 +125,8 @@ class JSON5ParserX {
         int line = 1;
         int index = 0;
 
+        int valueCount = 0;
+
 
 
         try {
@@ -273,7 +275,7 @@ class JSON5ParserX {
                     valueParseState.append((char) c);
                 } else if((currentMode == Mode.Value) &&  (c != ',' && c != '}' && c != ']')) {
                     if(c == '\n' || c == '\r') {
-                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject,valueCount++);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
@@ -294,11 +296,14 @@ class JSON5ParserX {
                         currentElement = rootElement;
                         if(!(currentElement instanceof CSONObject)) {
                             throw new CSONParseException("Unexpected character '{' at " + index);
+                        } else if(allowComment && currentElement instanceof CSONArray) {
+                            valueCount = ((CSONArray)currentElement).size();
                         }
                     }
                     else {
                         currentElement = new CSONObject();
-                        lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        valueCount = 0;
+                        lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject,valueCount++);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
@@ -318,11 +323,15 @@ class JSON5ParserX {
                         currentElement = rootElement;
                         if(!(currentElement instanceof CSONArray)) {
                             throw new CSONParseException("Unexpected character '{' at " + index);
+                        } else if(allowComment && currentElement instanceof CSONArray) {
+                            valueCount = ((CSONArray)currentElement).size();
                         }
+
                     }
                     else {
                         currentElement = new CSONArray();
-                        lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        valueCount = 0;
+                        lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject, valueCount++);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
@@ -336,7 +345,7 @@ class JSON5ParserX {
                         }
                     }
                     else if(currentMode == Mode.Value) {
-                        putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject, valueCount++);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
@@ -355,10 +364,13 @@ class JSON5ParserX {
                         }
                     }
                     currentElement = csonElements.getLast();
+                    if(allowComment && currentElement instanceof CSONArray) {
+                        valueCount = ((CSONArray)currentElement).size();
+                    }
                 }
 
                 else if(currentMode == Mode.Value && (c == '\n' || c == '\r')) {
-                    putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                    putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject, valueCount++);
                     key = null;
                     keyCommentObject = null;
                     valueCommentObject = null;
@@ -371,7 +383,7 @@ class JSON5ParserX {
                         if(allowConsecutiveCommas) {
                             // csonOBjcet 는 키가 있을때만 null 넣는다.
                             if((key != null && currentElement instanceof CSONObject) || currentElement instanceof CSONArray) {
-                                lastKey = putData(null, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                                lastKey = putData(null, currentElement, key, allowComment, keyCommentObject, valueCommentObject, valueCount++);
                             }
                             key = null;
                             keyCommentObject = null;
@@ -382,7 +394,7 @@ class JSON5ParserX {
                         }
                     }
                     if(currentMode == Mode.Value) {
-                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject, valueCount++);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
@@ -395,7 +407,7 @@ class JSON5ParserX {
                 else if(c == currentQuoteChar && !valueParseState.isSpecialChar()) {
 
                     if(currentMode == Mode.String) {
-                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject, valueCount++);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
@@ -495,9 +507,9 @@ class JSON5ParserX {
     }
 
 
-    private static String putData(ValueParseState valueParseState, CSONElement currentElement, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject) {
+    private static String putData(ValueParseState valueParseState, CSONElement currentElement, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject, int valueCount) {
 
-        if(valueParseState == null) {
+        if(valueParseState == null || valueParseState.isNull()) {
             putNullData(currentElement, key);
         }
         else if(valueParseState.isNumber()) {
@@ -513,15 +525,17 @@ class JSON5ParserX {
             valueParseState.reset();
         }
         if(allowComment) {
-            putComment(currentElement, key, keyCommentObject, valueCommentObject);
+            putComment(currentElement, key, keyCommentObject, valueCommentObject, valueCount);
         }
         String lastKey = key;
         return lastKey;
     }
 
-    private static void putComment(CSONElement currentElement, String key, CommentObject keyCommentObject, CommentObject valueCommentObject) {
+    private static void putComment(CSONElement currentElement, String key, CommentObject keyCommentObject, CommentObject valueCommentObject, int index) {
         if(currentElement instanceof CSONObject) {
             ((CSONObject)currentElement).setCommentObjects(key, keyCommentObject, valueCommentObject);
+        } else {
+            ((CSONArray)currentElement).setCommentObject(index, valueCommentObject);
         }
 
 
@@ -592,14 +606,14 @@ class JSON5ParserX {
     }
 
 
-    private static String putElementData(CSONElement currentElement, CSONElement value, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject) {
+    private static String putElementData(CSONElement currentElement, CSONElement value, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject, int valueCount) {
         if(key != null) {
             ((CSONObject)currentElement).put(key, value);
         } else {
             ((CSONArray)currentElement).add(value);
         }
         if(allowComment) {
-            putComment(currentElement, key, keyCommentObject, valueCommentObject);
+            putComment(currentElement, key, keyCommentObject, valueCommentObject, valueCount);
         }
         String lastKey = key;
         return lastKey;

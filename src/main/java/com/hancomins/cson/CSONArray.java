@@ -319,9 +319,6 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		if(commentObjectList.size() <= index) {
 			ensureCapacityOfCommentObjects(index);
 		}
-		if(index >= list.size()) {
-			throw new IndexOutOfBoundsException("index: " + index + ", size: " + list.size());
-		}
 		commentObjectList.set(index, commentObject);
 	}
 

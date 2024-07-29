@@ -346,6 +346,27 @@ public class CSONSerializerTest {
 
 
     @Test
+    public void commentInArrayTest() {
+
+        String obj = "{key3:['value3',\n" +
+                "      /* comment3 */'value4'/* commentAfter3 */,\n" +
+                "      /* comment4 */null    /* commentAfter4 */,/* comment5 */]/* commentAfter5 */, \n}";
+
+        CSONObject csonObject = new CSONObject(obj, JSONOptions.json5());
+        System.out.println(csonObject.toString(JSONOptions.json5()));
+
+        CSONArray csonArray = csonObject.getCSONArray("key3");
+        assertEquals(3, csonArray.size());
+        assertEquals("value3", csonArray.get(0));
+        assertEquals("value4", csonArray.get(1));
+        assertNull(csonArray.get(2));
+
+
+
+    }
+
+
+    @Test
     public void simpleCommentTest() {
         CSONArray csonArray = new CSONArray();
         csonArray.addAll(new Object[]{"value3", "value4", new CSONObject()});
@@ -369,6 +390,7 @@ public class CSONSerializerTest {
         assertEquals("commentAfterKey1", new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentAfterKey("key1"));
         assertEquals(null, new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentAfterKey("key2"));
         System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()));
         assertEquals(csonObject.toString(JSONOptions.json5()), new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()).toString(JSONOptions.json5()));
 
     }
