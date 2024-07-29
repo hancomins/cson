@@ -38,6 +38,8 @@ public class MockBigInteger extends Number implements Comparable<MockBigInteger>
     public static final int SIGNIFICAND_WIDTH   = 24;
 
 
+
+
     private MockBigInteger(int signum, int[] magnitude) {
         this.mag = stripLeadingZeroInts(magnitude);
 
@@ -2430,6 +2432,10 @@ public class MockBigInteger extends Number implements Comparable<MockBigInteger>
             return longValue();
         else
             throw new ArithmeticException("MockBigInteger out of long range");
+    }
+
+    public BigInteger asBigInteger() {
+        return new BigInteger(toString());
     }
 
 }

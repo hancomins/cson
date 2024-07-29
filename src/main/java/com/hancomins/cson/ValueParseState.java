@@ -5,6 +5,7 @@ import com.hancomins.cson.util.MockBigInteger;
 import com.hancomins.cson.util.NumberConversionUtil;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 class ValueParseState {
@@ -487,14 +488,15 @@ class ValueParseState {
             return new BigDecimal(characterBuffer.getChars(), 0, characterBuffer.length());
         }
         else {
-            MockBigInteger bi = new MockBigInteger(characterBuffer.getChars(), 0, characterBuffer.length());
-            if(bi.bitLength() <= 31){
-                return bi.intValue();
+            BigInteger mbi = new BigInteger(characterBuffer.toString());
+
+            if(mbi.bitLength() <= 31){
+                return mbi.intValue();
             }
-            if(bi.bitLength() <= 63){
-                return bi.longValue();
+            if(mbi.bitLength() <= 63){
+                return mbi.longValue();
             }
-            return bi;
+            return mbi;
         }
     }
 

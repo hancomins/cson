@@ -313,6 +313,9 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 	@SuppressWarnings("unused")
 	public void setCommentObject(int index, CommentObject commentObject) {
+		if(commentObjectList == null) {
+			commentObjectList = new ArrayList<>();
+		}
 		if(commentObjectList.size() <= index) {
 			ensureCapacityOfCommentObjects(index);
 		}

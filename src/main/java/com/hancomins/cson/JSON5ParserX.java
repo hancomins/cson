@@ -18,6 +18,7 @@ class JSON5ParserX {
 
     enum Mode {
         Open,
+        Close,
         String,
         Value,
         WaitValue,
@@ -187,12 +188,18 @@ class JSON5ParserX {
                                 valueCommentObject = new CommentObject();
                             }
                             valueCommentObject.appendBeforeComment((commentBuffer.toTrimString()));
+                        } else if(currentMode == Mode.Open) {
+                            String value = commentBuffer.toTrimString();
+                            rootElement.setCommentThis(value);
                         }
                         else if(currentMode == Mode.Value) {
                             if(valueCommentObject == null) {
                                 valueCommentObject = new CommentObject();
                             }
                             valueCommentObject.appendAfterComment(commentBuffer.toTrimString());
+                        }
+                        else if(currentMode == Mode.Close) {
+                            rootElement.setCommentAfterThis(commentBuffer.toTrimString());
                         }
                         else if(currentMode == Mode.NextStoreSeparator) {
                             if(currentElement instanceof CSONObject && (lastKey != null || key != null)) {
@@ -209,6 +216,8 @@ class JSON5ParserX {
 
                         }
                         commentBuffer.reset();
+                        continue;
+                    } else if(currentMode == Mode.Close) {
                         continue;
                     }
                     else if(readyComment && c == '/') {
@@ -338,7 +347,12 @@ class JSON5ParserX {
                     currentMode = Mode.NextStoreSeparator;
                     csonElements.removeLast();
                     if(csonElements.isEmpty()) {
-                        return currentElement;
+                        if(allowComment) {
+                            currentMode = Mode.Close;
+                            continue;
+                        } else {
+                            return currentElement;
+                        }
                     }
                     currentElement = csonElements.getLast();
                 }
@@ -385,7 +399,6 @@ class JSON5ParserX {
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
-
                         currentMode  = Mode.NextStoreSeparator;
                     }
                     else if(currentMode == Mode.InKey) {
@@ -464,6 +477,10 @@ class JSON5ParserX {
         } finally {
             valueParseState.release();
         }
+        if(currentMode == Mode.Close) {
+            return rootElement;
+        }
+
         throw new CSONParseException("Unexpected end of stream");
     }
 
