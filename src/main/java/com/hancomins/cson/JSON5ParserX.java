@@ -486,8 +486,6 @@ class JSON5ParserX {
             throw e;
         } catch (IOException e) {
             throw new CSONParseException(e.getMessage());
-        } finally {
-            valueParseState.release();
         }
         if(currentMode == Mode.Close) {
             return rootElement;

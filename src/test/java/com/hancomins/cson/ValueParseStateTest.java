@@ -16,6 +16,19 @@ public class ValueParseStateTest  {
         state.reset();
         state.append("-infinity");
         assertEquals(Double.NEGATIVE_INFINITY, state.getNumber());
+
+        state.reset();
+        state.append("+Infinity");
+        assertEquals(Double.POSITIVE_INFINITY, state.getNumber());
+        state.reset();
+        state.append("+infinity");
+        assertEquals(Double.POSITIVE_INFINITY, state.getNumber());
+
+        state.reset();
+        state.append("-infinity");
+        assertEquals(Double.NEGATIVE_INFINITY, state.getNumber());
+
+
     }
 
 
@@ -28,10 +41,22 @@ public class ValueParseStateTest  {
         state.append("NaN");
         assertEquals(Double.NaN, state.getNumber());
 
-        state.reset();;
+        state.reset();
+        state.append("nan");
+        assertTrue(state.isNumber());
+        assertEquals(Double.NaN, state.getNumber());
+
+        state.reset();
         state.append("-NaN");
-        assertFalse(state.isNumber());
+        assertTrue(state.isNumber());
         assertEquals("-NaN", state.toString());
+        assertEquals(Double.NaN, state.getNumber());
+
+        state.reset();
+        state.append("+NaN");
+        assertTrue(state.isNumber());
+        assertEquals("+NaN", state.toString());
+        assertEquals(Double.NaN, state.getNumber());
     }
 
     @Test
