@@ -349,8 +349,8 @@ public class CSONSerializerTest {
     public void commentInArrayTest() {
 
         String obj = "{key3:['value3',\n" +
-                "      /* comment3 */'value4'/* commentAfter3 */,\n" +
-                "      /* comment4 */null    /* commentAfter4 */,/* comment5 */]/* commentAfter5 */, \n}";
+                "      /* comment4 */'value4'/* commentAfter4 */,\n" +
+                "      /* commentNull */null    /* commentAfterNull */,/* comment5 */]/* commentAfter5 */, \n}";
 
         CSONObject csonObject = new CSONObject(obj, JSONOptions.json5());
         System.out.println(csonObject.toString(JSONOptions.json5()));

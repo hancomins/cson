@@ -6,6 +6,15 @@ import static org.junit.Assert.*;
 public class ValueParseStateTest  {
 
     @Test
+    public void nullTest() {
+        StringFormatOption<?> json5Option = StringFormatOption.json5();
+        ValueParseState state = new ValueParseState(json5Option);
+        state.reset();
+        state.append("null");
+        assertEquals(null, state.getNumber());
+    }
+
+    @Test
     public void infinityParseTest() {
 
         StringFormatOption<?> json5Option = StringFormatOption.json5();
@@ -64,6 +73,10 @@ public class ValueParseStateTest  {
         StringFormatOption<?> json5Option = StringFormatOption.json5();
         ValueParseState state = new ValueParseState(json5Option);
 
+
+        state.reset();
+        state.append("-128      ");
+        assertEquals(-128, state.getNumber());
 
         state.reset();
         state.append("123");

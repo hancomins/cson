@@ -177,12 +177,22 @@ class ValueParseState {
             }
         }
 
-        for(; start < end; --end) {
-            if(!isSpaceChar(chars[end])) {
-                break;
+        boolean originEnd = true;
+        if(isSpaceChar(chars[end])) {
+            for (; start < end; --end) {
+                if (!isSpaceChar(chars[end])) {
+                    ++end;
+                    break;
+                }
             }
         }
+
+
+
+
+
         int len = end - start;
+        String data = new String(chars, start, len);
         int startDigitOffset = 0;
 
         //boolean negativeSign = false;
@@ -204,7 +214,10 @@ class ValueParseState {
                 char lowChar = Character.toLowerCase(c);
                 if (allowNaN && NaNSign[staticSignIndex] == lowChar && len == NaNSign.length) {
                     doubtMode = DoubtMode.NaN;
-                } else if (allowInfinity && InfinitySign[staticSignIndex] == lowChar && len == InfinitySign.length) {
+                } else  if(Null[staticSignIndex] == lowChar && len == Null.length) {
+                    doubtMode = DoubtMode.Null;
+                }
+                else if (allowInfinity && InfinitySign[staticSignIndex] == lowChar && len == InfinitySign.length) {
                     doubtMode = DoubtMode.Infinity;
                 } else if (allowHexadecimal && HexadecimalSign[staticSignIndex] == lowChar && len > 2) {
                     ++i;
@@ -385,7 +398,10 @@ class ValueParseState {
 
         if(doubtMode == DoubtMode.Exponential) {
             resultNumber = new BigDecimal(chars, start, len);
+        } else if(doubtMode == DoubtMode.Null) {
+
         }
+
         else if(doubtMode == DoubtMode.Number) {
             if(sign == Sign.Negative) {
                 --start;
@@ -395,6 +411,8 @@ class ValueParseState {
                 resultNumber = new BigDecimal(chars, start, len);
             } else {
                 resultString = new String(chars, start, len);
+
+
                 BigInteger bigInteger = new BigInteger(resultString);
                 if(bigInteger.bitLength() <= 31){
                     resultNumber = bigInteger.intValue();
@@ -606,7 +624,7 @@ class ValueParseState {
 
 
     private static boolean isSpaceChar(char c) {
-        return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\u000B';
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\u000B' || c == '\0';
     }
 
 }

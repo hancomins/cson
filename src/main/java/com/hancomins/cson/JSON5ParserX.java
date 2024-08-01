@@ -276,6 +276,7 @@ class JSON5ParserX {
                 } else if((currentMode == Mode.Value) &&  (c != ',' && c != '}' && c != ']')) {
                     if(c == '\n' || c == '\r') {
                         lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject,valueCount++);
+
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
@@ -507,10 +508,15 @@ class JSON5ParserX {
 
     private static String putData(ValueParseState valueParseState, CSONElement currentElement, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject, int valueCount) {
 
+        if("byte".equals(key)) {
+            Object value = valueParseState.isNumber();
+        }
+
         if(valueParseState == null || valueParseState.isNull()) {
             putNullData(currentElement, key);
         }
         else if(valueParseState.isNumber()) {
+
             putNumberData(currentElement, valueParseState.getNumber(), key);
             valueParseState.reset();
         } else {
