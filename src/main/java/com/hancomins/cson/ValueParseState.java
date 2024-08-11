@@ -170,6 +170,7 @@ class ValueParseState {
 
         int start =0;
 
+        // 문자열의 시작에 공백이 있으면 제거한다.
         for(int i = 0; i < end; ++i) {
             if(!isSpaceChar(chars[i])) {
                 start = i;
@@ -178,28 +179,22 @@ class ValueParseState {
         }
 
         boolean originEnd = true;
-        if(isSpaceChar(chars[end])) {
+
+        // 문자열의 끝에 공백이 있으면 제거한다.
+        if(isSpaceChar(chars[end - 1])) {
             for (; start < end; --end) {
-                if (!isSpaceChar(chars[end])) {
-                    ++end;
+                if (!isSpaceChar(chars[end - 1])) {
                     break;
                 }
             }
         }
 
 
-
-
-
         int len = end - start;
-        String data = new String(chars, start, len);
         int startDigitOffset = 0;
-
-        //boolean negativeSign = false;
 
 
         DoubtMode doubtMode = this.doubtMode_;
-        //int specialSymbolIndex = start;
 
         boolean isStart = true;
         for(int i = start; i < end; ++i) {

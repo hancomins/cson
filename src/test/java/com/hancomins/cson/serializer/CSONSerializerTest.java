@@ -358,6 +358,28 @@ public class CSONSerializerTest {
         CSONArray csonArray = csonObject.getCSONArray("key3");
         assertEquals(3, csonArray.size());
         assertEquals("value3", csonArray.get(0));
+        assertEquals("comment4", csonArray.getCommentForValue(1));
+        assertEquals("commentAfter4", csonArray.getCommentAfterValue(1));
+        assertEquals("commentNull", csonArray.getCommentForValue(2));
+        assertEquals("commentAfterNull", csonArray.getCommentAfterValue(2));
+
+
+
+        assertEquals("value4", csonArray.get(1));
+        assertNull(csonArray.get(2));
+
+
+        csonObject = new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5());
+        csonArray = csonObject.getCSONArray("key3");
+        assertEquals(3, csonArray.size());
+        assertEquals("value3", csonArray.get(0));
+        assertEquals("comment4", csonArray.getCommentForValue(1));
+        assertEquals("commentAfter4", csonArray.getCommentAfterValue(1));
+        assertEquals("commentNull", csonArray.getCommentForValue(2));
+        assertEquals("commentAfterNull", csonArray.getCommentAfterValue(2));
+
+
+
         assertEquals("value4", csonArray.get(1));
         assertNull(csonArray.get(2));
 

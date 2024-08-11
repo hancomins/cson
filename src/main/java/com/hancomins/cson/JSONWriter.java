@@ -948,7 +948,9 @@ public class JSONWriter {
 					int index = iteratorCount.getAndIncrement();
 					if(allowComment) {
 						CommentObject commentObject = currentArray.getCommentObject(index);
-						writer.nextCommentObject(commentObject);
+						if(commentObject != null && commentObject.isCommented()) {
+							writer.nextCommentObject(commentObject);
+						}
 					}
 
 					Object obj = iter.next();

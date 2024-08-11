@@ -10,8 +10,10 @@ public class ValueParseStateTest  {
         StringFormatOption<?> json5Option = StringFormatOption.json5();
         ValueParseState state = new ValueParseState(json5Option);
         state.reset();
-        state.append("null");
+        state.append("null    ");
+        assertTrue(state.isNull());
         assertEquals(null, state.getNumber());
+
     }
 
     @Test
