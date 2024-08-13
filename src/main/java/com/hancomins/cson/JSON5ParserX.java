@@ -203,6 +203,8 @@ class JSON5ParserX {
                         }
                         else if(currentMode == Mode.Close) {
                             rootElement.setCommentAfterThis(commentBuffer.toTrimString());
+                            return rootElement;
+
                         }
                         else if(currentMode == Mode.NextStoreSeparator) {
                             if(currentElement instanceof CSONObject && (lastKey != null || key != null)) {
@@ -220,10 +222,7 @@ class JSON5ParserX {
                         }
                         commentBuffer.reset();
                         continue;
-                    } else if(currentMode == Mode.Close) {
-                        continue;
-                    }
-                    else if(readyComment && c == '/') {
+                    }  else if(readyComment && c == '/') {
                         valueParseState.prev();
                         currentMode = Mode.InOpenComment;
                         commentBuffer.reset();
@@ -248,7 +247,6 @@ class JSON5ParserX {
                         }*/
 
 
-
                         commentBuffer.reset();
                         continue;
                     }
@@ -258,6 +256,11 @@ class JSON5ParserX {
                     } else {
                         readyComment = false;
                     }
+
+                    if(currentMode == Mode.Close || commentBeforeMode == Mode.Close) {
+                        continue;
+                    }
+
                 }
 
                 if(currentMode == Mode.InKeyUnquoted && (c == ':')) {
@@ -491,6 +494,10 @@ class JSON5ParserX {
             throw new CSONParseException(e.getMessage());
         }
         if(currentMode == Mode.Close) {
+            return rootElement;
+        }
+        if(allowComment && commentBeforeMode == Mode.Close) {
+            rootElement.setCommentAfterThis(commentBuffer.toTrimString());
             return rootElement;
         }
 

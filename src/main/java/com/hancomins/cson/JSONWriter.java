@@ -6,14 +6,12 @@ import com.hancomins.cson.util.NullValue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayDeque;
-import java.util.Base64;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 
 @SuppressWarnings("UnusedReturnValue")
 public class JSONWriter {
+
 
 	private static final int DEFAULT_BUFFER_SIZE = 512;
 
@@ -29,7 +27,7 @@ public class JSONWriter {
 	private static final int COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE = 7;
 	private static final int COMMENT_SIMPLE = 8;
 
-	private boolean isComment;
+	private final boolean isComment;
 	private boolean isAllowLineBreak;
 
 	private boolean isPretty = false;
@@ -48,8 +46,8 @@ public class JSONWriter {
 
 
 
-	private final ArrayDeque<CommentObject> keyValueCommentObjects = new ArrayDeque<CommentObject>();
-
+	//private final ArrayDeque<CommentObject> keyValueCommentObjects = new ArrayDeque<>();
+	private ArrayDeque<CommentObject> currentKeyValueCommentObjects;
 
 	private final ArrayDeque<ObjectType> typeStack_ = new ArrayDeque<>();
 	private final CharacterBuffer stringBuilder = new CharacterBuffer(DEFAULT_BUFFER_SIZE);
@@ -83,8 +81,9 @@ public class JSONWriter {
 
 
 	private String getAfterComment() {
-		if(!keyValueCommentObjects.isEmpty()) {
-			CommentObject commentObject = keyValueCommentObjects.removeFirst();
+		if(!isComment) return null;
+		if(currentKeyValueCommentObjects != null &&  !currentKeyValueCommentObjects.isEmpty()) {
+			CommentObject commentObject = currentKeyValueCommentObjects.removeFirst();
 			String afterComment = commentObject.getAfterComment();
 			if (afterComment == null) {
 				return null;
@@ -102,8 +101,9 @@ public class JSONWriter {
 
 
 	private void writeBeforeComment(int type) {
-		if(!keyValueCommentObjects.isEmpty()) {
-			CommentObject commentObject = keyValueCommentObjects.getFirst();
+		if(!isComment) return;
+		if(currentKeyValueCommentObjects != null && !currentKeyValueCommentObjects.isEmpty()) {
+			CommentObject commentObject = currentKeyValueCommentObjects.getFirst();
 			String beforeComment  = commentObject.getBeforeComment();
 			if(beforeComment == null) {
 				return;
@@ -228,13 +228,14 @@ public class JSONWriter {
 
 
 	void nextCommentObject(CommentObject commentObject) {
+		if(!isComment) return;
 		if(commentObject == null) {
-			keyValueCommentObjects.addLast(new CommentObject());
+			currentKeyValueCommentObjects.addLast(new CommentObject());
 			return;
 		}
 
 
-		this.keyValueCommentObjects.addLast(commentObject.clone());
+		this.currentKeyValueCommentObjects.addLast(commentObject.clone());
 	}
 
 
@@ -843,10 +844,13 @@ public class JSONWriter {
 	public static void writeJSONElement(CSONElement root,JSONWriter writer) {
 		//JSONWriter writer  = new JSONWriter((JSONOptions) stringFormatOption);
 
+		boolean allowComment = writer.isComment();
+
 		CSONElement currentElement = root;
 		ArrayDeque<Iterator<?>> iteratorStack = new ArrayDeque<>();
 		ArrayDeque<CSONElement> elementStack = new ArrayDeque<>();
 		ArrayDeque<Count> iteratorCountStack = new ArrayDeque<>();
+		ArrayDeque<ArrayDeque<CommentObject>> keyValueCommentObjectStack = new ArrayDeque<>();
 
 		Iterator<?> currentIter = null;
 		Count iteratorCount = new Count();
@@ -856,10 +860,14 @@ public class JSONWriter {
 		boolean lastClosed = false;
 		boolean skipClose = false;
 		boolean closeRoot = false;
-		boolean allowComment = writer.isComment();
+
 
 
 		writer.writeComment(currentElement.getCommentThis(), false, "", "\n");
+		if(writer.isComment) {
+			writer.currentKeyValueCommentObjects = new ArrayDeque<>();
+		}
+
 
 		do {
 
@@ -881,14 +889,21 @@ public class JSONWriter {
 					Map.Entry<String, Object> entry = iter.next();
 					String key = entry.getKey();
 					Object obj = entry.getValue();
+
 					KeyValueCommentObject keyValueCommentObject = isComment ? keyValueCommentMap.get(key) : null;
-					writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.keyCommentObject);
-					writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.valueCommentObject);
+					if(allowComment) {
+						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.keyCommentObject);
+						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.valueCommentObject);
+					}
 
 					if (obj == null || obj instanceof NullValue) writer.key(key).nullValue();
 					else if (obj instanceof CSONElement) {
 						iteratorStack.add(iter);
 						elementStack.add(currentElement);
+						if(allowComment) {
+							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
+							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
+						}
 						writer.key(key);
 						if(isComment &&
 								keyValueCommentObject != null &&
@@ -927,6 +942,12 @@ public class JSONWriter {
 					currentIter = iteratorStack.pollLast();
 					currentElement = elementStack.pollLast();
 					iteratorCount = iteratorCountStack.pollLast();
+					if(writer.isComment) {
+						writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.pollLast();
+						if (writer.currentKeyValueCommentObjects == null) {
+							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
+						}
+					}
 					lastClosed = true;
 				}
 				skipClose = false;
@@ -960,6 +981,10 @@ public class JSONWriter {
 						iteratorStack.add(iter);
 						elementStack.add(currentElement);
 						iteratorCountStack.add(iteratorCount);
+						if(allowComment) {
+							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
+							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
+						}
 						iteratorCount = new Count();
 						writer.addCSONElement();
 						currentElement = (CSONElement) obj;
@@ -987,23 +1012,14 @@ public class JSONWriter {
 					currentIter = iteratorStack.pollLast();
 					currentElement = elementStack.pollLast();
 					iteratorCount = iteratorCountStack.pollLast();
+					writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.pollLast();
 					lastClosed = true;
 				}
 				skipClose = false;
 			}
 
 		} while (currentElement != null);
-
-		/*if(root instanceof CSONObject) {
-			writer.closeObject();
- 		} else {
-			writer.closeArray();
-		}*/
-
-
 			writer.writeComment(root.getCommentAfterThis(), false, "\n", "");
-
-
-	}
+		}
 
 }

@@ -387,16 +387,31 @@ public class CSONSerializerTest {
 
     }
 
+    @Test
+    public void rootCommentParseTest() {
+        String json = "/* root comment */\n" +
+                "{}" +
+                "/* root comment end */";
+        CSONObject csonObject = new CSONObject(json, JSONOptions.json5());
+        assertEquals("root comment", csonObject.getCommentThis());
+        assertEquals("root comment end", csonObject.getCommentAfterThis());
+    }
+
 
     @Test
     public void simpleCommentTest() {
         CSONArray csonArray = new CSONArray();
         csonArray.addAll(new Object[]{"value3", "value4", new CSONObject()});
-        System.out.println(csonArray.toString(JSONOptions.json5()));
+        //System.out.println(csonArray.toString(JSONOptions.json5()));
 
         SimpleComment simpleComment = new SimpleComment();
         CSONObject csonObject = CSONSerializer.toCSONObject(simpleComment);
         System.out.println(csonObject.toString(JSONOptions.json5()));
+
+        int referenceNumber = System.identityHashCode(csonObject);
+
+        // 출력
+        System.out.println("객체의 레퍼런스 번호: " + referenceNumber);
 
         assertEquals("루트 코멘트", csonObject.getCommentThis());
         assertEquals("루트 코멘트 끝.", csonObject.getCommentAfterThis());
@@ -407,7 +422,15 @@ public class CSONSerializerTest {
 
         csonObject.put("key5", new String[]{"value3", "value4", null});
 
+        System.out.println("----------------------------");
+         referenceNumber = System.identityHashCode(csonObject);
+
+        // 출력
+        System.out.println("객체의 레퍼런스 번호: " + referenceNumber);
+        // cson Object 의 레퍼런스
         System.out.println(csonObject.toString(JSONOptions.json5()));
+
+
         assertEquals("comment1", new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentForKey("key1"));
         assertEquals("commentAfterKey1", new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentAfterKey("key1"));
         assertEquals(null, new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentAfterKey("key2"));
