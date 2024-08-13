@@ -169,6 +169,7 @@ class JSON5ParserX {
                     } else if(currentMode == Mode.InOpenComment) {
                         if(c == '\n') {
                             commentWrite = true;
+                            readyComment = false;
                         } else {
                             commentBuffer.append((char) c);
                             continue;
@@ -193,6 +194,10 @@ class JSON5ParserX {
                             valueCommentObject.appendBeforeComment((commentBuffer.toTrimString()));
                         } else if(currentMode == Mode.Open) {
                             String value = commentBuffer.toTrimString();
+                            String alreadyComment = rootElement.getCommentThis();
+                            if(alreadyComment != null) {
+                                value = alreadyComment + "\n" + value;
+                            }
                             rootElement.setCommentThis(value);
                         }
                         else if(currentMode == Mode.Value) {
