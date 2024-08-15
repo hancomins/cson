@@ -10,6 +10,9 @@ import java.io.InputStream;
 
 public class JSON5ParserTest extends TestCase {
 
+
+
+
     @Test
     public void testUnquoted() {
 
@@ -29,7 +32,7 @@ public class JSON5ParserTest extends TestCase {
 
 
         String jsonValueUnquoted = "{\n" +
-                "  unquoted: 'and you can quote\n me on that\"',\n" +
+                "  unquoted: 'and you can quote\\\n me on that\"',\n" +
                 " unquoted_integer: 123.0\n" +
                 "}";
 
@@ -417,5 +420,8 @@ public class JSON5ParserTest extends TestCase {
         System.out.println("Average: " + (totalTime / (double)totalCount) + "ms");
         System.out.println("Total: " + totalTime + "ms");
     }
+
+
+
 
 }

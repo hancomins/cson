@@ -10,11 +10,20 @@ import static org.junit.Assert.assertTrue;
 
 public class JSON5Test {
 
+
+    @Test
+    public void testA() {
+        CSONArray csonArray = new CSONArray("[\"value5!\n\tbreak line\"]", JSONOptions.json5().setAllowControlChar(true));
+        assertEquals("value5!\n\tbreak line",csonArray.getString(0));
+
+    }
+
+
     @Test
     public void test() {
         CSONObject csonObject = new CSONObject("{key: \"value\", key 2: \"value2\", key3: 'value3'," +
                 " key4: value4 ," +
-                " 'key5': \"value5!\\\r\n\tbreak line\", object: {key: value,}, 'byte[]': [+1,+2,+3,+4,5,6,7,8,9,10,Infinity,NaN,],  }", JSONOptions.json5());
+                " 'key5': \"value5!\\tbreak line\", object: {key: value,}, 'byte[]': [+1,+2,+3,+4,5,6,7,8,9,10,Infinity,NaN,],  }", JSONOptions.json5());
 
         assertEquals("value",csonObject.get("key"));
         assertEquals("value2",csonObject.get("key 2"));
@@ -60,7 +69,7 @@ public class JSON5Test {
         CSONObject  csonObject = new CSONObject("{key:'value',} ", JSONOptions.json5());
         assertEquals("value", csonObject.get("key"));
 
-        csonObject = new CSONObject("{key:'value', // 코멘트 \n } ", JSONOptions.json5());
+        csonObject = new CSONObject("{key:'value', // 코멘트X \n }// 코멘트", JSONOptions.json5());
         assertEquals("value", csonObject.get("key"));
         assertEquals("코멘트", csonObject.getCommentAfterThis());
 

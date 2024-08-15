@@ -68,6 +68,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
         private boolean allowInfinity = true;
         private boolean allowUnquoted = false;
         private boolean allowSingleQuotes = false;
+        private boolean allowControlChar = false;
 
         private boolean allowHexadecimal = true;
 
@@ -265,6 +266,15 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
         public JSONOptions setLeadingZeroOmission(boolean leadingZeroOmission) {
             isLeadingZeroOmission = leadingZeroOmission;
             return this;
+        }
+
+        public JSONOptions setAllowControlChar(boolean allowControlChar) {
+            this.allowControlChar = allowControlChar;
+            return this;
+        }
+
+        public boolean isAllowControlChar() {
+            return allowControlChar;
         }
 
         /*public boolean isAllowCharacter() {

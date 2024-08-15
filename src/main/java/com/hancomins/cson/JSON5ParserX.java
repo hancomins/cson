@@ -119,6 +119,7 @@ class JSON5ParserX {
 
 
         valueParseState = new ValueParseState(jsonOption);
+        valueParseState.setAllowControlChar(jsonOption.isAllowControlChar());
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
 
 
@@ -439,12 +440,12 @@ class JSON5ParserX {
                     else if(currentMode == Mode.WaitValue) {
                         currentMode = Mode.String;
                         currentQuoteChar = (char) c;
-                        valueParseState.reset().setOnlyString(true).setAllowControlChar(true);
+                        valueParseState.reset().setOnlyString(true);
                     }
                     else if(currentMode == Mode.WaitKey) {
                         currentMode  = Mode.InKey;
                         currentQuoteChar = (char) c;
-                        valueParseState.reset().setOnlyString(true).setAllowControlChar(true);
+                        valueParseState.reset().setOnlyString(true);
                     } else {
                         valueParseState.append((char)c);
                     }

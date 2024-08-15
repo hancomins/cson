@@ -13,8 +13,20 @@ public class ValueParseStateTest  {
         state.append("null    ");
         assertTrue(state.isNull());
         assertEquals(null, state.getNumber());
+    }
+
+
+    @Test
+    public void testBreakLine() {
+        String value = "value5!\\\n\\tbreak line";
+        StringFormatOption<?> json5Option = StringFormatOption.json5();
+        ValueParseState state = new ValueParseState(json5Option);
+        state.reset();
+        state.append(value);
+        assertEquals("value5!\n\tbreak line", state.toString());
 
     }
+
 
     @Test
     public void infinityParseTest() {

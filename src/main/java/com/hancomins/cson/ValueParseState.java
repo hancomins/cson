@@ -481,7 +481,9 @@ class ValueParseState {
                     unicodeCharCount = 0;
                     break;
                 default:
-                    characterBuffer.append(c);
+                    //if(c != '\n' && c != '\r') {
+                        characterBuffer.append(c);
+                    //}
                     isSpecialChar = false;
                     break;
             }
