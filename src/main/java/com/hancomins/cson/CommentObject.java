@@ -16,7 +16,7 @@ public class CommentObject implements  Cloneable {
         return beforeComment;
     }
 
-    public void setBeforeComment(String beforeComment) {
+    public void setHeadComment(String beforeComment) {
         this.beforeComment = beforeComment;
     }
 
@@ -24,7 +24,7 @@ public class CommentObject implements  Cloneable {
         return afterComment;
     }
 
-    public void setAfterComment(String afterComment) {
+    public void setTailComment(String afterComment) {
         this.afterComment = afterComment;
     }
 

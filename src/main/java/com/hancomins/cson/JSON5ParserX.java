@@ -4,7 +4,6 @@ import com.hancomins.cson.util.CharacterBuffer;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 
 class JSON5ParserX {
@@ -135,6 +134,7 @@ class JSON5ParserX {
 
             while((c = reader.read()) != -1) {
 
+
                 if(currentMode == Mode.WaitKey || currentMode == Mode.WaitValue || currentMode == Mode.WaitValueSeparator || currentMode == Mode.NextStoreSeparator) {
                     if(c == '\n' || c == '\r' || c == '\t' || c == ' ') {
                         while((c = reader.read()) != -1) {
@@ -180,7 +180,9 @@ class JSON5ParserX {
                     if(commentWrite) {
                         currentMode = commentBeforeMode;
                         if(currentMode == Mode.WaitKey) {
-                            keyCommentObject = new CommentObject();
+                            if(keyCommentObject == null) {
+                                keyCommentObject = new CommentObject();
+                            }
                             keyCommentObject.appendBeforeComment(commentBuffer.toTrimString());
                         }
                         else if(currentMode == Mode.WaitValueSeparator || currentMode == Mode.InKeyUnquoted) {
@@ -195,11 +197,11 @@ class JSON5ParserX {
                             valueCommentObject.appendBeforeComment((commentBuffer.toTrimString()));
                         } else if(currentMode == Mode.Open) {
                             String value = commentBuffer.toTrimString();
-                            String alreadyComment = rootElement.getCommentThis();
+                            String alreadyComment = rootElement.getHeadComment();
                             if(alreadyComment != null) {
                                 value = alreadyComment + "\n" + value;
                             }
-                            rootElement.setCommentThis(value);
+                            rootElement.setHeadComment(value);
                         }
                         else if(currentMode == Mode.Value) {
                             if(valueCommentObject == null) {
@@ -208,8 +210,14 @@ class JSON5ParserX {
                             valueCommentObject.appendAfterComment(commentBuffer.toTrimString());
                         }
                         else if(currentMode == Mode.Close) {
-                            rootElement.setCommentAfterThis(commentBuffer.toTrimString());
-                            return rootElement;
+                            String alreadyComment = rootElement.getTailComment();
+                            if(alreadyComment != null) {
+                                rootElement.setTailComment(alreadyComment + "\n" + commentBuffer.toTrimString());
+                            } else {
+                                rootElement.setTailComment(commentBuffer.toTrimString());
+                            }
+
+                            //return rootElement;
 
                         }
                         else if(currentMode == Mode.NextStoreSeparator) {
@@ -493,6 +501,16 @@ class JSON5ParserX {
 
             }
 
+            if(allowComment && currentMode == Mode.InOpenComment) {
+                String alreadyComment = rootElement.getTailComment();
+                if(alreadyComment != null) {
+                    rootElement.setTailComment(alreadyComment + "\n" + commentBuffer.toTrimString());
+                } else {
+                    rootElement.setTailComment(commentBuffer.toTrimString());
+                }
+                return rootElement;
+            }
+
 
         } catch (CSONParseException e) {
             throw e;
@@ -502,10 +520,7 @@ class JSON5ParserX {
         if(currentMode == Mode.Close) {
             return rootElement;
         }
-        if(allowComment && commentBeforeMode == Mode.Close) {
-            rootElement.setCommentAfterThis(commentBuffer.toTrimString());
-            return rootElement;
-        }
+
 
         throw new CSONParseException("Unexpected end of stream");
     }

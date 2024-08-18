@@ -263,14 +263,14 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	@SuppressWarnings({"unused", "UnusedReturnValue"})
 	public CSONArray setCommentForValue(int index, String comment) {
 		CommentObject commentObject = getCommentObject(index, true);
-		commentObject.setBeforeComment(comment);
+		commentObject.setHeadComment(comment);
 		return this;
 	}
 
 	@SuppressWarnings({"unused", "UnusedReturnValue"})
 	public CSONArray setCommentAfterValue(int index, String comment) {
 		CommentObject commentObject = getCommentObject(index, true);
-		commentObject.setAfterComment(comment);
+		commentObject.setTailComment(comment);
 		return this;
 	}
 
@@ -1142,7 +1142,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	protected void write(JSONWriter writer, boolean root) {
 		JSONWriter.writeJSONElement(this, writer);
 		/*if(root) {
-			writer.writeComment(getCommentThis(), false,"","\n" );
+			writer.writeComment(getHeadComment(), false,"","\n" );
 		}
 		writer.openArray();
 		int commentListEndIndex = commentObjectList == null ? -1 : commentObjectList.size() - 1;
@@ -1174,7 +1174,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 		writer.closeArray();
 		if(root) {
-			writer.writeComment(getCommentAfterThis(), false, "\n", "");
+			writer.writeComment(getTailComment(), false, "\n", "");
 		}*/
 
 	}

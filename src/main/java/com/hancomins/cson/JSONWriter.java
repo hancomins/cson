@@ -109,7 +109,7 @@ public class JSONWriter {
 				return;
 			}
 			writeComment(beforeComment, type);
-			commentObject.setBeforeComment(null);
+			commentObject.setHeadComment(null);
 		}
 	}
 
@@ -863,7 +863,7 @@ public class JSONWriter {
 
 
 
-		writer.writeComment(currentElement.getCommentThis(), false, "", "\n");
+		writer.writeComment(currentElement.getHeadComment(), false, "", "\n");
 		if(writer.isComment) {
 			writer.currentKeyValueCommentObjects = new ArrayDeque<>();
 		}
@@ -1019,7 +1019,7 @@ public class JSONWriter {
 			}
 
 		} while (currentElement != null);
-			writer.writeComment(root.getCommentAfterThis(), false, "\n", "");
+			writer.writeComment(root.getTailComment(), false, "\n", "");
 		}
 
 }

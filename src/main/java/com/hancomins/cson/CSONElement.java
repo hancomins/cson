@@ -93,20 +93,20 @@ public abstract  class CSONElement implements Iterable<Object>  {
 
 
 	@SuppressWarnings({"unchecked", "UnusedReturnValue"})
-	public <T extends CSONElement> T setCommentThis(String comment) {
+	public <T extends CSONElement> T setHeadComment(String comment) {
 		if(commentBeforeElement == null) {
 			commentBeforeElement = new CommentObject();
 		}
-		commentBeforeElement.setBeforeComment(comment);
+		commentBeforeElement.setHeadComment(comment);
 		return (T) this;
 	}
 
 	@SuppressWarnings("unchecked")
-	public  <T extends CSONElement> T setCommentAfterThis(String comment) {
+	public  <T extends CSONElement> T setTailComment(String comment) {
 		if(commentAfterElement == null) {
 			commentAfterElement = new CommentObject();
 		}
-		commentAfterElement.setAfterComment(comment);
+		commentAfterElement.setTailComment(comment);
 		return (T) this;
 	}
 
@@ -119,15 +119,31 @@ public abstract  class CSONElement implements Iterable<Object>  {
 
 
 
+
+	/**
+	 * @deprecated use {@link #getHeadComment()} instead
+	 **/
+	@Deprecated
 	public String getCommentAfterThis() {
+		return getTailComment();
+	}
+
+	public String getTailComment() {
 		return commentAfterElement == null ? null : commentAfterElement.getComment();
 	}
 
-	public String getCommentThis() {
+	public String getHeadComment() {
 		return commentBeforeElement == null ? null : commentBeforeElement.getComment();
 	}
 
 
+	/**
+	 * @deprecated use {@link #setHeadComment(String)} instead
+	 */
+	@Deprecated
+	public String getCommentThis() {
+		return getHeadComment();
+	}
 
 
 	public final CSONPath getCsonPath() {

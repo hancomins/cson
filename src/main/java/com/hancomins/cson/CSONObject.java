@@ -794,7 +794,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public CSONObject setCommentForKey(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(keyValueCommentObject.keyCommentObject != null) {
-			keyValueCommentObject.keyCommentObject.setBeforeComment(comment);
+			keyValueCommentObject.keyCommentObject.setHeadComment(comment);
 		} else {
 			keyValueCommentObject.keyCommentObject = new CommentObject(comment, null);
 		}
@@ -805,7 +805,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public CSONObject setCommentForValue(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(keyValueCommentObject.valueCommentObject != null) {
-			keyValueCommentObject.valueCommentObject.setBeforeComment(comment);
+			keyValueCommentObject.valueCommentObject.setHeadComment(comment);
 		} else {
 			keyValueCommentObject.valueCommentObject = new CommentObject(comment, null);
 		}
@@ -816,7 +816,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public CSONObject setCommentAfterValue(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(keyValueCommentObject.valueCommentObject != null) {
-			keyValueCommentObject.valueCommentObject.setAfterComment(comment);
+			keyValueCommentObject.valueCommentObject.setTailComment(comment);
 		} else {
 			keyValueCommentObject.valueCommentObject = new CommentObject(null, comment);
 		}
@@ -828,7 +828,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public CSONObject setCommentAfterKey(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(keyValueCommentObject.keyCommentObject != null) {
-			keyValueCommentObject.keyCommentObject.setAfterComment(comment);
+			keyValueCommentObject.keyCommentObject.setTailComment(comment);
 		} else {
 			keyValueCommentObject.keyCommentObject = new CommentObject(null, comment);
 		}
@@ -922,20 +922,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 		CommentObject commentObject = getCommentObjectOfValue(key);
 		return commentObject == null ? null : commentObject.getBeforeComment();
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1127,7 +1113,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 		// root 오브젝트가 아닌 경우에는 주석을 무시한다.
 		if(root) {
-			writer.writeComment(getCommentThis(), false,"","\n" );
+			writer.writeComment(getHeadComment(), false,"","\n" );
 		}
 		writer.openObject();
 		while(iter.hasNext()) {
@@ -1163,7 +1149,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 		writer.closeObject();
 		if(root) {
-			writer.writeComment(getCommentAfterThis(), false,"\n","" );
+			writer.writeComment(getTailComment(), false,"\n","" );
 		}*/
 
 	}

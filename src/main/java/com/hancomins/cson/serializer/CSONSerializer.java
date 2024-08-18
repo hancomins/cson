@@ -39,10 +39,10 @@ public class CSONSerializer {
         String comment = typeSchema.getComment();
         String commentAfter = typeSchema.getCommentAfter();
         if(comment != null) {
-            csonElement.setCommentThis(comment);
+            csonElement.setHeadComment(comment);
         }
         if(commentAfter != null) {
-            csonElement.setCommentAfterThis(commentAfter);
+            csonElement.setTailComment(commentAfter);
         }
         CSONObject root = (CSONObject) csonElement;
         ArrayDeque<ObjectSerializeDequeueItem> objectSerializeDequeueItems = new ArrayDeque<>();
