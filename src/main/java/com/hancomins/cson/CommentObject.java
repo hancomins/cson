@@ -1,6 +1,6 @@
 package com.hancomins.cson;
 
-public class CommentObject implements  Cloneable {
+public class CommentObject {
     private String beforeComment;
     private String afterComment;
 
@@ -52,9 +52,8 @@ public class CommentObject implements  Cloneable {
             return afterComment;
         } else if(afterComment == null) {
             return beforeComment;
-        } else {
-            return beforeComment + "\n" + afterComment;
         }
+        return beforeComment + "\n" + afterComment;
     }
 
     public String toString() {
@@ -67,9 +66,7 @@ public class CommentObject implements  Cloneable {
     }
 
 
-    @SuppressWarnings("MethodDoesntCallSuperMethod")
-    @Override
-    public CommentObject clone() {
+    public CommentObject copy() {
         CommentObject commentObject = new CommentObject();
         commentObject.beforeComment =  beforeComment;
         commentObject.afterComment = afterComment;

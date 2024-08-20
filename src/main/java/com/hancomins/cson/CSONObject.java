@@ -793,10 +793,10 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	public CSONObject setCommentForKey(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
-		if(keyValueCommentObject.keyCommentObject != null) {
-			keyValueCommentObject.keyCommentObject.setHeadComment(comment);
+		if(!keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
+			keyValueCommentObject.getKeyCommentObject().setHeadComment(comment);
 		} else {
-			keyValueCommentObject.keyCommentObject = new CommentObject(comment, null);
+			keyValueCommentObject.setKeyCommentObject(new CommentObject(comment, null));
 		}
 		return this;
 	}
@@ -804,10 +804,10 @@ public class CSONObject extends CSONElement implements Cloneable {
 	@SuppressWarnings("UnusedReturnValue")
 	public CSONObject setCommentForValue(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
-		if(keyValueCommentObject.valueCommentObject != null) {
-			keyValueCommentObject.valueCommentObject.setHeadComment(comment);
+		if(!keyValueCommentObject.isNullOrEmptyValueCommentObject()) {
+			keyValueCommentObject.getValueCommentObject().setHeadComment(comment);
 		} else {
-			keyValueCommentObject.valueCommentObject = new CommentObject(comment, null);
+			keyValueCommentObject.setValueCommentObject(new CommentObject(comment, null));
 		}
 		return this;
 	}
@@ -815,10 +815,10 @@ public class CSONObject extends CSONElement implements Cloneable {
 	@SuppressWarnings("UnusedReturnValue")
 	public CSONObject setCommentAfterValue(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
-		if(keyValueCommentObject.valueCommentObject != null) {
-			keyValueCommentObject.valueCommentObject.setTailComment(comment);
+		if(!keyValueCommentObject.isNullOrEmptyValueCommentObject()) {
+			keyValueCommentObject.getValueCommentObject().setTailComment(comment);
 		} else {
-			keyValueCommentObject.valueCommentObject = new CommentObject(null, comment);
+			keyValueCommentObject.setValueCommentObject( new CommentObject(null, comment));
 		}
 		return this;
 	}
@@ -827,10 +827,10 @@ public class CSONObject extends CSONElement implements Cloneable {
 	@SuppressWarnings("UnusedReturnValue")
 	public CSONObject setCommentAfterKey(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
-		if(keyValueCommentObject.keyCommentObject != null) {
-			keyValueCommentObject.keyCommentObject.setTailComment(comment);
+		if(!keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
+			keyValueCommentObject.getKeyCommentObject().setTailComment(comment);
 		} else {
-			keyValueCommentObject.keyCommentObject = new CommentObject(null, comment);
+			keyValueCommentObject.setKeyCommentObject(new CommentObject(null, comment));
 		}
 		return this;
 	}
@@ -843,73 +843,69 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public String getCommentForKey(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.keyCommentObject == null ? null : keyValueCommentObject.keyCommentObject.getBeforeComment();
+		return keyValueCommentObject.isNullOrEmptyKeyCommentObject() ? null : keyValueCommentObject.getKeyCommentObject().getBeforeComment();
 	}
 
 	public String getCommentAfterKey(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.keyCommentObject == null ? null : keyValueCommentObject.keyCommentObject.getAfterComment();
+		return keyValueCommentObject.isNullOrEmptyKeyCommentObject() ? null : keyValueCommentObject.getKeyCommentObject().getAfterComment();
 	}
 
 	@SuppressWarnings("unused")
 	public String getCommentForValue(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.valueCommentObject == null ? null : keyValueCommentObject.valueCommentObject.getBeforeComment();
+		return keyValueCommentObject.isNullOrEmptyValueCommentObject() ? null : keyValueCommentObject.getValueCommentObject().getBeforeComment();
 	}
 
 	@SuppressWarnings("unused")
 	public String getCommentAfterValue(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.valueCommentObject == null ? null : keyValueCommentObject.valueCommentObject.getAfterComment();
+		return keyValueCommentObject.isNullOrEmptyValueCommentObject() ? null : keyValueCommentObject.getValueCommentObject().getAfterComment();
 	}
 
 
 
 	protected void setCommentObjects(String key, CommentObject keyCommentObject, CommentObject valueCommentObject) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
-		keyValueCommentObject.keyCommentObject = keyCommentObject;
-		keyValueCommentObject.valueCommentObject = valueCommentObject;
+		if(keyCommentObject != null && keyCommentObject.isCommented()) {
+            do {
+                keyValueCommentObject.setKeyCommentObject(keyCommentObject);
+            } while (keyValueCommentObject.isNullOrEmptyKeyCommentObject());
+		}
+		keyValueCommentObject.setValueCommentObject(valueCommentObject);
 	}
 
 
 	protected CommentObject getCommentObjectOfKey(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.keyCommentObject;
+		return keyValueCommentObject.getKeyCommentObject();
 	}
 
 	protected CommentObject getCommentObjectOfValue(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.valueCommentObject;
+		return keyValueCommentObject.getValueCommentObject();
 	}
 
 
 	@SuppressWarnings("unused")
 	protected CommentObject getOrCreateCommentObjectOfValue(String key) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
-		if(keyValueCommentObject.valueCommentObject == null) {
-			keyValueCommentObject.valueCommentObject = new CommentObject();
+		if(keyValueCommentObject.isNullOrEmptyValueCommentObject()) {
+			keyValueCommentObject.setValueCommentObject(new CommentObject());
 		}
-		return keyValueCommentObject.valueCommentObject;
+		return keyValueCommentObject.getValueCommentObject();
 	}
 
 	private KeyValueCommentObject getOrCreateCommentObject(String key) {
 		if(keyValueCommentMap == null) {
 			keyValueCommentMap = new LinkedHashMap<>();
 		}
-		//return keyValueCommentMap.computeIfAbsent(key, k -> new KeyValueCommentObject());
-		// for java1.6
-		KeyValueCommentObject keyValueCommentObject = keyValueCommentMap.get(key);
-		//noinspection Java8MapApi
-		if(keyValueCommentObject == null) {
-			keyValueCommentObject = new KeyValueCommentObject();
-			keyValueCommentMap.put(key, keyValueCommentObject);
-		}
-		return keyValueCommentObject;
+        return keyValueCommentMap.computeIfAbsent(key, k -> new KeyValueCommentObject());
 	}
 
 

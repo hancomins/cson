@@ -109,7 +109,7 @@ public class JSONWriter {
 				return;
 			}
 			writeComment(beforeComment, type);
-			commentObject.setHeadComment(null);
+			//commentObject.setHeadComment(null);
 		}
 	}
 
@@ -235,7 +235,7 @@ public class JSONWriter {
 		}
 
 
-		this.currentKeyValueCommentObjects.addLast(commentObject.clone());
+		this.currentKeyValueCommentObjects.addLast(commentObject.copy());
 	}
 
 
@@ -892,14 +892,9 @@ public class JSONWriter {
 
 					KeyValueCommentObject keyValueCommentObject = isComment ? keyValueCommentMap.get(key) : null;
 					if(allowComment) {
-						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.keyCommentObject);
-						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.valueCommentObject);
+						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.getKeyCommentObject());
+						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.getValueCommentObject());
 					}
-					// todo 테스트용. 제거해야함.
-					if(key.equals("array")) {
-						int a = 0;
-					}
-
 					if (obj == null || obj instanceof NullValue) writer.key(key).nullValue();
 					else if (obj instanceof CSONElement) {
 						iteratorStack.add(iter);
@@ -907,15 +902,15 @@ public class JSONWriter {
 						if(allowComment) {
 							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
 							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
-							if(keyValueCommentObject.keyCommentObject != null) {
-								writer.currentKeyValueCommentObjects.addLast(keyValueCommentObject.keyCommentObject);
+							if(!keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
+								writer.currentKeyValueCommentObjects.addLast(keyValueCommentObject.getKeyCommentObject());
 							}
 						}
 						writer.key(key);
 						if(isComment &&
 								keyValueCommentObject != null &&
-								keyValueCommentObject.valueCommentObject != null) {
-							String beforeComment = keyValueCommentObject.valueCommentObject.getBeforeComment();
+								!keyValueCommentObject.isNullOrEmptyValueCommentObject()) {
+							String beforeComment = keyValueCommentObject.getValueCommentObject().getBeforeComment();
 							if(beforeComment != null && !beforeComment.isEmpty()) {
 								writer.writeComment(beforeComment, COMMENT_SLASH_STAR);
 							}
