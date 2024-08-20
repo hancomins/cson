@@ -19,8 +19,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	protected HashMap<String, Object> dataMap = new HashMap<>();
-	private HashMap<String, KeyValueCommentObject> keyValueCommentMap;
+	protected Map<String, Object> dataMap = new LinkedHashMap<>();
+	private Map<String, KeyValueCommentObject> keyValueCommentMap;
 
 
 

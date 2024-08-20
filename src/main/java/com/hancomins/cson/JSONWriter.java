@@ -895,6 +895,10 @@ public class JSONWriter {
 						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.keyCommentObject);
 						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.valueCommentObject);
 					}
+					// todo 테스트용. 제거해야함.
+					if(key.equals("array")) {
+						int a = 0;
+					}
 
 					if (obj == null || obj instanceof NullValue) writer.key(key).nullValue();
 					else if (obj instanceof CSONElement) {
@@ -903,6 +907,9 @@ public class JSONWriter {
 						if(allowComment) {
 							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
 							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
+							if(keyValueCommentObject.keyCommentObject != null) {
+								writer.currentKeyValueCommentObjects.addLast(keyValueCommentObject.keyCommentObject);
+							}
 						}
 						writer.key(key);
 						if(isComment &&

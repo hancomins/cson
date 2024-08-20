@@ -150,7 +150,7 @@ class JSON5ParserX {
                 }
 
                 // 코멘트를 사용할 경우 처리
-                if(allowComment) {
+                if(allowComment && currentMode != Mode.String) {
                     boolean commentWrite = false;
                     if(currentMode == Mode.InCloseComment) {
                         if(c == '*') {
@@ -586,6 +586,11 @@ class JSON5ParserX {
     }
 
     private static void putStringData(CSONElement currentElement, String value, String key) {
+        // todo 테스트용. 나중에 제거
+        if("val/* ok */ue2".equals(value)) {
+            int a = 0;
+        }
+
         if(key != null) {
             ((CSONObject)currentElement).put(key, value);
         } else {

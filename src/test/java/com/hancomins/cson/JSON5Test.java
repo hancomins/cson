@@ -179,6 +179,9 @@ public class JSON5Test {
         CSONObject.setDefaultStringFormatOption(JSONOptions.json5());
         CSONObject csonObject = new CSONObject(json5Str);
         assertEquals("코멘트입니다.\n222",csonObject.getCommentOfKey("key"));
+        assertEquals("array코멘트", csonObject.getCommentOfKey("array"));
+        assertEquals("array코멘트",csonObject.getCommentObjectOfValue("array").getBeforeComment());
+
         System.out.println(csonObject.toString());
         // csonObject.getCommentOfKey("key");
 
