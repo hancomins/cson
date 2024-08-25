@@ -902,7 +902,7 @@ public class JSONWriter {
 						if(allowComment) {
 							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
 							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
-							if(!keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
+							if(keyValueCommentObject != null && !keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
 								writer.currentKeyValueCommentObjects.addLast(keyValueCommentObject.getKeyCommentObject());
 							}
 						}
