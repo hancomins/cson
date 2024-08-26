@@ -98,6 +98,11 @@ class JSON5ParserX {
         Mode currentMode = Mode.Open;
         String key = null;
         String lastKey = null;
+        ArrayDeque<String> parentKeyStack = null;
+        if(allowComment) {
+            parentKeyStack = new ArrayDeque<>();
+        }
+
 
         CommentObject keyCommentObject = null;
         CommentObject valueCommentObject = null;
@@ -321,8 +326,12 @@ class JSON5ParserX {
                     }
                     else {
                         currentElement = new CSONObject();
+                        if(allowComment && oldElement instanceof CSONObject) {
+                            parentKeyStack.addLast(key);
+                        }
                         valueCount = 0;
                         lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject,valueCount++);
+
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
@@ -330,7 +339,8 @@ class JSON5ParserX {
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == '[') {
-                    if(currentMode != Mode.Open && currentMode != Mode.WaitValue) {
+                    if(currentMode !=
+                            Mode.Open && currentMode != Mode.WaitValue) {
                         throw new CSONParseException("Unexpected character '[' at " + index);
                     }
                     currentMode  = Mode.WaitValue;
@@ -351,12 +361,16 @@ class JSON5ParserX {
                     else {
                         currentElement = new CSONArray();
                         valueCount = 0;
+                        if(allowComment && oldElement instanceof CSONObject) {
+                            parentKeyStack.addLast(key);
+                        }
                         lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject, valueCount++);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
                     }
                     csonElements.offerLast(currentElement);
+
                 } else if(c == ']'  || c == '}') {
 
                     if(currentMode == Mode.WaitValue || currentMode == Mode.WaitKey) {
@@ -384,8 +398,15 @@ class JSON5ParserX {
                         }
                     }
                     currentElement = csonElements.getLast();
-                    if(allowComment && currentElement instanceof CSONArray) {
-                        valueCount = ((CSONArray)currentElement).size();
+
+
+
+                    if(allowComment) {
+                        if(currentElement instanceof CSONArray) {
+                            valueCount = ((CSONArray) currentElement).size();
+                        } else {
+                            lastKey = parentKeyStack.pollLast();
+                        }
                     }
                 }
 
