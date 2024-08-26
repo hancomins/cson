@@ -4,6 +4,7 @@ import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.EscapeUtil;
 import com.hancomins.cson.util.NullValue;
 
+import javax.xml.stream.events.Comment;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -905,6 +906,7 @@ public class JSONWriter {
 							if(keyValueCommentObject != null && !keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
 								writer.currentKeyValueCommentObjects.addLast(keyValueCommentObject.getKeyCommentObject());
 							}
+
 						}
 						writer.key(key);
 						if(isComment &&
@@ -944,7 +946,22 @@ public class JSONWriter {
 					currentIter = iteratorStack.pollLast();
 					currentElement = elementStack.pollLast();
 					iteratorCount = iteratorCountStack.pollLast();
+
+
 					if(writer.isComment) {
+
+						// todo 코드 중복 풀어야함.
+						if(!keyValueCommentObjectStack.isEmpty()) {
+							ArrayDeque<CommentObject> commentObjects = keyValueCommentObjectStack.getLast();
+							if(!commentObjects.isEmpty()) {
+								CommentObject commentObject = commentObjects.getLast();
+								String afterComment = commentObject.getAfterComment();
+								if(afterComment != null && !afterComment.isEmpty()) {
+									writer.writeComment(afterComment, COMMENT_SLASH_STAR);
+								}
+							}
+						}
+
 						writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.pollLast();
 						if (writer.currentKeyValueCommentObjects == null) {
 							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
@@ -1014,6 +1031,19 @@ public class JSONWriter {
 					currentIter = iteratorStack.pollLast();
 					currentElement = elementStack.pollLast();
 					iteratorCount = iteratorCountStack.pollLast();
+
+					// todo 코드 중복 풀어야함.
+					if(allowComment && !keyValueCommentObjectStack.isEmpty()) {
+						ArrayDeque<CommentObject> commentObjects = keyValueCommentObjectStack.getLast();
+						if(!commentObjects.isEmpty()) {
+							CommentObject commentObject = commentObjects.getLast();
+							String afterComment = commentObject.getAfterComment();
+							if(afterComment != null && !afterComment.isEmpty()) {
+								writer.writeComment(afterComment, COMMENT_SLASH_STAR);
+							}
+						}
+					}
+
 					writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.pollLast();
 					lastClosed = true;
 				}
