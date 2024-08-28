@@ -19,8 +19,7 @@ public abstract  class CSONElement implements Iterable<Object>  {
 
 	private static final Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
 	private static final Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");
-	private CommentObject commentAfterElement = null;
-	private CommentObject commentBeforeElement = null;
+	private CommentObject headTailCommentObject = null;
 	private CSONPath csonPath = null;
 
 
@@ -87,35 +86,42 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	}
 
 
-	CommentObject getCommentAfterElement() {
-		return commentAfterElement;
-	}
-
 
 	@SuppressWarnings({"unchecked", "UnusedReturnValue"})
 	public <T extends CSONElement> T setHeadComment(String comment) {
-		if(commentBeforeElement == null) {
-			commentBeforeElement = new CommentObject();
+		if(headTailCommentObject == null) {
+			headTailCommentObject = new CommentObject();
 		}
-		commentBeforeElement.setHeadComment(comment);
+		headTailCommentObject.setLeadingComment(comment);
 		return (T) this;
 	}
 
 	@SuppressWarnings("unchecked")
 	public  <T extends CSONElement> T setTailComment(String comment) {
-		if(commentAfterElement == null) {
-			commentAfterElement = new CommentObject();
+		if(headTailCommentObject == null) {
+			headTailCommentObject = new CommentObject();
 		}
-		commentAfterElement.setTailComment(comment);
+		headTailCommentObject.setTrailingComment(comment);
 		return (T) this;
 	}
 
-	protected CommentObject getOrCreateTailCommentObject() {
-		return commentAfterElement == null ? commentAfterElement = new CommentObject() : commentAfterElement;
+	@SuppressWarnings("unchecked")
+    public <T extends CSONElement> T addHeadComment(String comment) {
+		if(headTailCommentObject == null) {
+			headTailCommentObject = new CommentObject();
+		}
+		headTailCommentObject.appendLeadingComment(comment);
+		return (T) this;
 	}
 
-
-
+	@SuppressWarnings("unchecked")
+	public  <T extends CSONElement> T addTailComment(String comment) {
+		if(headTailCommentObject == null) {
+			headTailCommentObject = new CommentObject();
+		}
+		headTailCommentObject.appendTrailingComment(comment);
+		return (T) this;
+	}
 
 
 
@@ -129,11 +135,11 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	}
 
 	public String getTailComment() {
-		return commentAfterElement == null ? null : commentAfterElement.getComment();
+		return headTailCommentObject == null ? null : headTailCommentObject.getTrailingComment();
 	}
 
 	public String getHeadComment() {
-		return commentBeforeElement == null ? null : commentBeforeElement.getComment();
+		return headTailCommentObject == null ? null : headTailCommentObject.getLeadingComment();
 	}
 
 
@@ -232,6 +238,8 @@ public abstract  class CSONElement implements Iterable<Object>  {
 		}
 		return false;
 	}
+
+
 
 
 

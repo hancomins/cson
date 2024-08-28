@@ -229,8 +229,20 @@ public class CSONObject extends CSONElement implements Cloneable {
 			key = key.substring(2);
 			return this.getCsonPath().get(key);
 		}
-		return dataMap.get(key);
+		Object obj = dataMap.get(key);
+		copyHeadTailCommentToValueObject(key, obj);
+		return obj;
+	}
 
+	private void copyHeadTailCommentToValueObject(String key, Object obj) {
+		if(keyValueCommentMap != null && obj instanceof CSONElement && !keyValueCommentMap.isEmpty()) {
+			KeyValueCommentObject keyValueCommentObject = keyValueCommentMap.get(key);
+			CommentObject valueCommentObject = keyValueCommentObject.getValueCommentObject();
+			if(valueCommentObject != null) {
+				((CSONElement)obj).setTailComment(valueCommentObject.getTrailingComment());
+				((CSONElement)obj).setHeadComment(valueCommentObject.getTrailingComment());
+			}
+		}
 	}
 
 	private void putToDataMap(String key, Object value) {
@@ -314,6 +326,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		if(result == null) {
 			throw new CSONException(key, obj, enumType.getTypeName());
 		}
+
 		return result;
 	}
 
@@ -794,7 +807,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public CSONObject setCommentForKey(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(!keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
-			keyValueCommentObject.getKeyCommentObject().setHeadComment(comment);
+			keyValueCommentObject.getKeyCommentObject().setLeadingComment(comment);
 		} else {
 			keyValueCommentObject.setKeyCommentObject(new CommentObject(comment, null));
 		}
@@ -805,7 +818,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public CSONObject setCommentForValue(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(!keyValueCommentObject.isNullOrEmptyValueCommentObject()) {
-			keyValueCommentObject.getValueCommentObject().setHeadComment(comment);
+			keyValueCommentObject.getValueCommentObject().setLeadingComment(comment);
 		} else {
 			keyValueCommentObject.setValueCommentObject(new CommentObject(comment, null));
 		}
@@ -816,7 +829,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public CSONObject setCommentAfterValue(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(!keyValueCommentObject.isNullOrEmptyValueCommentObject()) {
-			keyValueCommentObject.getValueCommentObject().setTailComment(comment);
+			keyValueCommentObject.getValueCommentObject().setTrailingComment(comment);
 		} else {
 			keyValueCommentObject.setValueCommentObject( new CommentObject(null, comment));
 		}
@@ -828,7 +841,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public CSONObject setCommentAfterKey(String key, String comment) {
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(!keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
-			keyValueCommentObject.getKeyCommentObject().setTailComment(comment);
+			keyValueCommentObject.getKeyCommentObject().setTrailingComment(comment);
 		} else {
 			keyValueCommentObject.setKeyCommentObject(new CommentObject(null, comment));
 		}
@@ -843,27 +856,27 @@ public class CSONObject extends CSONElement implements Cloneable {
 	public String getCommentForKey(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.isNullOrEmptyKeyCommentObject() ? null : keyValueCommentObject.getKeyCommentObject().getBeforeComment();
+		return keyValueCommentObject.isNullOrEmptyKeyCommentObject() ? null : keyValueCommentObject.getKeyCommentObject().getLeadingComment();
 	}
 
 	public String getCommentAfterKey(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.isNullOrEmptyKeyCommentObject() ? null : keyValueCommentObject.getKeyCommentObject().getAfterComment();
+		return keyValueCommentObject.isNullOrEmptyKeyCommentObject() ? null : keyValueCommentObject.getKeyCommentObject().getTrailingComment();
 	}
 
 	@SuppressWarnings("unused")
 	public String getCommentForValue(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.isNullOrEmptyValueCommentObject() ? null : keyValueCommentObject.getValueCommentObject().getBeforeComment();
+		return keyValueCommentObject.isNullOrEmptyValueCommentObject() ? null : keyValueCommentObject.getValueCommentObject().getLeadingComment();
 	}
 
 	@SuppressWarnings("unused")
 	public String getCommentAfterValue(String key) {
 		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.isNullOrEmptyValueCommentObject() ? null : keyValueCommentObject.getValueCommentObject().getAfterComment();
+		return keyValueCommentObject.isNullOrEmptyValueCommentObject() ? null : keyValueCommentObject.getValueCommentObject().getTrailingComment();
 	}
 
 
@@ -909,15 +922,28 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
-	public String getCommentOfKey(String key) {
+	public String getCommentBeforeKey(String key) {
 		CommentObject commentObject = getCommentObjectOfKey(key);
-		return commentObject == null ? null : commentObject.getBeforeComment();
+		return commentObject == null ? null : commentObject.getLeadingComment();
 	}
 
+	public String getCommentBeforeValue(String key) {
+		CommentObject commentObject = getCommentObjectOfValue(key);
+		return commentObject == null ? null : commentObject.getLeadingComment();
+	}
+
+	@Deprecated
+	public String getCommentOfKey(String key) {
+		CommentObject commentObject = getCommentObjectOfKey(key);
+		return commentObject == null ? null : commentObject.getLeadingComment();
+	}
+
+	@Deprecated
 	public String getCommentOfValue(String key) {
 		CommentObject commentObject = getCommentObjectOfValue(key);
-		return commentObject == null ? null : commentObject.getBeforeComment();
+		return commentObject == null ? null : commentObject.getLeadingComment();
 	}
+
 
 
 

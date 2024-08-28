@@ -16,6 +16,7 @@ class KeyValueCommentObject {
         return isNullOrEmptyKeyCommentObject() && isNullOrEmptyValueCommentObject();
     }
 
+
     void setKeyCommentObject(CommentObject keyCommentObject) {
         this.keyCommentObject = keyCommentObject == null ? null : keyCommentObject.copy();
     }

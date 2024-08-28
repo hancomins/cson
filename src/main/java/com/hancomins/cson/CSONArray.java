@@ -250,27 +250,27 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	public String getCommentForValue(int index) {
 		CommentObject commentObject = getCommentObject(index);
 		if(commentObject == null) return null;
-		return commentObject.getBeforeComment();
+		return commentObject.getLeadingComment();
 	}
 
 	@SuppressWarnings("unused")
 	public String getCommentAfterValue(int index) {
 		CommentObject commentObject = getCommentObject(index);
 		if(commentObject == null) return null;
-		return commentObject.getAfterComment();
+		return commentObject.getTrailingComment();
 	}
 
 	@SuppressWarnings({"unused", "UnusedReturnValue"})
 	public CSONArray setCommentForValue(int index, String comment) {
 		CommentObject commentObject = getCommentObject(index, true);
-		commentObject.setHeadComment(comment);
+		commentObject.setLeadingComment(comment);
 		return this;
 	}
 
 	@SuppressWarnings({"unused", "UnusedReturnValue"})
 	public CSONArray setCommentAfterValue(int index, String comment) {
 		CommentObject commentObject = getCommentObject(index, true);
-		commentObject.setTailComment(comment);
+		commentObject.setTrailingComment(comment);
 		return this;
 	}
 
@@ -525,8 +525,19 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		}
 		Object obj = list.get(index);
 		if(obj instanceof NullValue) return null;
+		copyHeadTailCommentToValueObject(index, obj);
 
 		return obj;
+	}
+
+	private void copyHeadTailCommentToValueObject(int key, Object obj) {
+		if(commentObjectList != null && obj instanceof CSONElement && !commentObjectList.isEmpty()) {
+			CommentObject valueCommentObject = commentObjectList.get(key);
+			if(valueCommentObject != null) {
+				((CSONElement)obj).setTailComment(valueCommentObject.getTrailingComment());
+				((CSONElement)obj).setHeadComment(valueCommentObject.getLeadingComment());
+			}
+		}
 	}
 
 	public <T extends Enum<T>> T getEnum(int index, Class<T> enumType) {
@@ -691,6 +702,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		}
 		Object obj = list.get(index);
 		if(obj instanceof NullValue) return null;
+		copyHeadTailCommentToValueObject(index, obj);
 		return obj;
 	}
 

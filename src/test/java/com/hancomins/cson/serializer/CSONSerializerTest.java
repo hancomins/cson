@@ -618,7 +618,7 @@ public class CSONSerializerTest {
         System.out.println(csonObject.toString(JSONOptions.json5()));
         assertEquals(27, csonObject.getCSONObject("nickname").getInt("ageReal"));
         assertEquals(29, csonObject.getCSONObject("nickname").getInt("age"));
-        assertEquals(csonObject.getCommentOfKey("nickname"), "닉네임 오브젝트.");
+        assertEquals(csonObject.getCommentBeforeKey("nickname"), "닉네임 오브젝트.");
         assertEquals(csonObject.getCommentAfterKey("nickname"), "닉네임 오브젝트 끝.");
 
 

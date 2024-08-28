@@ -4,7 +4,6 @@ import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.EscapeUtil;
 import com.hancomins.cson.util.NullValue;
 
-import javax.xml.stream.events.Comment;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -85,11 +84,11 @@ public class JSONWriter {
 		if(!isComment) return null;
 		if(currentKeyValueCommentObjects != null &&  !currentKeyValueCommentObjects.isEmpty()) {
 			CommentObject commentObject = currentKeyValueCommentObjects.removeFirst();
-			String afterComment = commentObject.getAfterComment();
+			String afterComment = commentObject.getTrailingComment();
 			if (afterComment == null) {
 				return null;
 			}
-			return commentObject.getAfterComment();
+			return commentObject.getTrailingComment();
 		}
 		return null;
 	}
@@ -105,7 +104,7 @@ public class JSONWriter {
 		if(!isComment) return;
 		if(currentKeyValueCommentObjects != null && !currentKeyValueCommentObjects.isEmpty()) {
 			CommentObject commentObject = currentKeyValueCommentObjects.getFirst();
-			String beforeComment  = commentObject.getBeforeComment();
+			String beforeComment  = commentObject.getLeadingComment();
 			if(beforeComment == null) {
 				return;
 			}
@@ -912,7 +911,7 @@ public class JSONWriter {
 						if(isComment &&
 								keyValueCommentObject != null &&
 								!keyValueCommentObject.isNullOrEmptyValueCommentObject()) {
-							String beforeComment = keyValueCommentObject.getValueCommentObject().getBeforeComment();
+							String beforeComment = keyValueCommentObject.getValueCommentObject().getLeadingComment();
 							if(beforeComment != null && !beforeComment.isEmpty()) {
 								writer.writeComment(beforeComment, COMMENT_SLASH_STAR);
 							}
@@ -955,7 +954,7 @@ public class JSONWriter {
 							ArrayDeque<CommentObject> commentObjects = keyValueCommentObjectStack.getLast();
 							if(!commentObjects.isEmpty()) {
 								CommentObject commentObject = commentObjects.getLast();
-								String afterComment = commentObject.getAfterComment();
+								String afterComment = commentObject.getTrailingComment();
 								if(afterComment != null && !afterComment.isEmpty()) {
 									writer.writeComment(afterComment, COMMENT_SLASH_STAR);
 								}
@@ -1037,7 +1036,7 @@ public class JSONWriter {
 						ArrayDeque<CommentObject> commentObjects = keyValueCommentObjectStack.getLast();
 						if(!commentObjects.isEmpty()) {
 							CommentObject commentObject = commentObjects.getLast();
-							String afterComment = commentObject.getAfterComment();
+							String afterComment = commentObject.getTrailingComment();
 							if(afterComment != null && !afterComment.isEmpty()) {
 								writer.writeComment(afterComment, COMMENT_SLASH_STAR);
 							}

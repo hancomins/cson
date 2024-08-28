@@ -138,6 +138,7 @@ class ValueParseState {
         resultNumber = null;
         resultBoolean = null;
 
+        trimResult = false;
         onlyString = false;
         sign = Sign.None;
         return this;

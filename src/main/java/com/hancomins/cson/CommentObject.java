@@ -1,59 +1,61 @@
 package com.hancomins.cson;
 
 public class CommentObject {
-    private String beforeComment;
-    private String afterComment;
+    private String leadingComment;
+    private String trailingComment;
 
     public CommentObject() {
     }
 
-    public CommentObject(String beforeComment, String afterComment) {
-        this.beforeComment = beforeComment;
-        this.afterComment = afterComment;
+    public CommentObject(String leadingComment, String trailingComment) {
+        this.leadingComment = leadingComment;
+        this.trailingComment = trailingComment;
     }
 
-    public String getBeforeComment() {
-        return beforeComment;
+    public String getLeadingComment() {
+        return leadingComment;
     }
 
-    public void setHeadComment(String beforeComment) {
-        this.beforeComment = beforeComment;
+    public void setLeadingComment(String leadingComment) {
+        this.leadingComment = leadingComment;
     }
 
-    public String getAfterComment() {
-        return afterComment;
+    public String getTrailingComment() {
+        return trailingComment;
     }
 
-    public void setTailComment(String afterComment) {
-        this.afterComment = afterComment;
+
+
+    public void setTrailingComment(String trailingComment) {
+        this.trailingComment = trailingComment;
     }
 
-    void appendBeforeComment(String comment) {
-        if(beforeComment == null) {
-            beforeComment = comment;
+    void appendLeadingComment(String comment) {
+        if(leadingComment == null) {
+            leadingComment = comment;
         } else {
-            beforeComment += "\n" + comment;
+            leadingComment += "\n" + comment;
         }
     }
 
-    void appendAfterComment(String comment) {
-        if(afterComment == null) {
-            afterComment = comment;
+    void appendTrailingComment(String comment) {
+        if(trailingComment == null) {
+            trailingComment = comment;
         } else {
-            afterComment += "\n" + comment;
+            trailingComment += "\n" + comment;
         }
     }
 
 
     public String getComment() {
-        if(beforeComment == null && afterComment == null) {
+        if(leadingComment == null && trailingComment == null) {
             return null;
-        } else if(beforeComment == null) {
-            return afterComment;
-        } else if(afterComment == null) {
-            return beforeComment;
+        } else if(leadingComment == null) {
+            return trailingComment;
+        } else if(trailingComment == null) {
+            return leadingComment;
         }
-        return beforeComment + "\n" + afterComment;
+        return leadingComment + "\n" + trailingComment;
     }
 
     public String toString() {
@@ -62,14 +64,14 @@ public class CommentObject {
 
 
     public boolean isCommented() {
-        return beforeComment != null || afterComment != null;
+        return leadingComment != null || trailingComment != null;
     }
 
 
     public CommentObject copy() {
         CommentObject commentObject = new CommentObject();
-        commentObject.beforeComment =  beforeComment;
-        commentObject.afterComment = afterComment;
+        commentObject.leadingComment = leadingComment;
+        commentObject.trailingComment = trailingComment;
         return commentObject;
     }
 
