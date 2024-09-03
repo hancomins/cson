@@ -25,8 +25,9 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setAllowHexadecimal(true);
             jsonOptions.setLeadingZeroOmission(false);
             //jsonOptions.setAllowCharacter(true);
+
             jsonOptions.setAllowTrailingComma(true);
-            jsonOptions.setAllowConsecutiveCommas(true);
+            jsonOptions.setAllowConsecutiveCommas(false);
             jsonOptions.setKeyQuote("\"");
             jsonOptions.setValueQuote("\"");
             return jsonOptions;

@@ -384,6 +384,11 @@ class JSON5ParserX {
                     } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
                         throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                     }
+                    if(allowComment) {
+                        valueCommentObject = null;
+                        keyCommentObject = null;
+                    }
+
 
                     currentMode = Mode.NextStoreSeparator;
                     csonElements.removeLast();
@@ -417,6 +422,9 @@ class JSON5ParserX {
                 }
 
                 else if(c == ',') {
+                    if(currentMode == Mode.WaitKey && !allowConsecutiveCommas) {
+                        throw new CSONParseException("Unexpected character ',' at " + index + " ,line: " + line);
+                    }
 
                     if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
                         if(allowConsecutiveCommas) {

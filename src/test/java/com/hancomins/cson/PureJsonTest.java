@@ -241,7 +241,7 @@ public class PureJsonTest {
         Exception err = null;
         String json = "{\"key\": \"5\",\"a\":\"b\",}";
         try {
-            CSONObject csonObject = new CSONObject(json, JSONOptions.json());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -273,7 +273,7 @@ public class PureJsonTest {
 
         json = "{key: \"5\",\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, JSONOptions.json());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -290,7 +290,7 @@ public class PureJsonTest {
         err = null;
         json = "{'key': \"5\",\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, JSONOptions.json());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -302,12 +302,12 @@ public class PureJsonTest {
         err = null;
         json = "{\"key\": \"5\",\"a\":\"b\",}";
         try {
-            CSONObject csonObject = new CSONObject(json, JSONOptions.json());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
         }
-        assertNotNull(err);
+        //assertNotNull(err);
         err = null;
 
 

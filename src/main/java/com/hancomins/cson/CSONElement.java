@@ -139,7 +139,7 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	}
 
 	public String getHeadComment() {
-		return headTailCommentObject == null ? null : headTailCommentObject.getLeadingComment();
+		return  headTailCommentObject == null ? null : headTailCommentObject.getLeadingComment();
 	}
 
 

@@ -6,11 +6,14 @@ import com.hancomins.cson.util.NullValue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Base64;
+import java.util.Iterator;
+import java.util.Map;
 
 
 @SuppressWarnings("UnusedReturnValue")
-public class JSONWriter {
+public class JSONWriterCopy {
 
 
 	private static final int DEFAULT_BUFFER_SIZE = 512;
@@ -115,7 +118,7 @@ public class JSONWriter {
 
 
 
-	public JSONWriter(JSONOptions jsonOptions) {
+	public JSONWriterCopy(JSONOptions jsonOptions) {
 		this.jsonOptions = jsonOptions;
 		if(jsonOptions.isPretty()) {
 			isPretty = true;
@@ -269,7 +272,7 @@ public class JSONWriter {
 		stringBuilder.append(quote);
 	}
 
-	public JSONWriter key(String key) {
+	public JSONWriterCopy key(String key) {
 		ObjectType type = typeStack_.getLast();
 		if(type != ObjectType.OpenObject) {
 			stringBuilder.append(',');
@@ -300,7 +303,7 @@ public class JSONWriter {
 		return this;
 	}*/
 
-	public JSONWriter nullValue() {
+	public JSONWriterCopy nullValue() {
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -312,7 +315,7 @@ public class JSONWriter {
 	}
 
 
-	public JSONWriter value(String value) {
+	public JSONWriterCopy value(String value) {
 		if(value== null) {
 			nullValue();
 			return this;
@@ -327,7 +330,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter value(byte[] value) {
+	public JSONWriterCopy value(byte[] value) {
 		if(value== null) {
 			nullValue();
 			return this;
@@ -344,15 +347,16 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter value(CSONElement value) {
+	public JSONWriterCopy value(CSONElement value) {
 		writeBeforeComment(COMMENT_SLASH_STAR);
 		String afterValueComment = getAfterComment();
-		value.write(this, false);
+		// todo 복원시 복구
+		//value.write(this, false);
 		writeComment(afterValueComment, COMMENT_SLASH_STAR);
 		return this;
 	}
 
-	public JSONWriter value(Object value) {
+	public JSONWriterCopy value(Object value) {
 		if(value== null) {
 			nullValue();
 			return this;
@@ -382,7 +386,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter value(byte value) {
+	public JSONWriterCopy value(byte value) {
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -393,7 +397,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter value(int value) {
+	public JSONWriterCopy value(int value) {
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -404,19 +408,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter value(long value) {
-		if(typeStack_.getLast() != ObjectType.ObjectKey) {
-			throw new CSONWriteException();
-		}
-		removeStack();
-		writeBeforeComment(COMMENT_SLASH_STAR);
-		hasValue = true;
-		stringBuilder.append(value);
-		writeAfterComment(COMMENT_SLASH_STAR);;
-		return this;
-	}
-
-	public JSONWriter value(short value) {
+	public JSONWriterCopy value(long value) {
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -428,7 +420,19 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter value(boolean value) {
+	public JSONWriterCopy value(short value) {
+		if(typeStack_.getLast() != ObjectType.ObjectKey) {
+			throw new CSONWriteException();
+		}
+		removeStack();
+		writeBeforeComment(COMMENT_SLASH_STAR);
+		hasValue = true;
+		stringBuilder.append(value);
+		writeAfterComment(COMMENT_SLASH_STAR);;
+		return this;
+	}
+
+	public JSONWriterCopy value(boolean value) {
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -440,7 +444,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter value(char value) {
+	public JSONWriterCopy value(char value) {
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -457,7 +461,7 @@ public class JSONWriter {
 
 
 
-	public JSONWriter value(float value) {
+	public JSONWriterCopy value(float value) {
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -488,7 +492,7 @@ public class JSONWriter {
 		}
 	}
 
-	public JSONWriter value(double value) {
+	public JSONWriterCopy value(double value) {
 		if(typeStack_.getLast() != ObjectType.ObjectKey) {
 			throw new CSONWriteException();
 		}
@@ -543,7 +547,7 @@ public class JSONWriter {
 	}
 
 	///
-	public JSONWriter addNull() {
+	public JSONWriterCopy addNull() {
 		checkAndAppendInArray();
 		hasValue = true;
 		stringBuilder.append("null");
@@ -551,7 +555,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter add(String value) {
+	public JSONWriterCopy add(String value) {
 		if(value== null) {
 			addNull();
 			return this;
@@ -564,7 +568,7 @@ public class JSONWriter {
 	}
 
 
-	public JSONWriter add(byte[] value) {
+	public JSONWriterCopy add(byte[] value) {
 		if(value== null) {
 			addNull();
 			return this;
@@ -579,7 +583,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter add(BigDecimal value) {
+	public JSONWriterCopy add(BigDecimal value) {
 		if(value== null) {
 			addNull();
 			return this;
@@ -592,7 +596,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter add(BigInteger value) {
+	public JSONWriterCopy add(BigInteger value) {
 		if(value== null) {
 			addNull();
 			return this;
@@ -619,11 +623,12 @@ public class JSONWriter {
 	writeBeforeComment(commentType);*/
 
 
-	public JSONWriter add(CSONElement value) {
+	public JSONWriterCopy add(CSONElement value) {
 		checkAndAppendInArray();
 		hasValue = true;
 		String afterComment = getAfterComment();
-		value.write(this, false);
+		// todo 복원시 복구
+		//value.write(this, false);
 		if(afterComment != null) {
 			writeComment(afterComment, COMMENT_SLASH_STAR);
 		}
@@ -631,7 +636,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter addCSONElement() {
+	public JSONWriterCopy addCSONElement() {
 
 
 		checkAndAppendInArray();
@@ -649,7 +654,7 @@ public class JSONWriter {
 	}
 
 
-	public JSONWriter add(byte value) {
+	public JSONWriterCopy add(byte value) {
 		checkAndAppendInArray();
 		hasValue = true;
 		stringBuilder.append(value);
@@ -657,7 +662,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter add(int value) {
+	public JSONWriterCopy add(int value) {
 		checkAndAppendInArray();
 		hasValue = true;
 		stringBuilder.append(value);
@@ -665,16 +670,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter add(long value) {
-
-		checkAndAppendInArray();
-		hasValue = true;
-		stringBuilder.append(value);
-		writeAfterComment(COMMENT_SLASH_STAR);
-		return this;
-	}
-
-	public JSONWriter add(short value) {
+	public JSONWriterCopy add(long value) {
 
 		checkAndAppendInArray();
 		hasValue = true;
@@ -683,7 +679,16 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter add(boolean value) {
+	public JSONWriterCopy add(short value) {
+
+		checkAndAppendInArray();
+		hasValue = true;
+		stringBuilder.append(value);
+		writeAfterComment(COMMENT_SLASH_STAR);
+		return this;
+	}
+
+	public JSONWriterCopy add(boolean value) {
 
 		checkAndAppendInArray();
 		hasValue = true;
@@ -694,7 +699,7 @@ public class JSONWriter {
 
 
 
-	public JSONWriter add(char value) {
+	public JSONWriterCopy add(char value) {
 		checkAndAppendInArray();
 		String quote =   valueQuote;
 		stringBuilder.append(quote);
@@ -704,14 +709,14 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter add(float value) {
+	public JSONWriterCopy add(float value) {
 		checkAndAppendInArray();
 		writeFloat(value);
 		writeAfterComment(COMMENT_SLASH_STAR);
 		return this;
 	}
 
-	public JSONWriter add(double value) {
+	public JSONWriterCopy add(double value) {
 		checkAndAppendInArray();
 		writeDouble(value);
 		writeAfterComment(COMMENT_SLASH_STAR);
@@ -719,7 +724,7 @@ public class JSONWriter {
 	}
 
 	@SuppressWarnings("StatementWithEmptyBody")
-	public JSONWriter openArray() {
+	public JSONWriterCopy openArray() {
 		if(!typeStack_.isEmpty()) {
 			ObjectType type = typeStack_.getLast();
 			if (type == ObjectType.OpenArray) {
@@ -741,7 +746,7 @@ public class JSONWriter {
 		return this;
 	}
 
-	public JSONWriter closeArray() {
+	public JSONWriterCopy closeArray() {
 		ObjectType type = typeStack_.getLast();
 		if(type != ObjectType.Array && type != ObjectType.OpenArray) {
 			throw new CSONWriteException();
@@ -773,7 +778,7 @@ public class JSONWriter {
 	}
 
 	@SuppressWarnings("StatementWithEmptyBody")
-	public JSONWriter openObject() {
+	public JSONWriterCopy openObject() {
 		ObjectType type = typeStack_.isEmpty() ? null : typeStack_.getLast();
 		//int commentType = COMMENT_BEFORE_ARRAY_VALUE;
 		if(type == ObjectType.Object) {
@@ -805,7 +810,7 @@ public class JSONWriter {
 		return typeStack_.isEmpty();
 	}
 
-	public JSONWriter closeObject(boolean inArray) {
+	public JSONWriterCopy closeObject(boolean inArray) {
 		if(typeStack_.getLast() != ObjectType.Object && typeStack_.getLast() != ObjectType.OpenObject) {
 			throw new CSONWriteException();
 		}
@@ -848,7 +853,7 @@ public class JSONWriter {
 	}
 
 
-	public static void writeJSONElement(CSONElement root,JSONWriter writer) {
+	public static void writeJSONElement(CSONElement root, JSONWriterCopy writer) {
 		//JSONWriter writer  = new JSONWriter((JSONOptions) stringFormatOption);
 
 		boolean allowComment = writer.isComment();
@@ -895,37 +900,23 @@ public class JSONWriter {
 				while (iter.hasNext()) {
 					Map.Entry<String, Object> entry = iter.next();
 					String key = entry.getKey();
-					Object value = entry.getValue();
+					Object obj = entry.getValue();
 
 					KeyValueCommentObject keyValueCommentObject = isComment ? keyValueCommentMap.get(key) : null;
 					if(allowComment) {
 						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.getKeyCommentObject());
 						writer.nextCommentObject(keyValueCommentObject == null ? null : keyValueCommentObject.getValueCommentObject());
 					}
-					if (value == null || value instanceof NullValue) writer.key(key).nullValue();
-					else if (value instanceof CSONElement) {
+					if (obj == null || obj instanceof NullValue) writer.key(key).nullValue();
+					else if (obj instanceof CSONElement) {
 						iteratorStack.add(iter);
 						elementStack.add(currentElement);
 						if(allowComment) {
-
-							String beforeComment = null;
-							if(writer.currentKeyValueCommentObjects != null) {
-								CommentObject commentObject = writer.currentKeyValueCommentObjects.peekLast();
-								if(commentObject != null) {
-									beforeComment = commentObject.getLeadingComment();
-								}
-							}
-							//String beforeComment = writer.currentKeyValueCommentObjects == null ? null : writer.currentKeyValueCommentObjects.getLast().get
-							if(writer.currentKeyValueCommentObjects == null) {
-								writer.currentKeyValueCommentObjects = new ArrayDeque<>();
-							}
 							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
-
 							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
-							if(beforeComment != null) {
-								writer.currentKeyValueCommentObjects.addLast(new CommentObject(beforeComment, null));
+							if(keyValueCommentObject != null && !keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
+								writer.currentKeyValueCommentObjects.addLast(keyValueCommentObject.getKeyCommentObject());
 							}
-
 
 						}
 						writer.key(key);
@@ -939,29 +930,25 @@ public class JSONWriter {
 						}
 						iteratorCountStack.add(iteratorCount);
 						iteratorCount = new Count();
-						currentElement = (CSONElement) value;
+						currentElement = (CSONElement) obj;
 						skipClose = true;
-						if(isComment) {
-							writer.currentKeyValueCommentObjects.clear();
-						}
-
 
 						break;
-					} else if (value instanceof Byte) writer.key(key).value((byte) value);
-					else if (value instanceof Boolean) writer.key(key).value((boolean) value);
-					else if (value instanceof Short) writer.key(key).value((short) value);
-					else if (value instanceof Character) writer.key(key).value((char) value);
-					else if (value instanceof Integer) writer.key(key).value((int) value);
-					else if (value instanceof Float) writer.key(key).value((float) value);
-					else if (value instanceof Long) writer.key(key).value((long) value);
-					else if (value instanceof Double) writer.key(key).value((double) value);
-					else if (value instanceof String) writer.key(key).value((String) value);
-					else if (value instanceof BigDecimal) writer.key(key).value(value);
-					else if (value instanceof BigInteger) writer.key(key).value(value);
-					else if (value instanceof Enum) writer.key(key).value(value);
-					else if (value instanceof byte[]) writer.key(key).value((byte[]) value);
+					} else if (obj instanceof Byte) writer.key(key).value((byte) obj);
+					else if (obj instanceof Boolean) writer.key(key).value((boolean) obj);
+					else if (obj instanceof Short) writer.key(key).value((short) obj);
+					else if (obj instanceof Character) writer.key(key).value((char) obj);
+					else if (obj instanceof Integer) writer.key(key).value((int) obj);
+					else if (obj instanceof Float) writer.key(key).value((float) obj);
+					else if (obj instanceof Long) writer.key(key).value((long) obj);
+					else if (obj instanceof Double) writer.key(key).value((double) obj);
+					else if (obj instanceof String) writer.key(key).value((String) obj);
+					else if (obj instanceof BigDecimal) writer.key(key).value(obj);
+					else if (obj instanceof BigInteger) writer.key(key).value(obj);
+					else if (obj instanceof Enum) writer.key(key).value(obj);
+					else if (obj instanceof byte[]) writer.key(key).value((byte[]) obj);
 					else if (currentObject.isAllowRawValue()) {
-						writer.key(key).value(value.toString());
+						writer.key(key).value(obj.toString());
 					}
 				}
 				if(!skipClose) {
@@ -1019,10 +1006,10 @@ public class JSONWriter {
 						}
 					}
 
-					Object value = iter.next();
+					Object obj = iter.next();
 
-					if(value == null || value instanceof NullValue) writer.addNull();
-					else if(value instanceof CSONElement)  {
+					if(obj == null || obj instanceof NullValue) writer.addNull();
+					else if(obj instanceof CSONElement)  {
 						iteratorStack.add(iter);
 						elementStack.add(currentElement);
 						iteratorCountStack.add(iteratorCount);
@@ -1045,30 +1032,28 @@ public class JSONWriter {
 								writer.currentKeyValueCommentObjects.addLast(new CommentObject(beforeComment, null));
 							}
 
+
 						}
 						iteratorCount = new Count();
 						writer.addCSONElement();
-						currentElement = (CSONElement) value;
+						currentElement = (CSONElement) obj;
 						skipClose = true;
-						if(allowComment) {
-							writer.currentKeyValueCommentObjects.clear();
-						}
 						break;
 					}
-					else if(value instanceof Byte)	writer.add((Byte)value);
-					else if(value instanceof Short)	writer.add((Short)value);
-					else if(value instanceof Character) writer.add((Character)value);
-					else if(value instanceof Integer) writer.add((Integer)value);
-					else if(value instanceof Float) writer.add((Float)value);
-					else if(value instanceof Long) writer.add((Long)value);
-					else if(value instanceof Double) writer.add((Double)value);
-					else if(value instanceof String) writer.add((String)value);
-					else if (value instanceof BigDecimal) writer.add((BigDecimal)value);
-					else if (value instanceof BigInteger) writer.add((BigInteger)value);
-					else if(value instanceof byte[]) writer.add((byte[])value);
-					else if(value instanceof Boolean) writer.add((Boolean)value);
+					else if(obj instanceof Byte)	writer.add((Byte)obj);
+					else if(obj instanceof Short)	writer.add((Short)obj);
+					else if(obj instanceof Character) writer.add((Character)obj);
+					else if(obj instanceof Integer) writer.add((Integer)obj);
+					else if(obj instanceof Float) writer.add((Float)obj);
+					else if(obj instanceof Long) writer.add((Long)obj);
+					else if(obj instanceof Double) writer.add((Double)obj);
+					else if(obj instanceof String) writer.add((String)obj);
+					else if (obj instanceof BigDecimal) writer.add((BigDecimal)obj);
+					else if (obj instanceof BigInteger) writer.add((BigInteger)obj);
+					else if(obj instanceof byte[]) writer.add((byte[])obj);
+					else if(obj instanceof Boolean) writer.add((Boolean)obj);
 					else if (currentArray.isAllowRawValue()) {
-						writer.add(value.toString());
+						writer.add(obj.toString());
 					}
 				}
 				if(!skipClose) {

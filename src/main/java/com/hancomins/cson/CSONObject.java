@@ -240,7 +240,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 			CommentObject valueCommentObject = keyValueCommentObject.getValueCommentObject();
 			if(valueCommentObject != null) {
 				((CSONElement)obj).setTailComment(valueCommentObject.getTrailingComment());
-				((CSONElement)obj).setHeadComment(valueCommentObject.getTrailingComment());
+				((CSONElement)obj).setHeadComment(valueCommentObject.getLeadingComment());
 			}
 		}
 	}
