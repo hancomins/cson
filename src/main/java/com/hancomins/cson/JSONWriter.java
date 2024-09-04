@@ -233,6 +233,7 @@ public class JSONWriter {
 			this.currentKeyValueCommentObjects = new ArrayDeque<>();
 		}
 		if(commentObject == null) {
+			this.currentKeyValueCommentObjects.addLast(new CommentObject());
 			return;
 		}
 
@@ -906,29 +907,30 @@ public class JSONWriter {
 					else if (value instanceof CSONElement) {
 						iteratorStack.add(iter);
 						elementStack.add(currentElement);
+						writer.key(key);
+
 						if(allowComment) {
 
-							String beforeComment = null;
+							/*String beforeComment = null;
 							if(writer.currentKeyValueCommentObjects != null) {
 								CommentObject commentObject = writer.currentKeyValueCommentObjects.peekLast();
 								if(commentObject != null) {
 									beforeComment = commentObject.getLeadingComment();
 								}
-							}
+							}*/
 							//String beforeComment = writer.currentKeyValueCommentObjects == null ? null : writer.currentKeyValueCommentObjects.getLast().get
-							if(writer.currentKeyValueCommentObjects == null) {
+							/*if(writer.currentKeyValueCommentObjects == null) {
 								writer.currentKeyValueCommentObjects = new ArrayDeque<>();
-							}
+							}*/
 							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
-
 							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
-							if(beforeComment != null) {
+							/*if(beforeComment != null) {
 								writer.currentKeyValueCommentObjects.addLast(new CommentObject(beforeComment, null));
-							}
+							}*/
 
 
 						}
-						writer.key(key);
+
 						if(isComment &&
 								keyValueCommentObject != null &&
 								!keyValueCommentObject.isNullOrEmptyValueCommentObject()) {

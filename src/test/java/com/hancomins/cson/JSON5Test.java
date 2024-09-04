@@ -206,19 +206,24 @@ public class JSON5Test {
 
         // todo "// 이곳은?" 코멘트를 무시하도록 처리해야한다.
 
-        String json5StrPRe = "/*루트코멘트*/{ \n//값 앞 코멘트\nkey/*키 뒤 코멘트 */: /* 오브젝트 값 이전 코멘트 */ {p: 'ok'\n, // 이곳은? \n } /* 값 뒤 코멘트 */, // key3comment \n 'key3' /*key3 다음 코멘트*/: 'value3' /*123 */ } /* 꼬리 다음 코멘트 */";
+        //String json5StrPRe = "/*루트코멘트*/{ \n//값 앞 코멘트\nkey/*키 뒤 코멘트 */: /* 오브젝트 값 이전 코멘트 */ {p: 'ok'\n, // 이곳은? \n } /* 값 뒤 코멘트 */, // key3comment \n 'key3' /*key3 다음 코멘트*/: 'value3' /*123 */ } /* 꼬리 다음 코멘트 */";
 
-        CSONObject csonObjectPre = new CSONObject(json5StrPRe, JSONOptions.json5());
-
-
-        System.out.println(csonObjectPre.getCommentForKey("key3"));
-        System.out.println(csonObjectPre.toString());
+        //CSONObject csonObjectPre = new CSONObject(json5StrPRe, JSONOptions.json5());
 
 
+        //System.out.println(csonObjectPre.getCommentForKey("key3"));
+       // System.out.println(csonObjectPre.toString());
+
+
+
+
+        String json5StrB = "{ /*Array 키 앞*/array2/*Array 키 뒤*/:/*코멘트array2b*/[1,2,3,4]/*코멘트array2a*/}";
+        CSONObject csonObjectB = new CSONObject(json5StrB, JSONOptions.json5());
+        System.out.println(csonObjectB.toString());
 
 
         // todo 제거 필요
-       // if(1 < 2) return;
+        //if(1 < 2) return;
 
 
         String json5Str = "{ \n" +
@@ -229,14 +234,27 @@ public class JSON5Test {
 
         CSONObject.setDefaultStringFormatOption(JSONOptions.json5());
         CSONObject origin = new CSONObject(json5Str , JSONOptions.json5().setKeyQuote(""));
+        assertEquals("오브젝트 코멘트",origin.getCommentAfterKey("object"));
         assertEquals("key3comment",origin.getCommentBeforeKey("key3"));
-        System.out.println(origin);
+        //System.out.println(origin);
         CSONObject  csonObject = new CSONObject(json5Str , JSONOptions.json5());
 
         assertEquals("코멘트입니다.\n222",csonObject.getCommentObjectOfKey("key").getLeadingComment());
-        System.out.println(csonObject);
+
+        // ANSI escape code for green text
+        String greenText = "\u001B[32m";
+        // ANSI escape code to reset the color
+        String resetText = "\u001B[0m";
+
+        System.out.println(greenText + csonObject.toString() + resetText);
 
         csonObject = new CSONObject(csonObject.toString() , JSONOptions.json5());
+        // 초록섹으로 System.out.println(csonObject.toString());
+
+
+
+
+        assertEquals("오브젝트 코멘트",csonObject.getCommentAfterKey("object"));
         System.out.println(csonObject.toString(JSONOptions.json5()));
 
         assertEquals("코멘트입니다.\n222",csonObject.getCommentObjectOfKey("key").getLeadingComment());
@@ -259,7 +277,9 @@ public class JSON5Test {
 
         assertEquals("오브젝트 코멘트",  csonObject.getCommentAfterKey("object"));
         CommentObject keyCommentObject = csonObject.getCommentObjectOfKey("object");
-        assertEquals("오브젝트 값 이전 코멘트", keyCommentObject.getLeadingComment());
+        assertEquals("오브젝트", keyCommentObject.getLeadingComment());
+        assertEquals("오브젝트 값 이전 코멘트", csonObject.getCommentForValue("object"));
+        assertEquals("오브젝트 코멘트 엔드", csonObject.getCommentAfterValue("object"));
         CSONObject subObject =  csonObject.getCSONObject("object");
         assertEquals("ok",subObject.get("p"));
 
