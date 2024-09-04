@@ -537,7 +537,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 		if(obj == null) {
 			return def;
 		}
-		return DataConverter.toChar(obj,def);
+
+		return DataConverter.toChar(obj, def);
+
 	}
 
 

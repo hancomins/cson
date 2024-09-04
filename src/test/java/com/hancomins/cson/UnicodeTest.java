@@ -33,11 +33,20 @@ public class UnicodeTest {
 
     @Test
     public void testHex() {
-        CSONObject csonObject = new CSONObject("{a:'0xceab'}", StringFormatOption.json5());
+        CSONObject csonObjectHexString = new CSONObject("{a:'0xceab'}", StringFormatOption.json5());
         CSONArray csonArray = new CSONArray("[0xceab]", StringFormatOption.json5());
+        CSONArray csonArrayHexString = new CSONArray("['0xceab', '0x0f']", StringFormatOption.json5());
 
-        assertEquals('캫', csonObject.get("a"));
+        assertEquals('캫', csonObjectHexString.optChar("a"));
         assertEquals(52907, csonArray.getInt(0));
+        assertEquals(52907, csonArrayHexString.optInt(0));
+        assertEquals(52907, csonArrayHexString.optLong(0));
+        assertEquals(-12629, csonArrayHexString.optShort(0));
+        assertEquals(15, csonArrayHexString.optByte(1));
+        assertEquals( Float.valueOf( 52907), Float.valueOf( csonArrayHexString.optFloat(0)));
+        assertEquals( Double.valueOf( 52907), Double.valueOf( csonArrayHexString.optDouble(0)));
+
+
 
     }
 

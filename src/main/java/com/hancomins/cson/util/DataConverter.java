@@ -134,6 +134,10 @@ public class DataConverter {
 			} else if (value instanceof Boolean) {
 				return ((Boolean) value) ? 1 : 0;
 			} else if (value instanceof String) {
+				Long fromHex = hexStringToLong((String) value);
+				if(fromHex != null) {
+					return fromHex.intValue();
+				}
 				return Integer.parseInt( ((String)value).trim());
 			} else if (value instanceof byte[] && ((byte[]) value).length > 3) {
 				return ByteBuffer.wrap((byte[]) value).getInt();
@@ -180,6 +184,10 @@ public class DataConverter {
 			} else if (value instanceof Character) {
 				return (short) ((Character) value).charValue();
 			} else if (value instanceof String) {
+				Long fromHex = hexStringToLong((String) value);
+				if(fromHex != null) {
+					return fromHex.shortValue();
+				}
 				return Short.parseShort((String) value);
 			} else if (value instanceof byte[] && ((byte[]) value).length > 1) {
 				return ByteBuffer.wrap((byte[]) value).getShort();
@@ -211,6 +219,10 @@ public class DataConverter {
 			} else if (value instanceof Character) {
 				return (byte)((Character) value).charValue();
 			} else if (value instanceof String) {
+				Long fromHex = hexStringToLong((String) value);
+				if(fromHex != null) {
+					return fromHex.byteValue();
+				}
 				return Byte.parseByte((String) value);
 			} else if (value instanceof byte[] && ((byte[]) value).length > 1) {
 				return ((byte[])value)[0];
@@ -250,6 +262,10 @@ public class DataConverter {
 			} else if (value instanceof Boolean) {
 				return ((Boolean) value) ? 1 : 0;
 			} else if (value instanceof String) {
+				Long fromHex = hexStringToLong((String) value);
+				if(fromHex != null) {
+					return fromHex.floatValue();
+				}
 				return Float.parseFloat((String) value);
 			} else if (value instanceof byte[] && ((byte[]) value).length > 3) {
 				return ByteBuffer.wrap((byte[]) value).getFloat();
@@ -287,6 +303,10 @@ public class DataConverter {
 				//noinspection UnnecessaryUnboxing
 				return ((Character) value).charValue();
 			} else if (value instanceof String) {
+				Long fromHex = hexStringToLong((String) value);
+				if(fromHex != null) {
+					return fromHex.doubleValue();
+				}
 				return Double.parseDouble((String) value);
 			} else if (value instanceof byte[] && ((byte[]) value).length > 7) {
 				return ByteBuffer.wrap((byte[]) value).getDouble();
@@ -385,6 +405,10 @@ public class DataConverter {
 			} else if (value instanceof Boolean) {
 				return ((Boolean) value) ? 1 : 0;
 			} else if (value instanceof String) {
+				Long fromHex = hexStringToLong((String) value);
+				if(fromHex != null) {
+					return fromHex.longValue();
+				}
 				return Long.parseLong((String) value);
 			} else if (value instanceof byte[] && ((byte[]) value).length > 7) {
 				return ByteBuffer.wrap((byte[]) value).getLong();
@@ -414,24 +438,27 @@ public class DataConverter {
 
 	@SuppressWarnings("UnnecessaryUnboxing")
 	public static char toChar(Object value, char def, OnConvertFail onConvertFail) {
-		if(value instanceof Number) {
-			return (char)((Number)value).shortValue();
-		}
-		else if(value instanceof Character) {
-			return ((Character)value).charValue();
-		}
-		else if(value instanceof Boolean) {
-			return (char)(((Boolean)value) ? 1 : 0);
-		}
-		else if(value instanceof String) {
-			if(((String)value).length() == 1) {
-				return ((String) value).charAt(0);
+		try {
+			if (value instanceof Number) {
+				return (char) ((Number) value).shortValue();
+			} else if (value instanceof Character) {
+				return ((Character) value).charValue();
+			} else if (value instanceof Boolean) {
+				return (char) (((Boolean) value) ? 1 : 0);
+			} else if (value instanceof String) {
+				if (((String) value).length() == 1) {
+					return ((String) value).charAt(0);
+				}
+				Long fromHex = hexStringToLong((String) value);
+				if(fromHex != null) {
+					return (char)fromHex.shortValue();
+				}
+
+				return (char) Short.parseShort((String) value);
+			} else if (value instanceof byte[] && ((byte[]) value).length > 1) {
+				return (char) ByteBuffer.wrap((byte[]) value).getShort();
 			}
-			return (char) Short.parseShort((String) value);
-		}
-		else if(value instanceof byte[] && ((byte[])value).length > 1 ) {
-			return (char) ByteBuffer.wrap((byte[])value).getShort();
-		}
+		} catch (NumberFormatException ignored) {}
 		if(onConvertFail != null) {
 			onConvertFail.onFail(value, char.class);
 		}
@@ -439,6 +466,22 @@ public class DataConverter {
 		return def;
 	}
 
+
+	private static Long hexStringToLong(String strValue) {
+		if(strValue == null) return null;
+		strValue = strValue.trim();
+		if(strValue.length() < 2) {
+			return null;
+		}
+		char at0 = strValue.charAt(0);
+		char at1 = strValue.charAt(1);
+		if(at0 == '0' && (at1 == 'x' || at1 == 'X')) {
+			try {
+				return Long.parseLong(strValue.substring(2), 16);
+			}catch (NumberFormatException ignored) {}
+		}
+		return null;
+	}
 
 
 	public static  String toString(Object value) {

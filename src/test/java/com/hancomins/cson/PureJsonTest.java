@@ -239,7 +239,7 @@ public class PureJsonTest {
     @Test
     public void wrongJsonParsingTest2() {
         Exception err = null;
-        String json = "{\"key\": \"5\",\"a\":\"b\",}";
+        String json = "{\"key\": \"5\",\"a\":\"b\",,}";
         try {
             CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
         } catch (Exception e) {
