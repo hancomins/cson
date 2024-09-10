@@ -3,9 +3,9 @@ package com.hancomins.cson.issue;
 
 import com.hancomins.cson.CSONObject;
 import com.hancomins.cson.StringFormatOption;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * json5 에서 '' 으로 감싸져있는 빈 문자열을 읽으면 숫자 0 으로 인식

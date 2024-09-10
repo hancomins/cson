@@ -1,9 +1,11 @@
 package com.hancomins.cson.util;
 
-import junit.framework.TestCase;
-import org.junit.Test;
 
-public class NumberConversionUtilTest extends TestCase {
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class NumberConversionUtilTest  {
 
     @Test
     public  void testNumberConvert() {

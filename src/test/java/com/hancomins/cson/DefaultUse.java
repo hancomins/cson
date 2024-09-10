@@ -1,11 +1,11 @@
 package com.hancomins.cson;
 
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class DefaultUse {
@@ -41,7 +41,7 @@ public class DefaultUse {
         CSONObject csonObjectJson = new CSONObject(jsonString, StringFormatOption.json());
         assertEquals("Hello\\World",csonObjectJson.get("string2"));
         assertEquals(jsonString, csonObjetPure.toString());
-        assertEquals(jsonString, csonObjectJson.toString());
+        assertEquals(jsonString, csonObjectJson.toString(StringFormatOption.json5().setUnprettyArray(true)));
         csonObjectJson.put("string3", "Hello/World");
         csonObjectJson = new CSONObject(csonObjectJson.toString());
         assertEquals("Hello/World", csonObjectJson.get("string3"));

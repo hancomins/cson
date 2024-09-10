@@ -4,14 +4,13 @@ import com.hancomins.cson.CSONArray;
 import com.hancomins.cson.CSONObject;
 import com.hancomins.cson.JSONOptions;
 import com.hancomins.cson.StringFormatOption;
-import junit.framework.TestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static junit.framework.TestCase.*;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 public class CSONSerializerTest {
 
@@ -514,7 +513,7 @@ public class CSONSerializerTest {
 
         assertEquals(mapClassTest.map.size(), mapClassTest1.map.size());
 
-        TestCase.assertEquals(csonObject.toString(JSONOptions.json5()), CSONSerializer.toCSONObject(mapClassTest1).toString(JSONOptions.json5()));
+        assertEquals(csonObject.toString(JSONOptions.json5()), CSONSerializer.toCSONObject(mapClassTest1).toString(JSONOptions.json5()));
 
 
 

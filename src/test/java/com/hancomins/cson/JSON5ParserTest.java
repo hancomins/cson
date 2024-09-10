@@ -1,14 +1,15 @@
 package com.hancomins.cson;
 
-import junit.framework.TestCase;
 import org.json.JSONObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class JSON5ParserTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.*;
+
+public class JSON5ParserTest  {
 
 
 

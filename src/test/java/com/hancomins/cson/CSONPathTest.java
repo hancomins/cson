@@ -1,15 +1,15 @@
 package com.hancomins.cson;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CSONPathTest {
     CSONObject json;
     CSONPath jsonPath;
 
-    @Before
+    @BeforeEach 
     public void setUp() {
         json = new CSONObject();
         json.put("a", 1);

@@ -2,14 +2,13 @@ package com.hancomins.cson.serializer;
 
 import com.hancomins.cson.JSONOptions;
 import com.hancomins.cson.CSONObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class CSONDeserializerTest {
 
@@ -359,7 +358,7 @@ public class CSONDeserializerTest {
         System.out.println(CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JSONOptions.json5()));
 
 
-        Assert.assertEquals(cson.toString(JSONOptions.json5()), CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JSONOptions.json5()));
+        assertEquals(cson.toString(JSONOptions.json5()), CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JSONOptions.json5()));
 
 
     }
