@@ -69,7 +69,7 @@ class PureJSONParser {
     }
 
     static CSONElement parsePureJSON(Reader reader, CSONElement rootElement,NumberConversionUtil.NumberConversionOption numberConversionOption) {
-        //ArrayDeque<Mode> modeStack = new ArrayDeque<>();
+        //ArrayDeque<ParsingState> modeStack = new ArrayDeque<>();
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
         CSONElement currentElement = null;
 
@@ -85,7 +85,7 @@ class PureJSONParser {
             while((c = reader.read()) != -1) {
 
                 ++index;
-                //Mode currentMode = modeStack.peekLast();
+                //ParsingState currentMode = modeStack.peekLast();
                 if((c != '"' || isSpecialChar) && (currentMode == Mode.String || currentMode == Mode.InKey)) {
                     if(isSpecialChar) {
                         isSpecialChar = false;

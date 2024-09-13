@@ -6,29 +6,68 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayDeque;
 
-class JSON5ParserX {
+final class JSON5ParserX {
 
 
 
+    private JSON5ParserX() {
+    }
 
 
 
-    enum Mode {
+    enum ParsingState {
+        /**
+         * 시작 상태: 아직 { 또는 [ 가 나오지 않은 상태
+         */
         Open,
+        /**
+         * JSON 이 닫힌 상태. 이 상태에서는 주석만 파싱할 수 있다.
+         */
         Close,
+        /**
+         * 문자열을 읽는 상태. WaitValue 이후로 " 또는 ' 가 나온 상태이다.
+         */
         String,
+        /**
+         * 값을 파싱하는 상태. WaitKey 이후로 숫자 혹은 문자가 나온 상태이다.
+         * '\n', '}', ']', ',' 이 나오기 전까지 값이 어떤 타입인지 알 수 없다.
+         */
         Value,
+        /**
+         * 값을 기다리는 상태. Object 에서  ':' 이 나오거나 Array 에서 ',' 이후에 이 상태로 전환된다.
+         */
         WaitValue,
-        //OpenArray,
-        //CloseObject,
-        CloseArray,
+        /**
+         * 키 이후에 ':' 이 나온 상태. 이 상태에서는 값이 나와야 한다.
+         * ' 또는 " 로 시작하고 끝나는 문자열에만 해당한다.
+         * 키 값에 " 또는 ' 가 없다면, 또 이경우 키 마지막에 \n 이 없다면 이 상태 모드는 만날 수 없다.
+         */
         WaitValueSeparator,
+        /**
+         * 다음 키 또는 값을 기다리는 상태. ',' 이 나오면 이 상태로 전환된다.
+         * 또는 root element 가 아닌 상황에서 또는 '}' 또는 ']' 이 나오면 이 상태로 전환된다.
+         */
         NextStoreSeparator, // , 가 나오기를 기다림
+        /**
+         * ' 또는 " 가 있는 키를 읽고 있는 상태.
+         */
         InKey,
+        /**
+         * ' 또는 " 가 없는 키를 읽고 있는 상태. \n 또는 ':' 이 나오기 전까지 키를 읽는다.
+         */
         InKeyUnquoted,
+        /**
+         * 키를 기다리는 상태. 이 상태에서 ' 또는 " 이 나오면 InKey 상태로 전환된다.
+         * 만약, ' 또는 " 이 나오지 않고, 문자열이 나오면 InKeyUnquoted 상태로 전환된다.
+         */
         WaitKey,
-        //WaitNextCommentChar,
+        /**
+         * 주석을 처리하는 상태. 주석이 시작되면 이 상태로 전환된다.
+         */
         InOpenComment,
+        /**
+         *
+         */
         InCloseComment
 
 
@@ -36,31 +75,31 @@ class JSON5ParserX {
     }
 
 
+    /**
+     * JSON5 문서를 파싱한다.
+     * @param reader JSON5 문서를 읽는 Reader
+     * @param rootElement 파싱된 결과를 저장할 CSONElement. CSONObject 또는 CSONArray 이어야 한다.
+     * @param jsonOption JSON5 파싱 옵션
+     */
+    static void parse(Reader reader,CSONElement rootElement, JSONOptions jsonOption) {
 
-    static void parse(Reader reader, CSONElement rootElement, JSONOptions jsonOption) {
-
-        boolean singleQuote;
-        boolean allowUnquotedKey;
-        boolean allowConsecutiveCommas;
-        boolean allowComment;
-        boolean trailingComma;
-        boolean readyComment = false;
-
-
-        singleQuote = jsonOption.isAllowSingleQuotes();
-        allowUnquotedKey = jsonOption.isAllowUnquoted();
-        allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
-        trailingComma = jsonOption.isAllowTrailingComma();
-        allowComment = jsonOption.isAllowComments();
+        final boolean singleQuote = jsonOption.isAllowSingleQuotes();
+        final boolean allowUnquotedKey = jsonOption.isAllowUnquoted();
+        final boolean allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
+        final boolean trailingComma = jsonOption.isAllowTrailingComma();
+        final boolean allowComment = jsonOption.isAllowComments();
 
         char currentQuoteChar = '\0';
+        boolean readyComment = false;
 
-
-
-        Mode currentMode = Mode.Open;
+        // 현재 모드.
+        ParsingState currentParsingState = ParsingState.Open;
+        //
         String key = null;
+        //
         String lastKey = null;
         ArrayDeque<String> parentKeyStack = null;
+
         if(allowComment) {
             parentKeyStack = new ArrayDeque<>();
         }
@@ -73,7 +112,7 @@ class JSON5ParserX {
         ValueParseState valueParseState;
 
         CharacterBuffer commentBuffer = null;
-        Mode commentBeforeMode = null;
+        ParsingState commentBeforeParsingState = null;
         if(allowComment) {
             commentBuffer = new CharacterBuffer(128);
         }
@@ -92,7 +131,6 @@ class JSON5ParserX {
         int line = 1;
         int index = 0;
 
-
         try {
             int c;
 
@@ -102,7 +140,7 @@ class JSON5ParserX {
                     ++line;
                 }
 
-                if(currentMode == Mode.WaitKey || currentMode == Mode.WaitValue || currentMode == Mode.WaitValueSeparator || currentMode == Mode.NextStoreSeparator) {
+                if(currentParsingState == ParsingState.WaitKey || currentParsingState == ParsingState.WaitValue || currentParsingState == ParsingState.WaitValueSeparator || currentParsingState == ParsingState.NextStoreSeparator) {
                     if(c == '\n' || c == '\r' || c == '\t' || c == ' ') {
                         while((c = reader.read()) != -1) {
                             if(c == '\r' || c == '\n' || c == '\t' || c == ' ') {
@@ -114,17 +152,24 @@ class JSON5ParserX {
                 }
 
 
-                // 코멘트를 사용할 경우 처리
-                if(allowComment && currentMode != Mode.String) {
-                    boolean commentWrite = false;
-                    if(currentMode == Mode.InCloseComment) {
+                /* ************************************************************************************
+                 *
+                 *  시작: 주석 처리 영역
+                 *  만약, 주석를 허용하고 현재 모드가 문자열이 아닌 경우에만 처리한다.
+                 *
+                 ************************************************************************************/
+                // 주석를 사용할 경우 처리
+                if(allowComment && currentParsingState != ParsingState.String) {
+
+                    boolean commentComplate = false;
+                    if(currentParsingState == ParsingState.InCloseComment) {
                         if(c == '*') {
                             readyComment = true;
                             commentBuffer.append((char) c);
                             continue;
                         } else if(readyComment && c == '/') {
                             readyComment = false;
-                            commentWrite = true;
+                            commentComplate = true;
                             commentBuffer.setLength(commentBuffer.length() - 1);
                         } else {
                             readyComment = false;
@@ -132,9 +177,9 @@ class JSON5ParserX {
                             continue;
                         }
 
-                    } else if(currentMode == Mode.InOpenComment) {
+                    } else if(currentParsingState == ParsingState.InOpenComment) {
                         if(c == '\n') {
-                            commentWrite = true;
+                            commentComplate = true;
                             readyComment = false;
                         } else {
                             commentBuffer.append((char) c);
@@ -142,133 +187,116 @@ class JSON5ParserX {
                         }
                     }
 
-                    if(commentWrite) {
-                        currentMode = commentBeforeMode;
-                        if(currentMode == Mode.WaitKey) {
-                            if(keyCommentObject == null) {
+                    // 주석가 완성되면 각 상태에 따라 처리한다.
+                    if(commentComplate) {
+                        currentParsingState = commentBeforeParsingState;
+                        CommentObject commentObject = null;
+
+                        if (currentParsingState == ParsingState.WaitKey || currentParsingState == ParsingState.WaitValueSeparator || currentParsingState == ParsingState.InKeyUnquoted) {
+                            if (keyCommentObject == null) {
                                 keyCommentObject = new CommentObject();
                             }
-                            keyCommentObject.appendLeadingComment(commentBuffer.toTrimString());
-                        }
-                        else if(currentMode == Mode.WaitValueSeparator || currentMode == Mode.InKeyUnquoted) {
-                            if(keyCommentObject == null) {
-                                keyCommentObject = new CommentObject();
+                            commentObject = keyCommentObject;
+                            if (currentParsingState == ParsingState.WaitKey) {
+                                commentObject.appendLeadingComment(commentBuffer.toTrimString());
+                            } else {
+                                commentObject.appendTrailingComment(commentBuffer.toTrimString());
                             }
-                            keyCommentObject.appendTrailingComment(commentBuffer.toTrimString());
-                        } else if(currentMode == Mode.WaitValue) {
-                            if(valueCommentObject == null) {
+                        } else if (currentParsingState == ParsingState.WaitValue || currentParsingState == ParsingState.Value) {
+                            if (valueCommentObject == null) {
                                 valueCommentObject = new CommentObject();
                             }
-                            valueCommentObject.appendLeadingComment((commentBuffer.toTrimString()));
-                        } else if(currentMode == Mode.Open) {
+                            commentObject = valueCommentObject;
+                            if (currentParsingState == ParsingState.WaitValue) {
+                                commentObject.appendLeadingComment(commentBuffer.toTrimString());
+                            } else {
+                                commentObject.appendTrailingComment(commentBuffer.toTrimString());
+                            }
+                        } else if (currentParsingState == ParsingState.Open) {
                             String value = commentBuffer.toTrimString();
                             String alreadyComment = rootElement.getHeadComment();
-                            if(alreadyComment != null) {
+                            if (alreadyComment != null) {
                                 value = alreadyComment + "\n" + value;
                             }
                             rootElement.setHeadComment(value);
-                        }
-                        else if(currentMode == Mode.Value) {
-                            if(valueCommentObject == null) {
-                                valueCommentObject = new CommentObject();
-                            }
-                            valueCommentObject.appendTrailingComment(commentBuffer.toTrimString());
-                        }
-                        else if(currentMode == Mode.Close) {
+                        } else if (currentParsingState == ParsingState.Close) {
                             String alreadyComment = rootElement.getTailComment();
-                            if(alreadyComment != null) {
+                            if (alreadyComment != null) {
                                 rootElement.setTailComment(alreadyComment + "\n" + commentBuffer.toTrimString());
                             } else {
                                 rootElement.setTailComment(commentBuffer.toTrimString());
                             }
-                        }
-                        else if(currentMode == Mode.NextStoreSeparator) {
-                            if(currentElement instanceof CSONObject && (lastKey != null || key != null)) {
-                                if(lastKey == null) {
+                        } else if (currentParsingState == ParsingState.NextStoreSeparator) {
+                            if (currentElement instanceof CSONObject && (lastKey != null || key != null)) {
+                                if (lastKey == null) {
                                     lastKey = key;
                                 }
-                                ((CSONObject)currentElement).getOrCreateCommentObjectOfValue(lastKey).appendTrailingComment(commentBuffer.toTrimString());
-                            } else if(currentElement instanceof CSONArray) {
-                                 CSONArray array = (CSONArray)currentElement;
-                                 if(!array.isEmpty()) {
-                                     array.getOrCreateCommentObject(array.size() - 1).appendTrailingComment(commentBuffer.toTrimString());
-                                 }
+                                ((CSONObject) currentElement).getOrCreateCommentObjectOfValue(lastKey).appendTrailingComment(commentBuffer.toTrimString());
+                            } else if (currentElement instanceof CSONArray) {
+                                CSONArray array = (CSONArray) currentElement;
+                                if (!array.isEmpty()) {
+                                    array.getOrCreateCommentObject(array.size() - 1).appendTrailingComment(commentBuffer.toTrimString());
+                                }
                             }
-
                         }
                         commentBuffer.reset();
                         continue;
                     }  else if(readyComment && c == '/') {
                         valueParseState.prev();
-                        currentMode = Mode.InOpenComment;
+                        currentParsingState = ParsingState.InOpenComment;
                         commentBuffer.reset();
                         continue;
                     } else if(readyComment && c == '*') {
                         valueParseState.prev();
-                        currentMode = Mode.InCloseComment;
-
-                        /*if(commentBeforeMode == Mode.InKeyUnquoted) {
-                            if(valueParseState.isEmpty()) {
-                                commentBeforeMode = Mode.WaitKey;
-                            } else {
-                                key = valueParseState.toTrimString();
-                            }
-                        } else if(commentBeforeMode == Mode.Value) {
-                            if(valueParseState.isEmpty()) {
-                                commentBeforeMode = Mode.WaitValue;
-                            } else {
-                                // 코멘트 전용 string buffer
-                            }
-
-                        }*/
-
-
+                        currentParsingState = ParsingState.InCloseComment;
                         commentBuffer.reset();
                         continue;
                     }
                     else if(c == '/') {
-                        commentBeforeMode = currentMode;
+                        commentBeforeParsingState = currentParsingState;
                         readyComment = true;
                     } else {
                         readyComment = false;
                     }
-
-                    if(currentMode == Mode.Close || commentBeforeMode == Mode.Close) {
+                    if(currentParsingState == ParsingState.Close || commentBeforeParsingState == ParsingState.Close) {
                         continue;
                     }
-
                 }
+                /* ************************************************************************************
+                 *  끝: 주석 처리 영역
+                 ************************************************************************************/
 
-                if(currentMode == Mode.InKeyUnquoted && (c == ':')) {
+
+                if(currentParsingState == ParsingState.InKeyUnquoted && (c == ':')) {
                     String keyString = valueParseState.toTrimString();
                     if(keyString.isEmpty()) {
                         throw new CSONParseException(ExceptionMessages.getKeyNotFound(line, index));
                     }
                     key = keyString;
-                    currentMode = Mode.WaitValueSeparator;
+                    currentParsingState = ParsingState.WaitValueSeparator;
                     valueParseState.reset();
                 }
 
                 ++index;
 
-                if((c != currentQuoteChar) && (currentMode == Mode.String || currentMode == Mode.InKey || currentMode == Mode.InKeyUnquoted)) {
+                if((c != currentQuoteChar) && (currentParsingState == ParsingState.String || currentParsingState == ParsingState.InKey || currentParsingState == ParsingState.InKeyUnquoted)) {
                     valueParseState.append((char) c);
-                } else if((currentMode == Mode.Value) &&  (c != ',' && c != '}' && c != ']')) {
+                } else if((currentParsingState == ParsingState.Value) &&  (c != ',' && c != '}' && c != ']')) {
                     if(c == '\n' || c == '\r') {
                         lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
 
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
-                        currentMode = Mode.NextStoreSeparator;
+                        currentParsingState = ParsingState.NextStoreSeparator;
                     }
                     else valueParseState.append((char)c);
                 }
                 else if(c == '{') {
-                    if(currentMode != Mode.WaitValue && currentMode != Mode.Open) {
+                    if(currentParsingState != ParsingState.WaitValue && currentParsingState != ParsingState.Open) {
                         throw new CSONParseException("Unexpected character '{' at " + index);
                     }
-                    currentMode = Mode.WaitKey;
+                    currentParsingState = ParsingState.WaitKey;
                     CSONElement oldElement = currentElement;
                     if(oldElement == null) {
                         if(rootElement == null) {
@@ -293,11 +321,11 @@ class JSON5ParserX {
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == '[') {
-                    if(currentMode !=
-                            Mode.Open && currentMode != Mode.WaitValue) {
+                    if(currentParsingState !=
+                            ParsingState.Open && currentParsingState != ParsingState.WaitValue) {
                         throw new CSONParseException("Unexpected character '[' at " + index);
                     }
-                    currentMode  = Mode.WaitValue;
+                    currentParsingState = ParsingState.WaitValue;
                     CSONElement oldElement = currentElement;
                     if(oldElement == null) {
                         if(rootElement == null) {
@@ -323,17 +351,17 @@ class JSON5ParserX {
 
                 } else if(c == ']'  || c == '}') {
 
-                    if(currentMode == Mode.WaitValue || currentMode == Mode.WaitKey) {
+                    if(currentParsingState == ParsingState.WaitValue || currentParsingState == ParsingState.WaitKey) {
                         if(!trailingComma) {
                             throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                         }
                     }
-                    else if(currentMode == Mode.Value) {
+                    else if(currentParsingState == ParsingState.Value) {
                         putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
-                    } else if(currentMode != Mode.NextStoreSeparator) {
+                    } else if(currentParsingState != ParsingState.NextStoreSeparator) {
                         throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                     }
                     if(allowComment) {
@@ -342,11 +370,11 @@ class JSON5ParserX {
                     }
 
 
-                    currentMode = Mode.NextStoreSeparator;
+                    currentParsingState = ParsingState.NextStoreSeparator;
                     csonElements.removeLast();
                     if(csonElements.isEmpty()) {
                         if(allowComment) {
-                            currentMode = Mode.Close;
+                            currentParsingState = ParsingState.Close;
                             continue;
                         } else {
                             return;
@@ -361,20 +389,20 @@ class JSON5ParserX {
                     }
                 }
 
-                else if(currentMode == Mode.Value && (c == '\n' || c == '\r')) {
+                else if(currentParsingState == ParsingState.Value && (c == '\n' || c == '\r')) {
                     putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                     key = null;
                     keyCommentObject = null;
                     valueCommentObject = null;
-                    currentMode = Mode.NextStoreSeparator;
+                    currentParsingState = ParsingState.NextStoreSeparator;
                 }
 
                 else if(c == ',') {
-                    if(currentMode == Mode.WaitKey && !allowConsecutiveCommas) {
+                    if(currentParsingState == ParsingState.WaitKey && !allowConsecutiveCommas) {
                         throw new CSONParseException("Unexpected character ',' at " + index + " ,line: " + line);
                     }
 
-                    if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Value) {
+                    if(currentParsingState != ParsingState.NextStoreSeparator && currentParsingState != ParsingState.Value) {
                         if(allowConsecutiveCommas) {
                             // csonOBjcet 는 키가 있을때만 null 넣는다.
                             if((key != null && currentElement instanceof CSONObject) || currentElement instanceof CSONArray) {
@@ -383,50 +411,50 @@ class JSON5ParserX {
                             key = null;
                             keyCommentObject = null;
                             valueCommentObject = null;
-                            currentMode = Mode.NextStoreSeparator;
+                            currentParsingState = ParsingState.NextStoreSeparator;
                         } else {
                             throw new CSONParseException("Unexpected character ',' at " + index + " ,line: " + line);
                         }
                     }
-                    if(currentMode == Mode.Value) {
+                    if(currentParsingState == ParsingState.Value) {
                         lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
                     }
 
-                    currentMode = afterComma(currentElement);
+                    currentParsingState = afterComma(currentElement);
 
                 }
 
                 else if(c == currentQuoteChar && !valueParseState.isSpecialChar()) {
 
-                    if(currentMode == Mode.String) {
+                    if(currentParsingState == ParsingState.String) {
                         lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                         key = null;
                         keyCommentObject = null;
                         valueCommentObject = null;
-                        currentMode  = Mode.NextStoreSeparator;
+                        currentParsingState = ParsingState.NextStoreSeparator;
                     }
-                    else if(currentMode == Mode.InKey) {
+                    else if(currentParsingState == ParsingState.InKey) {
                         key = valueParseState.toString();
-                        currentMode  = Mode.WaitValueSeparator;
+                        currentParsingState = ParsingState.WaitValueSeparator;
                     }
                     currentQuoteChar = '\0';
                 }
 
                 else if(isQuotedString((char)c, singleQuote)) {
 
-                    if(currentMode != Mode.String && currentMode != Mode.Value && currentMode != Mode.WaitKey && currentMode != Mode.WaitValue && currentMode != Mode.InKey) {
+                    if(currentParsingState != ParsingState.String && currentParsingState != ParsingState.Value && currentParsingState != ParsingState.WaitKey && currentParsingState != ParsingState.WaitValue && currentParsingState != ParsingState.InKey) {
                         throw new CSONParseException("Unexpected character '\"' at " + index);
                     }
-                    else if(currentMode == Mode.WaitValue) {
-                        currentMode = Mode.String;
+                    else if(currentParsingState == ParsingState.WaitValue) {
+                        currentParsingState = ParsingState.String;
                         currentQuoteChar = (char) c;
                         valueParseState.reset().setOnlyString(true);
                     }
-                    else if(currentMode == Mode.WaitKey) {
-                        currentMode  = Mode.InKey;
+                    else if(currentParsingState == ParsingState.WaitKey) {
+                        currentParsingState = ParsingState.InKey;
                         currentQuoteChar = (char) c;
                         valueParseState.reset().setOnlyString(true);
                     } else {
@@ -435,29 +463,28 @@ class JSON5ParserX {
                 }
 
                 else if(c == ':') {
-
-                    if(currentMode != Mode.WaitValueSeparator) {
+                    if(currentParsingState != ParsingState.WaitValueSeparator) {
                         throw new CSONParseException("Unexpected character ':' at " + index);
                     } else {
-                        currentMode  = Mode.WaitValue;
+                        currentParsingState = ParsingState.WaitValue;
                     }
                 }
 
-                else if(currentMode == Mode.WaitValue && !isQuotedString((char)c, singleQuote)  && !Character.isSpaceChar(c)  && c != '\n' && c != '\r' && c != '\t' && c != '\b' && c != '\f' && c != '\0' && c != 0xFEFF) {
+                else if(currentParsingState == ParsingState.WaitValue && !isQuotedString((char)c, singleQuote)  && !Character.isSpaceChar(c)  && c != '\n' && c != '\r' && c != '\t' && c != '\b' && c != '\f' && c != '\0' && c != 0xFEFF) {
                     valueParseState.reset();
                     valueParseState.setOnlyNumber(!allowUnquotedKey);
                     valueParseState.setAllowControlChar(false);
                     valueParseState.append((char)c);
                     valueParseState.setTrimResult(true);
-                    currentMode  = Mode.Value;
+                    currentParsingState = ParsingState.Value;
                     currentQuoteChar = '\0';
                 }
 
-                else if(currentMode == Mode.WaitKey && allowUnquotedKey && !Character.isWhitespace(c)) {
+                else if(currentParsingState == ParsingState.WaitKey && allowUnquotedKey && !Character.isWhitespace(c)) {
                     valueParseState.reset();
                     valueParseState.setAllowControlChar(false);
                     valueParseState.append((char)c);
-                    currentMode  = Mode.InKeyUnquoted;
+                    currentParsingState = ParsingState.InKeyUnquoted;
                 }
 
 
@@ -466,7 +493,10 @@ class JSON5ParserX {
 
             }
 
-            if(allowComment && currentMode == Mode.InOpenComment) {
+            /*
+             * json5 문서의 마지막에 주석이 있는 경우 처리
+             */
+            if(allowComment && currentParsingState == ParsingState.InOpenComment) {
                 String alreadyComment = rootElement.getTailComment();
                 if(alreadyComment != null) {
                     rootElement.setTailComment(alreadyComment + "\n" + commentBuffer.toTrimString());
@@ -480,7 +510,7 @@ class JSON5ParserX {
         } catch (IOException e) {
             throw new CSONParseException(e.getMessage());
         }
-        if(currentMode == Mode.Close) {
+        if(currentParsingState == ParsingState.Close) {
             return;
         }
 
@@ -490,11 +520,11 @@ class JSON5ParserX {
 
 
 
-    private static Mode afterComma(CSONElement element) {
+    private static ParsingState afterComma(CSONElement element) {
         if(element instanceof CSONArray) {
-            return Mode.WaitValue;
+            return ParsingState.WaitValue;
         } else {
-            return Mode.WaitKey;
+            return ParsingState.WaitKey;
         }
     }
 
@@ -593,7 +623,6 @@ class JSON5ParserX {
         }
         return key;
     }
-
 
 
 }
