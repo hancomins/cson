@@ -141,6 +141,7 @@ public class JSON5ParserTest  {
                     "  \"andIn\": [\"arrays\",],\n" +
                     "}";
 
+
             CSONObject csonObject = new CSONObject(json, StringFormatOption.json().setAllowTrailingComma(true));
             assertEquals("in objects", csonObject.optString("trailingComma"));
             assertEquals("arrays", csonObject.optCSONArray("andIn").optString(0));
@@ -151,7 +152,7 @@ public class JSON5ParserTest  {
                 assertEquals("arrays", csonObject.optCSONArray("andIn").optString(0));
                 fail();
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
     }
 

@@ -12,7 +12,11 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
         }
 
 
-        static boolean isPureJSONOption(JSONOptions jsonOptions) {
+        static boolean isPureJSONOption(StringFormatOption<?> stringFormatOption) {
+            if(!(stringFormatOption instanceof JSONOptions))
+                return false;
+
+            JSONOptions jsonOptions = (JSONOptions) stringFormatOption;
             return
                     // 코멘트 사용 불가
                     !jsonOptions.isAllowComments() &&
@@ -49,6 +53,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setAllowPositiveSing(false);
             jsonOptions.setAllowInfinity(false);
             jsonOptions.setAllowUnquoted(false);
+            jsonOptions.setAllowTrailingComma(false);
 
             jsonOptions.setAllowSingleQuotes(false);
             jsonOptions.setAllowHexadecimal(true);
@@ -57,7 +62,6 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
 
 
 
-            jsonOptions.setAllowTrailingComma(true);
             jsonOptions.setAllowConsecutiveCommas(false);
             jsonOptions.setKeyQuote("\"");
             jsonOptions.setValueQuote("\"");

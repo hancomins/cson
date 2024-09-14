@@ -159,7 +159,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 	private void parse(Reader stringReader, StringFormatOption<?> options) {
 		StringFormatType type = options.getFormatType();
-		if(type == StringFormatType.PureJSON) {
+		if(JSONOptions.isPureJSONOption(options)) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else {
 			//new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseArray(this);

@@ -10,25 +10,12 @@ import java.util.ArrayDeque;
 class PureJSONParser {
 
 
-    private static final String NULL = "null";
-
 
     private PureJSONParser() {
     }
-    enum Mode {
-        String,
-        Number,
-        WaitValue,
-        OpenArray,
-        CloseObject,
-        CloseArray,
-        WaitValueSeparator,
-        NextStoreSeparator, // , 가 나오기를 기다림
-        InKey,
-        WaitKey, // 키가 나오기를 기다림
-    }
 
 
+    @SuppressWarnings("SameParameterValue")
     static CSONElement parsePureJSON(Reader reader, NumberConversionUtil.NumberConversionOption numberConversionOption) {
         return parsePureJSON(reader, null, numberConversionOption);
     }
@@ -55,6 +42,7 @@ class PureJSONParser {
                 break;
             case 'u':
                 char[] hexChars = new char[4];
+                //noinspection ResultOfMethodCallIgnored
                 reader.read(hexChars);
                 String hexString = new String(hexChars);
                 int hexValue = Integer.parseInt(hexString, 16);
@@ -73,20 +61,21 @@ class PureJSONParser {
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
         CSONElement currentElement = null;
 
-        Mode currentMode = null;
+        ParsingState currentParsingState = null;
         CharacterBuffer dataStringBuilder = new CharacterBuffer();
         String key = null;
 
         int index = 0;
         try {
             int c;
+            int lastC = -1;
             boolean isSpecialChar = false;
 
             while((c = reader.read()) != -1) {
 
                 ++index;
-                //ParsingState currentMode = modeStack.peekLast();
-                if((c != '"' || isSpecialChar) && (currentMode == Mode.String || currentMode == Mode.InKey)) {
+                //ParsingState currentParsingState = modeStack.peekLast();
+                if((c != '"' || isSpecialChar) && (currentParsingState == ParsingState.String || currentParsingState == ParsingState.InKey)) {
                     if(isSpecialChar) {
                         isSpecialChar = false;
                         appendSpecialChar(reader, dataStringBuilder, c);
@@ -94,7 +83,7 @@ class PureJSONParser {
                         isSpecialChar = true;
                     }
                     else dataStringBuilder.append((char)c);
-                } else if(currentMode == Mode.Number &&  (isSpecialChar ||  (c != ',' && c != '}' && c != ']'))) {
+                } else if(currentParsingState == ParsingState.Number &&  (isSpecialChar ||  (c != ',' && c != '}' && c != ']'))) {
                     if(isSpecialChar) {
                         isSpecialChar = false;
                         appendSpecialChar(reader, dataStringBuilder, c);
@@ -105,10 +94,10 @@ class PureJSONParser {
                     else dataStringBuilder.append((char)c);
                 }
                 else if(c == '{') {
-                    if(currentMode != Mode.WaitValue && currentMode != null) {
+                    if(currentParsingState != ParsingState.WaitValue && currentParsingState != null) {
                         throw new CSONParseException("Unexpected character '{' at " + index);
                     }
-                    currentMode = Mode.WaitKey;
+                    currentParsingState = ParsingState.WaitKey;
                     CSONElement oldElement = currentElement;
                     if(oldElement == null) {
                         if(rootElement == null) {
@@ -126,10 +115,10 @@ class PureJSONParser {
                     }
                     csonElements.offerLast(currentElement);
                 } else if(c == '[') {
-                    if(currentMode != null && currentMode != Mode.WaitValue) {
+                    if(currentParsingState != null && currentParsingState != ParsingState.WaitValue) {
                         throw new CSONParseException("Unexpected character '[' at " + index);
                     }
-                    currentMode  = Mode.WaitValue;
+                    currentParsingState = ParsingState.WaitValue;
                     CSONElement oldElement = currentElement;
                     if(oldElement == null) {
                         if(rootElement == null) {
@@ -149,78 +138,82 @@ class PureJSONParser {
                 } else if(c == ']'  || c == '}') {
 
 
-                    if(currentMode == Mode.WaitValue || currentMode == Mode.WaitKey) {
+                    if(/*currentParsingState == ParsingState.WaitValue || currentParsingState == ParsingState.WaitKey*/ lastC == ',') {
+
+
+                        throw new CSONParseException("Unexpected character ',' at " + (index  - 1));
 
                     }
-                    else if(currentMode == Mode.Number) {
+                    else if(currentParsingState == ParsingState.Number) {
                         char[] numberString = dataStringBuilder.getChars();
                         int len = dataStringBuilder.length();
                         processNumber(currentElement, numberString, len, key, index, numberConversionOption);
                         key = null;
-                    } else if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
+                    } else if(currentParsingState != ParsingState.NextStoreSeparator &&
+                            (currentParsingState == ParsingState.WaitValue && currentElement instanceof CSONArray && !((CSONArray) currentElement).isEmpty()))  {
 
                         throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                     }
 
-                    currentMode = Mode.NextStoreSeparator;
+                    currentParsingState = ParsingState.NextStoreSeparator;
                     csonElements.removeLast();
                     if(csonElements.isEmpty()) {
                         return currentElement;
                     }
                     currentElement = csonElements.getLast();
                 } else if(c == ',') {
-                    if(currentMode != Mode.NextStoreSeparator && currentMode != Mode.Number) {
+                    if(currentParsingState != ParsingState.NextStoreSeparator && currentParsingState != ParsingState.Number) {
                         throw new CSONParseException("Unexpected character ',' at " + index);
                     }
-                    if(currentMode == Mode.Number) {
+                    if(currentParsingState == ParsingState.Number) {
                         char[] numberString = dataStringBuilder.getChars();
                         int len = dataStringBuilder.length();
                         processNumber(currentElement, numberString, len, key, index, numberConversionOption);
                         key = null;
                     }
-
                     if(currentElement instanceof CSONArray) {
-                        currentMode  = Mode.WaitValue;
+                        currentParsingState = ParsingState.WaitValue;
                     } else {
-                        currentMode  =Mode.WaitKey;
+                        currentParsingState = ParsingState.WaitKey;
                     }
                 }
                 else if(c == '"') {
-                    if(currentMode != Mode.String && currentMode != Mode.WaitKey && currentMode != Mode.WaitValue && currentMode != Mode.InKey) {
+                    if(currentParsingState != ParsingState.String && currentParsingState != ParsingState.WaitKey && currentParsingState != ParsingState.WaitValue && currentParsingState != ParsingState.InKey) {
                         throw new CSONParseException("Unexpected character '\"' at " + index);
                     }
-                    else if(currentMode == Mode.InKey) {
+                    else if(currentParsingState == ParsingState.InKey) {
                         key = dataStringBuilder.toString();
-                        currentMode  = Mode.WaitValueSeparator;
+                        currentParsingState = ParsingState.WaitValueSeparator;
                     }
-                    else if(currentMode == Mode.String) {
+                    else if(currentParsingState == ParsingState.String) {
                         String value = dataStringBuilder.toString();
                         putStringData(currentElement, value, key);
                         key = null;
 
-                        currentMode  =Mode.NextStoreSeparator;
+                        currentParsingState = ParsingState.NextStoreSeparator;
                     }
-                    else if(currentMode == Mode.WaitValue) {
+                    else if(currentParsingState == ParsingState.WaitValue) {
 
                         dataStringBuilder.reset();
-                        currentMode  =Mode.String;
+                        currentParsingState = ParsingState.String;
                     }
-                    else if(currentMode == Mode.WaitKey) {
+                    else if(currentParsingState == ParsingState.WaitKey) {
                         dataStringBuilder.reset();
-                        currentMode  =Mode.InKey;
+                        currentParsingState = ParsingState.InKey;
                     }
                 } else if(c == ':') {
-                    if(currentMode != Mode.WaitValueSeparator) {
+                    if(currentParsingState != ParsingState.WaitValueSeparator) {
                         throw new CSONParseException("Unexpected character ':' at " + index);
                     } else {
                         
-                        currentMode  =Mode.WaitValue;
+                        currentParsingState = ParsingState.WaitValue;
                     }
-                } else if(currentMode == Mode.WaitValue && !Character.isSpaceChar(c)  && c != '\n' && c != '\r' && c != '\t' && c != '\b' && c != '\f' && c != '\0' && c != 0xFEFF) {
+                } else if(currentParsingState == ParsingState.WaitValue && !Character.isSpaceChar(c)  && c != '\n' && c != '\r' && c != '\t' && c != '\b' && c != '\f' && c != '\0' && c != 0xFEFF) {
                     dataStringBuilder.reset();
                     dataStringBuilder.append((char)c);
-                    currentMode  =Mode.Number;
+                    currentParsingState = ParsingState.Number;
                 }
+                lastC = c;
             }
         } catch (CSONParseException e) {
             throw e;

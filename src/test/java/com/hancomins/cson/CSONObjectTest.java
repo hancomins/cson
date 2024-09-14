@@ -2,6 +2,7 @@ package com.hancomins.cson;
 
 
 import org.json.JSONObject;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -140,10 +141,32 @@ public class CSONObjectTest {
     }
 
 
+    @Test
+    @DisplayName("비어있는 CSONObject 와 CSONArray 파싱 테스트")
+    public void emptyCSONObjectAndArrayTest() {
+        CSONObject csonObject = new CSONObject("{}", JSONOptions.json());
+        CSONArray csonArray = new CSONArray("[]", JSONOptions.json());
+
+        assertEquals(0, csonObject.size());
+        assertEquals(0, csonArray.size());
+
+        CSONObject complexCSONObject = new CSONObject("{\"emptyObject\":{},\"emptyArray\":[]}");
+        assertEquals(2, complexCSONObject.size());
+        assertEquals(0, complexCSONObject.getCSONObject("emptyObject").size());
+        assertEquals(0, complexCSONObject.getCSONArray("emptyArray").size());
+
+        System.out.println(complexCSONObject);
+
+        assertEquals("{\"emptyObject\":{},\"emptyArray\":[]}", complexCSONObject.toString());
+
+
+
+    }
 
 
     @Test
     public void toJsonAndParseTest() {
+
 
         CSONObject csonObject = makeCSOObject();
 

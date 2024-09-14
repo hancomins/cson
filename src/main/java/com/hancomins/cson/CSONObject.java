@@ -185,7 +185,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	private void parse(Reader stringReader, StringFormatOption<?> options) {
 		StringFormatType type = options.getFormatType();
-		if(type == StringFormatType.PureJSON) {
+		if(JSONOptions.isPureJSONOption(options)) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else {
 			//JSON5Parser.parsePureJSON(stringReader, this, (JSONOptions)options);
