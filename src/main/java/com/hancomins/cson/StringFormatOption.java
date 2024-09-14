@@ -20,10 +20,6 @@ public interface StringFormatOption<T> extends NumberConversionUtil.MutableNumbe
         return JSONOptions.json5();
     }
 
-    static StringFormatOption<?> jsonPure() {
-        return new PureJSONOption();
-    }
-
 
 
 

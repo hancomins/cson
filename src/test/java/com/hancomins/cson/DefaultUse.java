@@ -28,11 +28,13 @@ public class DefaultUse {
 
     @Test
     public void escapeSequenceTest() {
-        CSONObject csonObject = new CSONObject();
-        csonObject.put("string", "Hello\nWorld");
+        StringFormatOption<?> stringFormatOption =  CSONObject.getDefaultStringFormatOption();
+        CSONObject.setDefaultStringFormatOption(StringFormatOption.json());
+        CSONObject csonObject = new CSONObject(StringFormatOption.json());
+        csonObject.put("string", "Hello\\nWorld");
         csonObject.put("string2", "Hello\\World");
         CSONArray csonArray = new CSONArray();
-        csonArray.add("Hello\nWorld");
+        csonArray.add("Hello\\nWorld");
         csonArray.add("Hello\\Wor\"ld");
         csonObject.put("array", csonArray);
         String jsonString = csonObject.toString();
@@ -41,7 +43,7 @@ public class DefaultUse {
         CSONObject csonObjectJson = new CSONObject(jsonString, StringFormatOption.json());
         assertEquals("Hello\\World",csonObjectJson.get("string2"));
         assertEquals(jsonString, csonObjetPure.toString());
-        assertEquals(jsonString, csonObjectJson.toString(StringFormatOption.json5().setUnprettyArray(true)));
+        assertEquals(jsonString, csonObjectJson.toString(StringFormatOption.json().setUnprettyArray(true)));
         csonObjectJson.put("string3", "Hello/World");
         csonObjectJson = new CSONObject(csonObjectJson.toString());
         assertEquals("Hello/World", csonObjectJson.get("string3"));
@@ -54,6 +56,7 @@ public class DefaultUse {
         CSONObject json5 = new CSONObject(csonObject.toString(StringFormatOption.json5()), StringFormatOption.json5());
         assertEquals("Hello\"World", json5.get("st\"ring'4"));
 
+        CSONObject.setDefaultStringFormatOption(stringFormatOption);
 
 
 

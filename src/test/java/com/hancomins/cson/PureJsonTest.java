@@ -74,7 +74,7 @@ public class PureJsonTest {
                 "  ]";
 
 
-        CSONArray csonArraryOrigin = new CSONArray(testJSON, StringFormatOption.jsonPure());
+        CSONArray csonArraryOrigin = new CSONArray(testJSON, StringFormatOption.json());
         CSONArray csonArrary = new CSONArray(testJSON, StringFormatOption.json());
 
         assertEquals(csonArraryOrigin.toString(), csonArrary.toString());
@@ -86,7 +86,7 @@ public class PureJsonTest {
     @Test
     public void NumberConversion() {
         String testJSON = "[" +Long.MIN_VALUE  + ", -0" + ", 10.11]";
-        CSONArray csonArraryOrigin = new CSONArray(testJSON, StringFormatOption.jsonPure());
+        CSONArray csonArraryOrigin = new CSONArray(testJSON, StringFormatOption.json());
 
         System.out.println(csonArraryOrigin.toString());
 
@@ -176,7 +176,7 @@ public class PureJsonTest {
 
         testJSON = testJSON.replace(" ", "").replace("\n", "");
 
-        CSONElement csonElement = new CSONObject(testJSON, StringFormatOption.jsonPure());
+        CSONElement csonElement = new CSONObject(testJSON, StringFormatOption.json());
         CSONObject csonObject = (CSONObject) csonElement;
         System.out.println(csonObject.toString());
         //assertEquals(testJSON.replace("0xff", "255").replace("75.50", "75.5"), csonObject.toString());
@@ -241,7 +241,7 @@ public class PureJsonTest {
         Exception err = null;
         String json = "{\"key\": \"5\",\"a\":\"b\",,}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -254,7 +254,7 @@ public class PureJsonTest {
         Exception err = null;
         String json = "{\"key\": \"5\",,\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -273,7 +273,7 @@ public class PureJsonTest {
 
         json = "{key: \"5\",\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -281,7 +281,7 @@ public class PureJsonTest {
         assertNotNull(err);
         err = null;
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -290,7 +290,7 @@ public class PureJsonTest {
         err = null;
         json = "{'key': \"5\",\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -302,7 +302,7 @@ public class PureJsonTest {
         err = null;
         json = "{\"key\": \"5\",\"a\":\"b\",}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.jsonPure());
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -345,7 +345,7 @@ public class PureJsonTest {
                 " \n]\n" +
                 "}";
 
-        CSONObject csonObject = new CSONObject(testJSON, StringFormatOption.jsonPure());
+        CSONObject csonObject = new CSONObject(testJSON, StringFormatOption.json());
         System.out.println(csonObject.toString());
 
         CSONObject csonObject2 = new CSONObject(testJSON, StringFormatOption.json());

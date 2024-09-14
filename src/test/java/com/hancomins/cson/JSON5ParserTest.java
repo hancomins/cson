@@ -26,7 +26,7 @@ public class JSON5ParserTest  {
 
 
 
-        CSONObject csonObject = new CSONObject(jsonKeyUnquoted, StringFormatOption.json());
+        CSONObject csonObject = new CSONObject(jsonKeyUnquoted, StringFormatOption.json5());
         System.out.println(csonObject.toString());
 
         assertEquals(csonObject.get("unquoted"), "and you can quote me on that\"");
@@ -39,7 +39,7 @@ public class JSON5ParserTest  {
 
 
 
-        csonObject = new CSONObject(jsonValueUnquoted, StringFormatOption.json());
+        csonObject = new CSONObject(jsonValueUnquoted, StringFormatOption.json5());
         System.out.println(csonObject.toString());
         assertEquals(csonObject.get("unquoted"), "and you can quote\n me on that\"");
         assertEquals(Double.valueOf(csonObject.getDouble("unquoted_integer")),  Double.valueOf( 123.0));
@@ -52,7 +52,7 @@ public class JSON5ParserTest  {
 
 
 
-        csonObject = new CSONObject(jsonValueSingleUnquoted, StringFormatOption.json());
+        csonObject = new CSONObject(jsonValueSingleUnquoted, StringFormatOption.json5());
         System.out.println(csonObject.toString());
         assertEquals(csonObject.get("singleQuoted"), "and you can quote me on that\"");
         assertEquals(Double.valueOf(csonObject.getDouble("singleQuoted_float")),  Double.valueOf( 123.0));
@@ -73,7 +73,7 @@ public class JSON5ParserTest  {
                     "}";
 
 
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json().setAllowConsecutiveCommas(true));
+            CSONObject csonObject = new CSONObject(json, StringFormatOption.json5().setAllowConsecutiveCommas(true));
             System.out.println(csonObject);
             assertEquals("are just fine", csonObject.optString("consecutiveCommas"));
             assertNull(csonObject.get("nullValue"));
@@ -102,7 +102,7 @@ public class JSON5ParserTest  {
 
 
 
-        CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+        CSONObject csonObject = new CSONObject(json, StringFormatOption.json5());
         assertEquals("Look, Mom!\nNo \\nnewlines!", csonObject.optString("lineBreaks"));
 
     }
@@ -121,7 +121,7 @@ public class JSON5ParserTest  {
          "  trailingComma: 'in objects', andIn: ['arrays',],\n" +
          "  \"backwardsCompatible\": \"with JSON\",\n" +
          "}";
-         CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+         CSONObject csonObject = new CSONObject(json, StringFormatOption.json5());
          assertEquals("and you can quote me on that", csonObject.optString("unquoted"));
          assertEquals("I can use \"double quotes\" here", csonObject.optString("singleQuotes"));
          assertEquals("Look, Mom!\nNo \\nnewlines!", csonObject.optString("lineBreaks"));
@@ -196,7 +196,7 @@ public class JSON5ParserTest  {
                 "  nullValue: \n\n null\n\n,\n" +
                 " okValue: \"ok\",\n" +
                 "}";
-        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json());
+        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json5());
         assertNull(csonObject.opt("nullValue"));
         assertEquals("ok", csonObject.optString("okValue"));
     }
@@ -213,7 +213,7 @@ public class JSON5ParserTest  {
                 "  // Comment after value\n" +
                 "}";
 
-        JSONOptions jsonOptions = StringFormatOption.json();
+        JSONOptions jsonOptions = StringFormatOption.json5();
         jsonOptions.setAllowComments(true);
         jsonOptions.setSkipComments(false);
         jsonOptions.setPretty(true);
@@ -316,7 +316,7 @@ public class JSON5ParserTest  {
                 "  trailing1Comma: 'this is fine',\n" +
                 "}";
 
-        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json().setPretty(true));
+        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json5().setPretty(true));
 
         // Assert basic values
         assertEquals("unquoted string value", csonObject.optString("unquotedKey"));

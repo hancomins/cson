@@ -20,8 +20,8 @@ dependencies {
    ```java
     CSONObject obj = new CSONObject();
     // You can change the format options. 
-    // default is StringFormatOption.jsonPure()
-    // CSONObject obj = new CSONObject(StringFormatOption.jsonPure());
+    // default is StringFormatOption.json()
+    // CSONObject obj = new CSONObject(StringFormatOption.json());
     
     obj.put("name", "John");
     obj.put("age", 25);

@@ -300,7 +300,7 @@ final class JSON5ParserX {
                     CSONElement oldElement = currentElement;
                     if(oldElement == null) {
                         if(rootElement == null) {
-                            rootElement = new CSONObject(StringFormatOption.jsonPure());
+                            rootElement = new CSONObject(rootElement.getStringFormatOption());
                         }
                         currentElement = rootElement;
                         if(!(currentElement instanceof CSONObject)) {

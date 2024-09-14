@@ -6,8 +6,35 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
 
         private StringFormatType formatType = StringFormatType.JSON;
 
+
+
         private JSONOptions() {
         }
+
+
+        static boolean isPureJSONOption(JSONOptions jsonOptions) {
+            return
+                    // 코멘트 사용 불가
+                    !jsonOptions.isAllowComments() &&
+                    // 싱글 쿼트 사용 불가
+                    !jsonOptions.isAllowSingleQuotes() &&
+                    // 값과 } , ] 사이에 comma 사용 불가s
+                    !jsonOptions.isAllowTrailingComma() &&
+                    // 연이은 comma 사용 불가
+                    !jsonOptions.isAllowConsecutiveCommas() &&
+                    // 키, 값 쿼트 생략 불가
+                    !jsonOptions.isAllowUnquoted() &&
+                    // key 쿼트 " 만 사용
+                    "\"".equals(jsonOptions.getKeyQuote()) &&
+                    // value 쿼트 " 만 사용
+                    "\"".equals(jsonOptions.getValueQuote());
+
+
+
+        }
+
+
+
 
         public static JSONOptions json() {
             JSONOptions jsonOptions = new JSONOptions();
@@ -17,19 +44,24 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setAllowComments(false);
             jsonOptions.setSkipComments(true);
             jsonOptions.setIgnoreNonNumeric(true);
-            jsonOptions.setAllowNaN(true);
+
+            jsonOptions.setAllowNaN(false);
             jsonOptions.setAllowPositiveSing(false);
-            jsonOptions.setAllowInfinity(true);
-            jsonOptions.setAllowUnquoted(true);
-            jsonOptions.setAllowSingleQuotes(true);
+            jsonOptions.setAllowInfinity(false);
+            jsonOptions.setAllowUnquoted(false);
+
+            jsonOptions.setAllowSingleQuotes(false);
             jsonOptions.setAllowHexadecimal(true);
-            jsonOptions.setLeadingZeroOmission(false);
-            //jsonOptions.setAllowCharacter(true);
+            jsonOptions.setLeadingZeroOmission(true);
+            jsonOptions.setAllowPositiveSing(true);
+
+
 
             jsonOptions.setAllowTrailingComma(true);
             jsonOptions.setAllowConsecutiveCommas(false);
             jsonOptions.setKeyQuote("\"");
             jsonOptions.setValueQuote("\"");
+
             return jsonOptions;
         }
 
@@ -50,12 +82,15 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setAllowSingleQuotes(true);
             jsonOptions.setAllowHexadecimal(true);
             jsonOptions.setLeadingZeroOmission(true);
-            //jsonOptions.setAllowCharacter(true);
+
             jsonOptions.setAllowTrailingComma(true);
             jsonOptions.setAllowBreakLine(true);
             jsonOptions.formatType = StringFormatType.JSON5;
             return jsonOptions;
         }
+
+
+        private boolean sealed = false;
 
         private boolean pretty = false;
         private boolean unprettyArray = false;
@@ -63,6 +98,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
         private boolean skipComments = false;
 
         private boolean allowComments = false;
+        // todo : 이 옵션을 제거할 수 있는지 검토
         private boolean ignoreNumberFormatError = true;
         private boolean allowNaN = true;
         private boolean allowPositiveSing = true;
@@ -103,8 +139,9 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return valueQuote;
         }
 
-        @SuppressWarnings("unused")
-        public JSONOptions setValueQuote(String valueQuote) {
+        @SuppressWarnings({"unused", "SameParameterValue"})
+        JSONOptions setValueQuote(String valueQuote) {
+            sealed = false;
             if(valueQuote == null || valueQuote.isEmpty())
                 throw new IllegalArgumentException("valueQuote can not be null or empty");
             if(valueQuote.length() > 1)
@@ -112,6 +149,8 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             this.valueQuote = valueQuote;
             return this;
         }
+
+
 
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -148,6 +187,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
         }
 
         public JSONOptions setAllowComments(boolean allowComments) {
+            sealed = false;
             this.allowComments = allowComments;
             return this;
         }
@@ -278,15 +318,13 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowControlChar;
         }
 
-        /*public boolean isAllowCharacter() {
-            return allowCharacter;
-        }*/
+        private void seal() {
+            sealed = true;
+        }
 
-        /*public JSONOptions setAllowCharacter(boolean allowCharacter) {
-            this.allowCharacter = allowCharacter;
-            return this;
-        }*/
-
+        boolean isBrokenSeal() {
+            return !sealed;
+        }
 
     @Override
     public StringFormatType getFormatType() {

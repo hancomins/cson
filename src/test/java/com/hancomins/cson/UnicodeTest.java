@@ -67,8 +67,8 @@ public class UnicodeTest {
         assertEquals("😊", csonObject.get("a"));
         assertEquals("😊", csonArray.get(0));
 
-        csonObject = new CSONObject(csonObject.toString(StringFormatOption.jsonPure()));
-        csonArray = new CSONArray(csonArray.toString(StringFormatOption.jsonPure()));
+        csonObject = new CSONObject(csonObject.toString(StringFormatOption.json()));
+        csonArray = new CSONArray(csonArray.toString(StringFormatOption.json()));
 
         assertEquals("😊", csonObject.get("a"));
         assertEquals("😊", csonArray.get(0));

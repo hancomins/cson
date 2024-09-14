@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 public abstract  class CSONElement implements Iterable<Object>  {
 
 
-	private static StringFormatOption<?> DefaultJSONOptions = StringFormatOption.jsonPure();
+	private static StringFormatOption<?> DefaultJSONOptions = StringFormatOption.json();
 
 	private static final Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
 	private static final Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");

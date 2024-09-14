@@ -112,7 +112,7 @@ class PureJSONParser {
                     CSONElement oldElement = currentElement;
                     if(oldElement == null) {
                         if(rootElement == null) {
-                            rootElement = new CSONObject(StringFormatOption.jsonPure());
+                            rootElement = new CSONObject(StringFormatOption.json());
                         }
                         currentElement = rootElement;
                         if(!(currentElement instanceof CSONObject)) {
