@@ -884,6 +884,10 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	protected void setCommentObjects(String key, CommentObject keyCommentObject, CommentObject valueCommentObject) {
+		if(keyCommentObject == null && valueCommentObject == null) {
+			return;
+		}
+
 		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
 		if(keyCommentObject != null && keyCommentObject.isCommented()) {
             do {
