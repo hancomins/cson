@@ -65,6 +65,8 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             jsonOptions.setAllowConsecutiveCommas(false);
             jsonOptions.setKeyQuote("\"");
             jsonOptions.setValueQuote("\"");
+            jsonOptions.setPretty(false);
+            jsonOptions.setUnprettyArray(true);
 
             return jsonOptions;
         }

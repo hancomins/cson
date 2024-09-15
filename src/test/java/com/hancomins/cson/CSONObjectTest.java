@@ -144,6 +144,8 @@ public class CSONObjectTest {
     @Test
     @DisplayName("비어있는 CSONObject 와 CSONArray 파싱 테스트")
     public void emptyCSONObjectAndArrayTest() {
+        StringFormatOption<?> stringFormatOption = CSONObject.getDefaultStringFormatOption();
+        CSONObject.setDefaultStringFormatOption(JSONOptions.json());
         CSONObject csonObject = new CSONObject("{}", JSONOptions.json());
         CSONArray csonArray = new CSONArray("[]", JSONOptions.json());
 
@@ -158,6 +160,10 @@ public class CSONObjectTest {
         System.out.println(complexCSONObject);
 
         assertEquals("{\"emptyObject\":{},\"emptyArray\":[]}", complexCSONObject.toString());
+
+        CSONObject.setDefaultStringFormatOption(stringFormatOption);
+
+
 
 
 
