@@ -6,13 +6,11 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayDeque;
 
-import static com.hancomins.cson.ParsingState.Open;
-
-final class JSON5ParserX {
+final class JSON5ParserY {
 
 
 
-    private JSON5ParserX() {
+    private JSON5ParserY() {
     }
 
 
@@ -28,17 +26,16 @@ final class JSON5ParserX {
     static void parse(Reader reader,CSONElement rootElement, JSONOptions jsonOption) {
 
         final boolean singleQuote = jsonOption.isAllowSingleQuotes();
-        final boolean allowUnquoted = jsonOption.isAllowUnquoted();
+        final boolean allowUnquotedKey = jsonOption.isAllowUnquoted();
         final boolean allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
         final boolean trailingComma = jsonOption.isAllowTrailingComma();
         final boolean allowComment = jsonOption.isAllowComments();
 
         char currentQuoteChar = '\0';
         boolean readyComment = false;
-        boolean inSpecialCharacter = false;
 
         // 현재 모드.
-        ParsingState currentParsingState = Open;
+        ParsingState currentParsingState = ParsingState.Open;
         //
         String key = null;
         //
@@ -65,10 +62,9 @@ final class JSON5ParserX {
 
 
         CSONElement currentElement = null;
-        CSONElement parentElement = null;
 
 
-        CharacterBuffer keyBuffer = new CharacterBuffer(128);
+
         valueParseState = new ValueParseState(jsonOption);
         valueParseState.setAllowControlChar(jsonOption.isAllowControlChar());
         ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
@@ -78,11 +74,24 @@ final class JSON5ParserX {
         int index = 0;
 
         try {
-            int v;
+            int c;
 
-            while((v = reader.read()) != -1) {
-                char c = (char)v;
+            while((c = reader.read()) != -1) {
 
+                if(c == '\n') {
+                    ++line;
+                }
+
+                if(currentParsingState == ParsingState.WaitKey || currentParsingState == ParsingState.WaitValue || currentParsingState == ParsingState.WaitValueSeparator || currentParsingState == ParsingState.WaitNextStoreSeparator) {
+                    if(c == '\n' || c == '\r' || c == '\t' || c == ' ') {
+                        while((c = reader.read()) != -1) {
+                            if(c == '\r' || c == '\n' || c == '\t' || c == ' ') {
+                                continue;
+                            }
+                            break;
+                        }
+                    }
+                }
 
 
                 /* ************************************************************************************
@@ -145,7 +154,7 @@ final class JSON5ParserX {
                             } else {
                                 commentObject.appendTrailingComment(commentBuffer.toTrimString());
                             }
-                        } else if (currentParsingState == Open) {
+                        } else if (currentParsingState == ParsingState.Open) {
                             String value = commentBuffer.toTrimString();
                             String alreadyComment = rootElement.getHeadComment();
                             if (alreadyComment != null) {
@@ -203,233 +212,231 @@ final class JSON5ParserX {
 
                 ////////////////////
 
+                
 
 
-                switch (currentParsingState) {
-                    case Open:
-                        c = skipSpace(reader, c);
-                        switch (c) {
-                            case '{':
-                                rootElement = currentElement = new CSONObject();
-                                currentParsingState = ParsingState.WaitKey;
-                                break;
-                            case '[':
-                                rootElement = currentElement = new CSONArray();
-                                currentParsingState = ParsingState.WaitValue;
-                                break;
-                            default:
-                                throw new CSONParseException("Invalid JSON5 document");
-                        }
-                        break;
-                    case WaitKey:
-                        c = skipSpace(reader, c);
-                        switch (c) {
-                            case '}':
-                                if(currentElement == rootElement) {
-                                    currentParsingState = ParsingState.Close;
-                                } else {
-                                    currentElement = csonElements.pop();
-                                    currentParsingState = ParsingState.WaitNextStoreSeparator;
-                                }
-                                break;
-                            case ',':
-                                // todo 연속된 쉼표 처리
-                                if(!allowConsecutiveCommas) {
-                                    throw new CSONParseException("Invalid JSON5 document");
-                                }
-                                break;
-                            case '\'':
-                            case '"':
-                                currentQuoteChar = (char) c;
-                                currentParsingState = ParsingState.InKey;
-                                break;
-                            default:
-                                if(allowUnquoted) {
-                                    currentParsingState = ParsingState.InKeyUnquoted;
-                                    keyBuffer.append((char)c);
-                                } else {
-                                    throw new CSONParseException("Invalid JSON5 document");
-                                }
-                                break;
-                        }
-                        break;
-                    case InKey:
-                        if(c == currentQuoteChar) {
-                            currentParsingState = ParsingState.WaitValueSeparator;
-                            key = keyBuffer.toString();
-                            keyBuffer.reset();
-                        } else {
-                            keyBuffer.append((char) c);
-                        }
-                        break;
-                    case InKeyUnquoted:
-                        switch (c) {
-                            case '\n':
-                            case '\r':
-                            case '\t':
-                            case ' ':
-                                currentParsingState = ParsingState.WaitValueSeparator;
-                                break;
-                            case ':':
-                                currentParsingState = ParsingState.WaitValue;
-                                key = keyBuffer.toString();
-                                keyBuffer.reset();
-                                break;
-                            default:
-                                keyBuffer.append((char) c);
-                                break;
-                        }
-                        break;
-                    case WaitValueSeparator:
-                        c = skipSpace(reader, c);
-                        if (c == ':') {
-                            currentParsingState = ParsingState.WaitValue;
-                        } else {
-                            throw new CSONParseException("Invalid JSON5 document");
-                        }
-                        break;
-                    case WaitValue:
-                        c = skipSpace(reader, c);
-                        switch (c) {
-                            case '\0':
-                                throw new CSONParseException("Unexpected end of stream");
-                            case '\'':
-                            case '"':
-                                valueParseState.setOnlyString(true);
-                                currentQuoteChar = (char)c;
-                                currentParsingState = ParsingState.String;
-                                break;
-                            case '{':
-                                parentElement = currentElement;
-                                csonElements.push(currentElement);
-                                currentElement = new CSONObject();
-                                // todo value after comment 처리 고민해서 넣어야함.
-                                lastKey = putElementData(parentElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
-                                if(allowComment && key != null) {
-                                    parentKeyStack.push(key);
-                                }
-                                key = null;
-                                currentParsingState = ParsingState.WaitKey;
-                                break;
-                            case '[':
-                                parentElement = currentElement;
-                                csonElements.push(currentElement);
-                                currentElement = new CSONArray();
-                                lastKey = putElementData(parentElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
-                                if(allowComment && key != null) {
-                                    parentKeyStack.push(key);
-                                }
-                                key = null;
-                                // 이미 waitValue 상태이므로, 굳이 상태를 변경하지 않아도 된다.
-                                // currentParsingState = ParsingState.WaitValue;
-                                break;
-                            default:
-                                if(!allowUnquoted) {
-                                    valueParseState.setOnlyNumber(true);
-                                    currentParsingState = ParsingState.Number;
-                                } else  {
-                                    currentParsingState = ParsingState.InValueUnquoted;
-                                }
-                                // todo  Number 상태일때 숫자가 아닐경우 예외처리를 해야한다.
-                                valueParseState.append((char) c);
-                                break;
-                        }
-                        break;
-                    case String:
-                        if (c == '\\') {
-                            inSpecialCharacter = !inSpecialCharacter;
-                        } else {
-                            if (inSpecialCharacter) {
-                                inSpecialCharacter = false;
-                                valueParseState.append(c);
-                            } else if (c == currentQuoteChar) {
-                                putStringData(currentElement, valueParseState.toString(), key);
-                                if (allowComment && key != null) {
-                                    parentKeyStack.push(key);
-                                }
-                                key = null;
-                                valueParseState.reset();
-                                currentParsingState = afterValue(currentElement);
-                            } else {
-                                valueParseState.append(c);
-                            }
-                        }
-                        break;
-                    case Number:
-                        if (c == ',') {
-                            putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
-                            if (allowComment && key != null) {
-                                parentKeyStack.push(key);
-                            }
-                            key = null;
-                            valueParseState.reset();
-                            currentParsingState = afterValue(currentElement);
-                        } else {
-                            valueParseState.append((char)c);
-                        }
-                        break;
-                    case InValueUnquoted:
-                        switch (c) {
-                            case '\n':
-                            case '\r':
-                            case '\t':
-                            case ' ':
-                            case ',':
-                                putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
-                                if(allowComment && key != null) {
-                                    parentKeyStack.push(key);
-                                }
-                                key = null;
-                                valueParseState.reset();
-                                currentParsingState = c == ',' ? afterComma(currentElement) :  afterValue(currentElement);
-                                break;
-                            default:
-                                valueParseState.append((char) c);
-                                break;
-                        }
-                        break;
-                    case WaitNextStoreSeparatorInObject:
-                        c = skipSpace(reader, c);
-                        switch (c) {
-                            case ',':
-                                currentParsingState = ParsingState.WaitKey;
-                                break;
-                            case '}':
-                                if(currentElement == rootElement) {
-                                    currentParsingState = ParsingState.Close;
-                                } else {
-                                    currentElement = csonElements.pop();
-                                    currentParsingState = afterValue(currentElement);
-                                    // todo after value 주석 처리 고민.
-                                }
-                                break;
-                            default:
-                                throw new CSONParseException("Invalid JSON5 document");
-                        }
-                        break;
-                    case WaitNextStoreSeparatorInArray:
-                        c = skipSpace(reader, c);
-                        switch (c) {
-                            case ',':
-                                currentParsingState = ParsingState.WaitValue;
-                                break;
-                            case ']':
-                                if(currentElement == rootElement) {
-                                    currentParsingState = ParsingState.Close;
-                                } else {
-                                    currentElement = csonElements.pop();
-                                    currentParsingState = afterValue(currentElement);
-                                    // todo after value 주석 처리 고민.
-                                }
-                                break;
-                            default:
-                                throw new CSONParseException("Invalid JSON5 document");
-                        }
-                        break;
 
+
+                if(currentParsingState == ParsingState.InKeyUnquoted && (c == ':')) {
+                    String keyString = valueParseState.toTrimString();
+                    if(keyString.isEmpty()) {
+                        throw new CSONParseException(ExceptionMessages.getKeyNotFound(line, index));
+                    }
+                    key = keyString;
+                    currentParsingState = ParsingState.WaitValueSeparator;
+                    valueParseState.reset();
                 }
 
 
+
+                if((c != currentQuoteChar) && (currentParsingState == ParsingState.String || currentParsingState == ParsingState.InKey || currentParsingState == ParsingState.InKeyUnquoted)) {
+                    valueParseState.append((char) c);
+                } else if((currentParsingState == ParsingState.Value) &&  (c != ',' && c != '}' && c != ']')) {
+                    if(c == '\n' || c == '\r') {
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
+                        currentParsingState = ParsingState.WaitNextStoreSeparator;
+                    }
+                    else valueParseState.append((char)c);
+                }
+                else if(c == '{') {
+                    if(currentParsingState != ParsingState.WaitValue && currentParsingState != ParsingState.Open) {
+                        throw new CSONParseException("Unexpected character '{' at " + index);
+                    }
+                    currentParsingState = ParsingState.WaitKey;
+                    CSONElement oldElement = currentElement;
+                    if(oldElement == null) {
+                        if(rootElement == null) {
+                            rootElement = new CSONObject(rootElement.getStringFormatOption());
+                        }
+                        currentElement = rootElement;
+                        if(!(currentElement instanceof CSONObject)) {
+                            throw new CSONParseException("Unexpected character '{' at " + index);
+                        }
+                    }
+                    else {
+                        currentElement = new CSONObject();
+                        if(allowComment && oldElement instanceof CSONObject) {
+                            parentKeyStack.addLast(key);
+                        }
+                        lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
+
+                    }
+                    csonElements.offerLast(currentElement);
+                } else if(c == '[') {
+                    if(currentParsingState !=
+                            ParsingState.Open && currentParsingState != ParsingState.WaitValue) {
+                        throw new CSONParseException("Unexpected character '[' at " + index);
+                    }
+                    currentParsingState = ParsingState.WaitValue;
+                    CSONElement oldElement = currentElement;
+                    if(oldElement == null) {
+                        if(rootElement == null) {
+                            rootElement = new CSONArray();
+                        }
+                        currentElement = rootElement;
+                        if(!(currentElement instanceof CSONArray)) {
+                            throw new CSONParseException("Unexpected character '{' at " + index);
+                        }
+
+                    }
+                    else {
+                        currentElement = new CSONArray();
+                        if(allowComment && oldElement instanceof CSONObject) {
+                            parentKeyStack.addLast(key);
+                        }
+                        lastKey = putElementData(oldElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
+                    }
+                    csonElements.offerLast(currentElement);
+
+                } else if(c == ']'  || c == '}') {
+
+                    if(currentParsingState == ParsingState.WaitValue || currentParsingState == ParsingState.WaitKey) {
+                        if(!trailingComma) {
+                            throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
+                        }
+                    }
+                    else if(currentParsingState == ParsingState.Value) {
+                        putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
+                    } else if(currentParsingState != ParsingState.WaitNextStoreSeparator) {
+                        throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
+                    }
+                    if(allowComment) {
+                        valueCommentObject = null;
+                        keyCommentObject = null;
+                    }
+
+
+                    currentParsingState = ParsingState.WaitNextStoreSeparator;
+                    csonElements.removeLast();
+                    if(csonElements.isEmpty()) {
+                        if(allowComment) {
+                            currentParsingState = ParsingState.Close;
+                            continue;
+                        } else {
+                            return;
+                        }
+                    }
+                    currentElement = csonElements.getLast();
+
+
+
+                    if(allowComment && !(currentElement instanceof CSONArray)) {
+                        lastKey = parentKeyStack.pollLast();
+                    }
+                }
+
+                else if(currentParsingState == ParsingState.Value && (c == '\n' || c == '\r')) {
+                    putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                    key = null;
+                    keyCommentObject = null;
+                    valueCommentObject = null;
+                    currentParsingState = ParsingState.WaitNextStoreSeparator;
+                }
+
+                else if(c == ',') {
+                    if(currentParsingState == ParsingState.WaitKey && !allowConsecutiveCommas) {
+                        throw new CSONParseException("Unexpected character ',' at " + index + " ,line: " + line);
+                    }
+
+                    if(currentParsingState != ParsingState.WaitNextStoreSeparator && currentParsingState != ParsingState.Value) {
+                        if(allowConsecutiveCommas) {
+                            // csonOBjcet 는 키가 있을때만 null 넣는다.
+                            if((key != null && currentElement instanceof CSONObject) || currentElement instanceof CSONArray) {
+                                lastKey = putData(null, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                            }
+                            key = null;
+                            keyCommentObject = null;
+                            valueCommentObject = null;
+                            currentParsingState = ParsingState.WaitNextStoreSeparator;
+                        } else {
+                            throw new CSONParseException("Unexpected character ',' at " + index + " ,line: " + line);
+                        }
+                    }
+                    if(currentParsingState == ParsingState.Value) {
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
+                    }
+
+                    currentParsingState = afterComma(currentElement);
+
+                }
+
+                else if(c == currentQuoteChar && !valueParseState.isSpecialChar()) {
+
+                    if(currentParsingState == ParsingState.String) {
+                        lastKey = putData(valueParseState, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+                        key = null;
+                        keyCommentObject = null;
+                        valueCommentObject = null;
+                        currentParsingState = ParsingState.WaitNextStoreSeparator;
+                    }
+                    else if(currentParsingState == ParsingState.InKey) {
+                        key = valueParseState.toString();
+                        currentParsingState = ParsingState.WaitValueSeparator;
+                    }
+                    currentQuoteChar = '\0';
+                }
+
+                else if(isQuotedString((char)c, singleQuote)) {
+
+                    if(currentParsingState != ParsingState.String && currentParsingState != ParsingState.Value && currentParsingState != ParsingState.WaitKey && currentParsingState != ParsingState.WaitValue && currentParsingState != ParsingState.InKey) {
+                        throw new CSONParseException("Unexpected character '\"' at " + index);
+                    }
+                    else if(currentParsingState == ParsingState.WaitValue) {
+                        currentParsingState = ParsingState.String;
+                        currentQuoteChar = (char) c;
+                        valueParseState.reset().setOnlyString(true);
+                    }
+                    else if(currentParsingState == ParsingState.WaitKey) {
+                        currentParsingState = ParsingState.InKey;
+                        currentQuoteChar = (char) c;
+                        valueParseState.reset().setOnlyString(true);
+                    } else {
+                        valueParseState.append((char)c);
+                    }
+                }
+
+                else if(c == ':') {
+                    if(currentParsingState != ParsingState.WaitValueSeparator) {
+                        throw new CSONParseException("Unexpected character ':' at " + index);
+                    } else {
+                        currentParsingState = ParsingState.WaitValue;
+                    }
+                }
+
+                else if(currentParsingState == ParsingState.WaitValue && !isQuotedString((char)c, singleQuote)  && !Character.isSpaceChar(c)  && c != '\n' && c != '\r' && c != '\t' && c != '\b' && c != '\f' && c != '\0' && c != 0xFEFF) {
+                    valueParseState.reset();
+                    valueParseState.setOnlyNumber(!allowUnquotedKey);
+                    valueParseState.setAllowControlChar(false);
+                    valueParseState.append((char)c);
+                    //valueParseState.setTrimResult(true);
+                    currentParsingState = ParsingState.Value;
+                    currentQuoteChar = '\0';
+                }
+
+                else if(currentParsingState == ParsingState.WaitKey && allowUnquotedKey && !Character.isWhitespace(c)) {
+                    valueParseState.reset();
+                    valueParseState.setAllowControlChar(false);
+                    valueParseState.append((char)c);
+                    currentParsingState = ParsingState.InKeyUnquoted;
+                }
+                //
 
 
 
@@ -460,26 +467,9 @@ final class JSON5ParserX {
         }
 
 
+        throw new CSONParseException("Unexpected end of stream");
     }
 
-    private static char skipSpace(Reader reader, char current) throws IOException {
-        if (!isSpace(current)) {
-            return current;
-        }
-
-
-        int c;
-        while((c = reader.read()) != -1) {
-            if(!isSpace((char)c)) {
-                return (char)c;
-            }
-        }
-        return '\0';
-    }
-
-    private static ParsingState afterValue(CSONElement element) {
-        return element instanceof CSONArray ? ParsingState.WaitNextStoreSeparatorInArray : ParsingState.WaitNextStoreSeparatorInObject;
-    }
 
 
     private static ParsingState afterComma(CSONElement element) {
@@ -488,29 +478,6 @@ final class JSON5ParserX {
         } else {
             return ParsingState.WaitKey;
         }
-    }
-
-    private static boolean isSpace(char c) {
-        switch (c) {
-            case '\n':
-            case '\r':
-            case '\t':
-            case ' ':
-                return true;
-        }
-        return false;
-    }
-
-    private static boolean isEndOfKeyAtUnquoted(char c) {
-        switch (c) {
-            case '\n':
-            case '\r':
-            case '\t':
-            case ' ':
-            case ':':
-                return true;
-        }
-        return false;
     }
 
 

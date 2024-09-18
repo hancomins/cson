@@ -32,7 +32,7 @@ public enum ParsingState {
      * 다음 키 또는 값을 기다리는 상태. ',' 이 나오면 이 상태로 전환된다.
      * 또는 root element 가 아닌 상황에서 또는 '}' 또는 ']' 이 나오면 이 상태로 전환된다.
      */
-    NextStoreSeparator, // , 가 나오기를 기다림
+    WaitNextStoreSeparator, // , 가 나오기를 기다림
     /**
      * ' 또는 " 가 있는 키를 읽고 있는 상태.
      */
@@ -55,8 +55,11 @@ public enum ParsingState {
      */
     InCloseComment,
 
-    Number
+    Number,
 
+    InValueUnquoted,
 
+    WaitNextStoreSeparatorInArray, // , 가 나오기를 기다림
+    WaitNextStoreSeparatorInObject, // , 가 나오기를 기다림
 
 }

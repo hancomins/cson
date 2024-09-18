@@ -149,20 +149,20 @@ class PureJSONParser {
                         int len = dataStringBuilder.length();
                         processNumber(currentElement, numberString, len, key, index, numberConversionOption);
                         key = null;
-                    } else if(currentParsingState != ParsingState.NextStoreSeparator &&
+                    } else if(currentParsingState != ParsingState.WaitNextStoreSeparator &&
                             (currentParsingState == ParsingState.WaitValue && currentElement instanceof CSONArray && !((CSONArray) currentElement).isEmpty()))  {
 
                         throw new CSONParseException("Unexpected character '" + (char)c + "' at " + index);
                     }
 
-                    currentParsingState = ParsingState.NextStoreSeparator;
+                    currentParsingState = ParsingState.WaitNextStoreSeparator;
                     csonElements.removeLast();
                     if(csonElements.isEmpty()) {
                         return currentElement;
                     }
                     currentElement = csonElements.getLast();
                 } else if(c == ',') {
-                    if(currentParsingState != ParsingState.NextStoreSeparator && currentParsingState != ParsingState.Number) {
+                    if(currentParsingState != ParsingState.WaitNextStoreSeparator && currentParsingState != ParsingState.Number) {
                         throw new CSONParseException("Unexpected character ',' at " + index);
                     }
                     if(currentParsingState == ParsingState.Number) {
@@ -190,7 +190,7 @@ class PureJSONParser {
                         putStringData(currentElement, value, key);
                         key = null;
 
-                        currentParsingState = ParsingState.NextStoreSeparator;
+                        currentParsingState = ParsingState.WaitNextStoreSeparator;
                     }
                     else if(currentParsingState == ParsingState.WaitValue) {
 

@@ -1,7 +1,7 @@
 #
 # A fatal error has been detected by the Java Runtime Environment:
 #
-#  EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ff9cbcd6fe4, pid=33376, tid=19732
+#  EXCEPTION_ACCESS_VIOLATION (0xc0000005) at pc=0x00007ff9cc426fe4, pid=6712, tid=40692
 #
 # JRE version: OpenJDK Runtime Environment Microsoft-9394293 (11.0.23+9) (build 11.0.23+9-LTS)
 # Java VM: OpenJDK 64-Bit Server VM Microsoft-9394293 (11.0.23+9-LTS, mixed mode, sharing, tiered, compressed oops, g1 gc, windows-aarch64)
@@ -16,16 +16,16 @@
 
 ---------------  S U M M A R Y ------------
 
-Command Line: -javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.4\lib\idea_rt.jar=53386:C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.4\bin -agentpath:C:\Users\ice3x\AppData\Local\Temp\idea_libasyncProfiler_dll_temp_folder\libasyncProfiler.dll=start,jfr,event=wall,interval=10ms,jfrsync=profile,cstack=no,file=C:\Users\ice3x\IdeaSnapshots\PerformanceTest_2024_09_15_091621.jfr,dbghelppath=C:\Users\ice3x\AppData\Local\Temp\idea_dbghelp_dll_temp_folder\dbghelp.dll,log=C:\Users\ice3x\AppData\Local\Temp\PerformanceTest_2024_09_15_091621.jfr.log.txt,logLevel=DEBUG -Dfile.encoding=UTF-8 com.hancomins.cson.PerformanceTestIn
+Command Line: -javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.4\lib\idea_rt.jar=53996:C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.4\bin -agentpath:C:\Users\ice3x\AppData\Local\Temp\idea_libasyncProfiler_dll_temp_folder\libasyncProfiler.dll=start,jfr,event=wall,interval=10ms,jfrsync=profile,cstack=no,file=C:\Users\ice3x\IdeaSnapshots\PerformanceTest_2024_09_19_025954.jfr,dbghelppath=C:\Users\ice3x\AppData\Local\Temp\idea_dbghelp_dll_temp_folder\dbghelp.dll,log=C:\Users\ice3x\AppData\Local\Temp\PerformanceTest_2024_09_19_025954.jfr.log.txt,logLevel=DEBUG -Dfile.encoding=UTF-8 com.hancomins.cson.PerformanceTest
 
 Host: Snapdragon(R) X Elite - X1E80100 - Qualcomm(R) Oryon(TM) CPU, 12 cores, 15G,  Windows 11 , 64 bit Build 26100 (10.0.26100.1742)
-Time: Sun Sep 15 09:16:24 2024  Windows 11 , 64 bit Build 26100 (10.0.26100.1742) elapsed time: 2.700117 seconds (0d 0h 0m 2s)
+Time: Thu Sep 19 02:59:57 2024  Windows 11 , 64 bit Build 26100 (10.0.26100.1742) elapsed time: 2.348640 seconds (0d 0h 0m 2s)
 
 ---------------  T H R E A D  ---------------
 
 Current thread is native thread
 
-Stack: [0x000000a1ed000000,0x000000a1ed100000],  sp=0x000000a1ed0ff640,  free space=1021k
+Stack: [0x0000004c594f0000,0x0000004c595f0000],  sp=0x0000004c595ef790,  free space=1021k
 Native frames: (J=compiled Java code, A=aot compiled Java code, j=interpreted, Vv=VM code, C=native code)
 C  [libasyncProfiler.dll+0x46fe4]
 C  [libasyncProfiler.dll+0x46584]
@@ -41,17 +41,17 @@ C  [libasyncProfiler.dll+0x152698]
 C  [libasyncProfiler.dll+0x152c4c]
 C  [libasyncProfiler.dll+0x152e10]
 C  [ntdll.dll+0xd415c]
-C  0x8b5a7ffa5a5c955c
-C  0xe059fffa5a5dfcb8
-C  0x1272fffa5a098490
-C  0x59167ffa55f9e588
-C  0x0c55fff7e81d14b8
+C  0x9a6dfffa5a5c955c
+C  0xee3c7ffa5a5dfcb8
+C  0xb449fffa5a098490
+C  0x9e49fffa55f9e588
+C  0x0c237ff7e81d14b8
 C  [java.exe+0x14d0]
 C  [KERNEL32.DLL+0x8740]
-C  0xeb297ffa5a5dff64
+C  0x6708fffa5a5dff64
 
 
-siginfo: EXCEPTION_ACCESS_VIOLATION (0xc0000005), reading address 0x000001dd61095036
+siginfo: EXCEPTION_ACCESS_VIOLATION (0xc0000005), reading address 0x0000023f15fcc3d5
 
 
 Register to memory mapping:

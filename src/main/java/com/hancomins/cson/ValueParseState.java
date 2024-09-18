@@ -56,8 +56,6 @@ class ValueParseState {
     private boolean allowPositiveSign = false;
     private boolean ignoreNonNumeric = false;
 
-    private boolean trimResult = false;
-
     /**
      * 제어문자를 허용할 것인지 여부를 설정한다.
      */
@@ -107,9 +105,6 @@ class ValueParseState {
         return this;
     }
 
-    public void setTrimResult(boolean trimResult) {
-        this.trimResult = trimResult;
-    }
 
 
     /**
@@ -138,7 +133,6 @@ class ValueParseState {
         resultNumber = null;
         resultBoolean = null;
 
-        trimResult = false;
         onlyString = false;
         sign = Sign.None;
         return this;
@@ -158,6 +152,318 @@ class ValueParseState {
 
 
     private void readType() {
+        if (onlyString) {
+            resultString = characterBuffer.toString();
+            return;
+        }
+
+        boolean isAppearRealNumberSing = false;
+        boolean isAppearExponentialSign = false;
+        boolean noneZeroStart = false;
+        char[] chars = characterBuffer.getChars();
+        int end = characterBuffer.length();
+
+        int start = 0;
+
+        // 문자열의 시작에 공백이 있으면 제거한다.
+        for (int i = 0; i < end; ++i) {
+            if (!isSpaceChar(chars[i])) {
+                start = i;
+                break;
+            }
+        }
+
+        boolean originEnd = true;
+
+        // 문자열의 끝에 공백이 있으면 제거한다.
+        if (isSpaceChar(chars[end - 1])) {
+            for (; start < end; --end) {
+                if (!isSpaceChar(chars[end - 1])) {
+                    break;
+                }
+            }
+        }
+
+        int len = end - start;
+        int startDigitOffset = 0;
+
+        DoubtMode doubtMode = this.doubtMode_;
+
+        boolean isStart = true;
+        for (int i = start; i < end; ++i) {
+            char c = chars[i];
+            int staticSignIndex = i - startDigitOffset;
+            if (isStart) {
+                isStart = false;
+                if (doubtMode == DoubtMode.String) {
+                    resultString = new String(chars, start, len);
+                    return;
+                }
+                char lowChar = Character.toLowerCase(c);
+                switch (lowChar) {
+                    case 'n':
+                        if (allowNaN && NaNSign[staticSignIndex] == lowChar && len == NaNSign.length) {
+                            doubtMode = DoubtMode.NaN;
+                        } else if (Null[staticSignIndex] == lowChar && len == Null.length) {
+                            doubtMode = DoubtMode.Null;
+                        } else {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case 'i':
+                        if (allowInfinity && InfinitySign[staticSignIndex] == lowChar && len == InfinitySign.length) {
+                            doubtMode = DoubtMode.Infinity;
+                        } else {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case '0':
+                        if (allowHexadecimal && HexadecimalSign[staticSignIndex] == lowChar && len > 2) {
+                            ++i;
+                            char next = Character.toLowerCase(chars[i]);
+                            if (next == '.') {
+                                doubtMode = DoubtMode.Number;
+                                isAppearRealNumberSing = true;
+                                continue;
+                            } else if (Character.isDigit(next)) {
+                                doubtMode_ = DoubtMode.Number;
+                                continue;
+                            }
+                            if (Character.toLowerCase(HexadecimalSign[++staticSignIndex]) != next) {
+                                doubtMode_ = DoubtMode.String;
+                                resultString = new String(chars, start, len);
+                                return;
+                            }
+                            doubtMode = DoubtMode.Hexadecimal;
+                        } else {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case 't':
+                        if (TrueSign[staticSignIndex] == lowChar && len == TrueSign.length && sign == Sign.None) {
+                            doubtMode = DoubtMode.True;
+                        } else {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case 'f':
+                        if (FalseSign[staticSignIndex] == lowChar && len == FalseSign.length && sign == Sign.None) {
+                            doubtMode = DoubtMode.False;
+                        } else {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case '+':
+                        if (allowPositiveSign && len > 1) {
+                            doubtMode = DoubtMode.Number;
+                            sign = Sign.Positive;
+                            ++start;
+                            --len;
+                            startDigitOffset = 1;
+                            isStart = true;
+                        } else {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case '-':
+                        if (len > 1) {
+                            doubtMode = DoubtMode.Number;
+                            sign = Sign.Negative;
+                            ++start;
+                            --len;
+                            startDigitOffset = 1;
+                            isStart = true;
+                        } else {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case '.':
+                        if (leadingZeroOmission && len > 1) {
+                            doubtMode = DoubtMode.Number;
+                            isAppearRealNumberSing = true;
+                            noneZeroStart = true;
+                        } else {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    default:
+                        if (!Character.isDigit(c)) {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        } else {
+                            doubtMode = DoubtMode.Number;
+                        }
+                        break;
+                }
+            } else {
+                switch (doubtMode) {
+                    case NaN:
+                        if (i + 1 == NaNSign.length) {
+                            resultNumber = Double.NaN;
+                            doubtMode_ = DoubtMode.NaN;
+                            return;
+                        } else if (NaNSign[staticSignIndex] != Character.toLowerCase(c)) {
+                            if (Null[staticSignIndex] == Character.toLowerCase(c)) {
+                                doubtMode = DoubtMode.Null;
+                            } else {
+                                doubtMode_ = DoubtMode.String;
+                                resultString = new String(chars, start, len);
+                                return;
+                            }
+                        }
+                        break;
+                    case Null:
+                        if (Null[staticSignIndex] != Character.toLowerCase(c)) {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        } else if (i + 1 == Null.length) {
+                            resultNumber = null;
+                            resultString = null;
+                            doubtMode_ = doubtMode;
+                            return;
+                        }
+                        break;
+                    case True:
+                        if (TrueSign[staticSignIndex] != Character.toLowerCase(c)) {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        } else if (i + 1 == TrueSign.length) {
+                            resultBoolean = Boolean.TRUE;
+                            doubtMode_ = doubtMode;
+                            return;
+                        }
+                        break;
+                    case False:
+                        if (FalseSign[staticSignIndex] != Character.toLowerCase(c)) {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        } else if (i + 1 == FalseSign.length) {
+                            resultBoolean = Boolean.FALSE;
+                            doubtMode_ = doubtMode;
+                            return;
+                        }
+                        break;
+                    case Infinity:
+                        if (InfinitySign[i - startDigitOffset] != Character.toLowerCase(c)) {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        } else if (i + 1 == InfinitySign.length + startDigitOffset) {
+                            resultNumber = sign == Sign.Negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY;
+                            doubtMode_ = doubtMode;
+                            return;
+                        }
+                        break;
+                    case Hexadecimal:
+                        if (!isHexadecimalChar(c)) {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case Number:
+                        if (c == '.') {
+                            if (isAppearRealNumberSing) {
+                                doubtMode_ = DoubtMode.String;
+                                resultString = new String(chars, start, len);
+                                return;
+                            }
+                            isAppearRealNumberSing = true;
+                        } else if (c == 'e' || c == 'E') {
+                            doubtMode = DoubtMode.Exponential;
+                        } else if (!Character.isDigit(c)) {
+                            doubtMode_ = DoubtMode.String;
+                            resultString = new String(chars, start, len);
+                            return;
+                        }
+                        break;
+                    case Exponential:
+                        if (c == '+' || c == '-') {
+                            if (isAppearExponentialSign) {
+                                doubtMode_ = DoubtMode.String;
+                                resultString = new String(chars, start, len);
+                                return;
+                            }
+                            isAppearExponentialSign = true;
+                        } else if (!Character.isDigit(c)) {
+                            doubtMode = DoubtMode.String;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        this.doubtMode_ = doubtMode;
+
+        switch (doubtMode) {
+            case Exponential:
+                resultNumber = new BigDecimal(chars, start, len);
+                break;
+            case Null:
+                break;
+            case Number:
+                if (sign == Sign.Negative) {
+                    --start;
+                    ++len;
+                }
+                if (isAppearRealNumberSing || isAppearExponentialSign) {
+                    resultNumber = new BigDecimal(chars, start, len);
+                } else {
+                    resultString = new String(chars, start, len);
+                    BigInteger bigInteger = new BigInteger(resultString);
+                    if (bigInteger.bitLength() <= 31) {
+                        resultNumber = bigInteger.intValue();
+                    } else if (bigInteger.bitLength() <= 63) {
+                        resultNumber = bigInteger.longValue();
+                    } else {
+                        resultNumber = bigInteger;
+                    }
+                }
+                break;
+            case String:
+                resultString = new String(chars, start, len);
+                break;
+            case Hexadecimal:
+                if (sign == Sign.Negative) {
+                    ++start;
+                    --len;
+                    chars[start] = '-';
+                } else if (sign == Sign.Positive) {
+                    start += 2;
+                    len -= 2;
+                } else {
+                    start += 2;
+                    len -= 2;
+                }
+                resultNumber = new BigInteger(new String(chars, start, len), 16);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void _readType() {
         if(onlyString) {
             resultString = characterBuffer.toString();
             return;
@@ -584,9 +890,6 @@ class ValueParseState {
         if(doubtMode_ == DoubtMode.Null) {
             return null;
         }
-        if(trimResult) {
-            return characterBuffer.toTrimString();
-        }
         return characterBuffer.toString();
     }
 
@@ -622,7 +925,20 @@ class ValueParseState {
 
 
     private static boolean isSpaceChar(char c) {
-        return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\u000B' || c == '\0';
+        switch (c) {
+            case ' ':
+            case '\t':
+            case '\n':
+            case '\r':
+            case '\f':
+            case '\u000B':
+            case '\0':
+                return true;
+            default:
+                return false;
+        }
+
+        //return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\u000B' || c == '\0';
     }
 
 }

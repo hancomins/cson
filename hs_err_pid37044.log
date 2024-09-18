@@ -16,7 +16,7 @@
 
 ---------------  S U M M A R Y ------------
 
-Command Line: -javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.4\lib\idea_rt.jar=54346:C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.4\bin -agentpath:C:\Users\ice3x\AppData\Local\Temp\idea_libasyncProfiler_dll_temp_folder\libasyncProfiler.dll=start,jfr,event=wall,interval=10ms,jfrsync=profile,cstack=no,file=C:\Users\ice3x\IdeaSnapshots\PerformanceTest_2024_09_15_105033.jfr,dbghelppath=C:\Users\ice3x\AppData\Local\Temp\idea_dbghelp_dll_temp_folder\dbghelp.dll,log=C:\Users\ice3x\AppData\Local\Temp\PerformanceTest_2024_09_15_105033.jfr.log.txt,logLevel=DEBUG -Dfile.encoding=UTF-8 com.hancomins.cson.PerformanceTest
+Command Line: -javaagent:C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.4\lib\idea_rt.jar=54346:C:\Program Files\JetBrains\IntelliJ IDEA 2024.1.4\bin -agentpath:C:\Users\ice3x\AppData\Local\Temp\idea_libasyncProfiler_dll_temp_folder\libasyncProfiler.dll=start,jfr,event=wall,interval=10ms,jfrsync=profile,cstack=no,file=C:\Users\ice3x\IdeaSnapshots\PerformanceTest_2024_09_15_105033.jfr,dbghelppath=C:\Users\ice3x\AppData\Local\Temp\idea_dbghelp_dll_temp_folder\dbghelp.dll,log=C:\Users\ice3x\AppData\Local\Temp\PerformanceTest_2024_09_15_105033.jfr.log.txt,logLevel=DEBUG -Dfile.encoding=UTF-8 com.hancomins.cson.PerformanceTestIn
 
 Host: Snapdragon(R) X Elite - X1E80100 - Qualcomm(R) Oryon(TM) CPU, 12 cores, 15G,  Windows 11 , 64 bit Build 26100 (10.0.26100.1742)
 Time: Sun Sep 15 10:50:35 2024  Windows 11 , 64 bit Build 26100 (10.0.26100.1742) elapsed time: 2.179228 seconds (0d 0h 0m 2s)
