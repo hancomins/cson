@@ -552,6 +552,12 @@ class ValueBuffer {
         }
     }
 
+    public String getStringAndReset() {
+        String result = characterBuffer.toString();
+        reset();
+        return result;
+    }
+
 
     @Override
     public String toString() {

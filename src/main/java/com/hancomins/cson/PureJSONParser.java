@@ -183,7 +183,7 @@ class PureJSONParser {
                     }
                     else if(currentParsingState == ParsingState.InKey) {
                         key = dataStringBuilder.toString();
-                        currentParsingState = ParsingState.WaitValueSeparator;
+                        currentParsingState = ParsingState.WaitKeyEndSeparator;
                     }
                     else if(currentParsingState == ParsingState.String) {
                         String value = dataStringBuilder.toString();
@@ -202,7 +202,7 @@ class PureJSONParser {
                         currentParsingState = ParsingState.InKey;
                     }
                 } else if(c == ':') {
-                    if(currentParsingState != ParsingState.WaitValueSeparator) {
+                    if(currentParsingState != ParsingState.WaitKeyEndSeparator) {
                         throw new CSONParseException("Unexpected character ':' at " + index);
                     } else {
                         

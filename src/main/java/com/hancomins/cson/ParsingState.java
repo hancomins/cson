@@ -27,7 +27,7 @@ public enum ParsingState {
      * ' 또는 " 로 시작하고 끝나는 문자열에만 해당한다.
      * 키 값에 " 또는 ' 가 없다면, 또 이경우 키 마지막에 \n 이 없다면 이 상태 모드는 만날 수 없다.
      */
-    WaitValueSeparator,
+    WaitKeyEndSeparator,
     /**
      * 다음 키 또는 값을 기다리는 상태. ',' 이 나오면 이 상태로 전환된다.
      * 또는 root element 가 아닌 상황에서 또는 '}' 또는 ']' 이 나오면 이 상태로 전환된다.
@@ -55,11 +55,15 @@ public enum ParsingState {
      */
     InCloseComment,
 
+
+
     Number,
 
     InValueUnquoted,
 
     WaitNextStoreSeparatorInArray, // , 가 나오기를 기다림
     WaitNextStoreSeparatorInObject, // , 가 나오기를 기다림
+
+    Comment,
 
 }
