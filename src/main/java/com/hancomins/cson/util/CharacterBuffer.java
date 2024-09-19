@@ -99,6 +99,10 @@ public class CharacterBuffer {
         return append(value);
     }
 
+    public void prev() {
+        length--;
+    }
+
     public CharacterBuffer append(String s) {
         ensureCapacity(length + s.length());
         s.getChars(0, s.length(), chars, length);

@@ -8,11 +8,11 @@ import java.util.ArrayDeque;
 
 import static com.hancomins.cson.ParsingState.Open;
 
-final class JSON5ParserX {
+final class JSON5ParserXZ {
 
 
 
-    private JSON5ParserX() {
+    private JSON5ParserXZ() {
     }
 
 
