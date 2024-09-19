@@ -1,5 +1,6 @@
 package com.hancomins.cson;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
@@ -7,6 +8,7 @@ import java.io.InputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@DisplayName("UnicodeTest  (성공)")
 public class UnicodeTest {
 
     // 리소스의 config-store-test.json5 파일을 string 으로 읽어오는 메서드.
@@ -36,7 +38,7 @@ public class UnicodeTest {
     public void testHex() {
         CSONObject csonObjectHexString = new CSONObject("{a:'0xceab'}", StringFormatOption.json5());
         CSONArray csonArray = new CSONArray("[0xceab]", StringFormatOption.json5());
-        CSONArray csonArrayHexString = new CSONArray("['0xceab', '0x0f']", StringFormatOption.json5());
+        CSONArray csonArrayHexString = new CSONArray("[0xceab, 0x0f]", StringFormatOption.json5());
 
         assertEquals('캫', csonObjectHexString.optChar("a"));
         assertEquals(52907, csonArray.getInt(0));

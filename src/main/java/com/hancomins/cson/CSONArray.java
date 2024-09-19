@@ -159,13 +159,13 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 	private void parse(Reader stringReader, StringFormatOption<?> options) {
 		StringFormatType type = options.getFormatType();
-		if(JSONOptions.isPureJSONOption(options)) {
+		/*if(JSONOptions.isPureJSONOption(options)) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
-		} else {
+		} else {*/
 			//new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseArray(this);
 			//new JSON5ParserV((JSONOptions) options).parsePureJSON(stringReader, this);
 			JSON5ParserX.parse(stringReader, this, (JSONOptions)options);
-		}
+		//}
 	}
 
 
@@ -451,6 +451,10 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 
+	CSONArray addByParser(Object value) {
+		list.add(value);
+		return this;
+	}
 
 
 	@Override

@@ -12,6 +12,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 
+@DisplayName("CSONObjectTest (성공)")
 public class CSONObjectTest {
 
     private CSONObject makeCSOObject() {

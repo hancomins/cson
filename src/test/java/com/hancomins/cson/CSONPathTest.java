@@ -1,10 +1,13 @@
 package com.hancomins.cson;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+
+@DisplayName("CSONPathTest (성공)")
 public class CSONPathTest {
     CSONObject json;
     CSONPath jsonPath;

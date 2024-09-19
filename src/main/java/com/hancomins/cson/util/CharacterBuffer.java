@@ -3,11 +3,11 @@ package com.hancomins.cson.util;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-public class CharacterBuffer {
+public class CharacterBuffer implements CharSequence {
     private char[] chars;
 
     private int length = 0;
-    private int capacity = 32;
+    private int capacity = 64;
 
 
     public CharacterBuffer() {
@@ -132,6 +132,11 @@ public class CharacterBuffer {
 
 
 
+    public void shiftLeft(int start) {
+        System.arraycopy(chars, start, chars, 0, length - start);
+        length -= start;
+
+    }
 
     public void setLength(int length) {
         this.length = length;

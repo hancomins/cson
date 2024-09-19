@@ -1,5 +1,6 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.util.ArrayStack;
 import com.hancomins.cson.util.CharacterBuffer;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ final class JSON5ParserX {
 
         char currentQuoteChar = '\0';
         boolean readyComment = false;
-        boolean inSpecialCharacter = false;
+
 
         // 현재 모드.
         ParsingState currentParsingState = Open;
@@ -43,10 +44,10 @@ final class JSON5ParserX {
         String key = null;
         //
         String lastKey = null;
-        ArrayDeque<String> parentKeyStack = null;
+        ArrayStack<String> parentKeyStack = null;
 
         if(allowComment) {
-            parentKeyStack = new ArrayDeque<>();
+            parentKeyStack = new ArrayStack<>();
         }
 
 
@@ -66,10 +67,11 @@ final class JSON5ParserX {
         CSONElement parentElement = null;
 
 
-        CharacterBuffer keyValueBuffer = new CharacterBuffer(128);
-        //valueParseState = new ValueParseState(jsonOption);
-        //valueParseState.setAllowControlChar(jsonOption.isAllowControlChar());
-        ArrayDeque<CSONElement> csonElements = new ArrayDeque<>();
+        CharacterBuffer keyBuffer_ = new CharacterBuffer(128);
+        ValueBuffer valueBuffer = new ValueBuffer(keyBuffer_,jsonOption);
+        //valueBuffer = new ValueBuffer(jsonOption);
+        //valueBuffer.setAllowControlChar(jsonOption.isAllowControlChar());
+        ArrayStack<CSONElement> csonElements = new ArrayStack<>();
 
 
         int line = 1;
@@ -173,12 +175,12 @@ final class JSON5ParserX {
                         commentBuffer.reset();
                         continue;
                     }  else if(readyComment && c == '/') {
-                        keyValueBuffer.prev();
+                        keyBuffer_.prev();
                         currentParsingState = ParsingState.InOpenComment;
                         commentBuffer.reset();
                         continue;
                     } else if(readyComment && c == '*') {
-                        keyValueBuffer.prev();
+                        keyBuffer_.prev();
                         currentParsingState = ParsingState.InCloseComment;
                         commentBuffer.reset();
                         continue;
@@ -208,12 +210,22 @@ final class JSON5ParserX {
                         c = skipSpace(reader, c);
                         switch (c) {
                             case '{':
-                                rootElement = currentElement = new CSONObject();
+                                if(rootElement == null) {
+                                    rootElement = currentElement = new CSONObject();
+                                } else {
+                                    currentElement = rootElement;
+                                }
                                 currentParsingState = ParsingState.WaitKey;
+                                csonElements.push(rootElement);
                                 break;
                             case '[':
-                                rootElement = currentElement = new CSONArray();
+                                if(rootElement == null) {
+                                    rootElement = currentElement = new CSONArray();
+                                } else {
+                                    currentElement = rootElement;
+                                }
                                 currentParsingState = ParsingState.WaitValue;
+                                csonElements.push(rootElement);
                                 break;
                             default:
                                 throw new CSONParseException("Invalid JSON5 document");
@@ -223,11 +235,12 @@ final class JSON5ParserX {
                         c = skipSpace(reader, c);
                         switch (c) {
                             case '}':
+
                                 if(currentElement == rootElement) {
                                     currentParsingState = ParsingState.Close;
                                 } else {
-                                    currentElement = csonElements.pop();
-                                    currentParsingState = ParsingState.WaitNextStoreSeparator;
+                                    currentElement = popElement(csonElements, rootElement);
+                                    currentParsingState = afterValue(currentElement);
                                 }
                                 break;
                             case ',':
@@ -238,13 +251,14 @@ final class JSON5ParserX {
                                 break;
                             case '\'':
                             case '"':
-                                currentQuoteChar = (char) c;
+                                currentQuoteChar = c;
                                 currentParsingState = ParsingState.InKey;
+                                valueBuffer.setOnlyString(true);
                                 break;
                             default:
                                 if(allowUnquoted) {
                                     currentParsingState = ParsingState.InKeyUnquoted;
-                                    keyValueBuffer.append((char)c);
+                                    valueBuffer.setOnlyString(true).append(c);
                                 } else {
                                     throw new CSONParseException("Invalid JSON5 document");
                                 }
@@ -254,10 +268,10 @@ final class JSON5ParserX {
                     case InKey:
                         if(c == currentQuoteChar) {
                             currentParsingState = ParsingState.WaitValueSeparator;
-                            key = keyValueBuffer.toString();
-                            keyValueBuffer.reset();
+                            key = valueBuffer.toString();
+                            valueBuffer.reset();
                         } else {
-                            keyValueBuffer.append((char) c);
+                            valueBuffer.append(c);
                         }
                         break;
                     case InKeyUnquoted:
@@ -270,20 +284,29 @@ final class JSON5ParserX {
                                 break;
                             case ':':
                                 currentParsingState = ParsingState.WaitValue;
-                                key = keyValueBuffer.toString();
-                                keyValueBuffer.reset();
+                                key = valueBuffer.toString();
+                                valueBuffer.reset();
                                 break;
                             default:
-                                keyValueBuffer.append(c);
+                                valueBuffer.append(c);
                                 break;
                         }
                         break;
                     case WaitValueSeparator:
-                        c = skipSpace(reader, c);
-                        if (c == ':') {
-                            currentParsingState = ParsingState.WaitValue;
-                        } else {
-                            throw new CSONParseException("Invalid JSON5 document");
+                        switch (c) {
+                            case ':':
+                                currentParsingState = ParsingState.WaitValue;
+                                break;
+                            case ']':
+                                if(currentElement == rootElement) {
+                                    currentParsingState = ParsingState.Close;
+                                } else {
+                                    currentElement = popElement(csonElements, rootElement);
+                                    currentParsingState = afterValue(currentElement);
+                                }
+                                break;
+                            default:
+                                throw new CSONParseException("Invalid JSON5 document");
                         }
                         break;
                     case WaitValue:
@@ -295,11 +318,22 @@ final class JSON5ParserX {
                             case '"':
                                 currentQuoteChar = c;
                                 currentParsingState = ParsingState.String;
+                                valueBuffer.setOnlyString(true);
+                                break;
+                            case ']':
+                                if(currentElement == rootElement) {
+                                    currentParsingState = ParsingState.Close;
+                                } else {
+                                    currentElement = popElement(csonElements, rootElement);
+                                    currentParsingState = afterValue(currentElement);
+                                    // todo after value 주석 처리 고민.
+                                }
                                 break;
                             case '{':
                                 parentElement = currentElement;
-                                csonElements.push(currentElement);
                                 currentElement = new CSONObject();
+                                csonElements.push(currentElement);
+
                                 // todo value after comment 처리 고민해서 넣어야함.
                                 lastKey = putElementData(parentElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                                 if(allowComment && key != null) {
@@ -310,8 +344,8 @@ final class JSON5ParserX {
                                 break;
                             case '[':
                                 parentElement = currentElement;
-                                csonElements.push(currentElement);
                                 currentElement = new CSONArray();
+                                csonElements.push(currentElement);
                                 lastKey = putElementData(parentElement, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                                 if(allowComment && key != null) {
                                     parentKeyStack.push(key);
@@ -325,62 +359,67 @@ final class JSON5ParserX {
                                     currentParsingState = ParsingState.Number;
                                 } else  {
                                     currentParsingState = ParsingState.InValueUnquoted;
+
                                 };
-                                keyValueBuffer.append(c);
+                                c = skipSpace(reader, c);
+                                valueBuffer.append(c);
                                 break;
                         }
                         break;
                     case String:
-                        if (c == '\\') {
-                            inSpecialCharacter = !inSpecialCharacter;
-                        } else {
-                            if (inSpecialCharacter) {
-                                inSpecialCharacter = false;
-                            } else if (c == currentQuoteChar) {
-                                putStringData(currentElement, keyValueBuffer.toString(), key);
-                                if (allowComment && key != null) {
-                                    parentKeyStack.push(key);
-                                }
-                                key = null;
-                                keyValueBuffer.reset();
-                                currentParsingState = afterValue(currentElement);
-                            } else {
-                                keyValueBuffer.append(c);
-                            }
-                        }
-                        break;
-                    case Number:
-                        if (c == ',') {
-                            Object value  = ValueParser.parse(keyValueBuffer, jsonOption, true);
-                            putData(value, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
+
+                        if (c == currentQuoteChar) {
+                            putStringData(currentElement, valueBuffer.toString(), key);
+                            valueBuffer.reset();
                             if (allowComment && key != null) {
                                 parentKeyStack.push(key);
                             }
                             key = null;
-                            keyValueBuffer.reset();
                             currentParsingState = afterValue(currentElement);
                         } else {
-                            keyValueBuffer.append(c);
+                            valueBuffer.append(c);
                         }
+
                         break;
                     case InValueUnquoted:
+                    case Number:
                         switch (c) {
                             case '\n':
                             case '\r':
                             case '\t':
                             case ' ':
                             case ',':
-                                Object value  = ValueParser.parse(keyValueBuffer, jsonOption, false);
+                            case ']':
+                            case '}':
+                                Object value  = valueBuffer.parseValue();
                                 putData(value, currentElement, key, allowComment, keyCommentObject, valueCommentObject);
                                 if(allowComment && key != null) {
                                     parentKeyStack.push(key);
                                 }
                                 key = null;
-                                keyValueBuffer.reset();
-                                currentParsingState = c == ',' ? afterComma(currentElement) :  afterValue(currentElement);
+                                valueBuffer.reset();
+                                if(c == ',') {
+                                    currentParsingState = afterComma(currentElement);
+                                } else if(c == ']') {
+                                    if(currentElement == rootElement) {
+                                        currentParsingState = ParsingState.Close;
+
+                                    } else {
+                                        currentElement = popElement(csonElements, rootElement);
+                                        currentParsingState = afterValue(currentElement);
+                                    }
+                                } else if(c == '}') {
+                                    if(currentElement == rootElement) {
+                                        currentParsingState = ParsingState.Close;
+                                    } else {
+                                        currentElement = popElement(csonElements, rootElement);
+                                        currentParsingState = afterValue(currentElement);
+                                    }
+                                }
+
                                 break;
                             default:
-                                keyValueBuffer.append((char) c);
+                                valueBuffer.append((char) c);
                                 break;
                         }
                         break;
@@ -394,7 +433,7 @@ final class JSON5ParserX {
                                 if(currentElement == rootElement) {
                                     currentParsingState = ParsingState.Close;
                                 } else {
-                                    currentElement = csonElements.pop();
+                                    currentElement = popElement(csonElements, rootElement);
                                     currentParsingState = afterValue(currentElement);
                                     // todo after value 주석 처리 고민.
                                 }
@@ -413,7 +452,7 @@ final class JSON5ParserX {
                                 if(currentElement == rootElement) {
                                     currentParsingState = ParsingState.Close;
                                 } else {
-                                    currentElement = csonElements.pop();
+                                    currentElement = popElement(csonElements, rootElement);
                                     currentParsingState = afterValue(currentElement);
                                     // todo after value 주석 처리 고민.
                                 }
@@ -451,12 +490,17 @@ final class JSON5ParserX {
         } catch (IOException e) {
             throw new CSONParseException(e.getMessage());
         }
-        if(currentParsingState == ParsingState.Close) {
-            return;
-        }
+
 
 
     }
+
+    private static CSONElement popElement(ArrayStack<CSONElement> csonElements, CSONElement rootElement) {
+        csonElements.pop();
+        return csonElements.peek();
+    }
+
+
 
     private static char skipSpace(Reader reader, char current) throws IOException {
         if (!isSpace(current)) {
@@ -510,17 +554,16 @@ final class JSON5ParserX {
     }
 
 
-    private static String putData(Object value, CSONElement currentElement, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject) {
+    private static void putData(Object value, CSONElement currentElement, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject) {
 
         if(currentElement instanceof CSONObject) {
-            ((CSONObject)currentElement).put(key, value);
+            ((CSONObject)currentElement).putByParser(key, value);
         } else {
-            ((CSONArray)currentElement).add(value);
+            ((CSONArray)currentElement).addByParser(value);
         }
         if(allowComment) {
             putComment(currentElement, key, keyCommentObject, valueCommentObject);
         }
-        return key;
     }
 
     private static void putComment(CSONElement currentElement, String key, CommentObject keyCommentObject, CommentObject valueCommentObject) {
@@ -536,53 +579,23 @@ final class JSON5ParserX {
 
     }
 
-    private static void putNumberData(CSONElement currentElement, Number value, String key) {
-        if(key != null) {
-            ((CSONObject)currentElement).put(key, value);
-        } else {
-            ((CSONArray)currentElement).add(value);
-        }
-    }
 
     private static void putStringData(CSONElement currentElement, String value, String key) {
+
         if(key != null) {
-            ((CSONObject)currentElement).put(key, value);
+            ((CSONObject)currentElement).putByParser(key, value);
         } else {
-            ((CSONArray) currentElement).add(value);
+            ((CSONArray) currentElement).addByParser(value);
         }
     }
 
-
-    private static void putNullData(CSONElement currentElement,String key) {
-        if(key != null) {
-            ((CSONObject)currentElement).put(key, null);
-        } else {
-            ((CSONArray) currentElement).add(null);
-        }
-    }
-
-
-
-
-    private static boolean isQuotedString(char c, boolean singleQuote) {
-        return c == '"' || (singleQuote && c == '\'');
-    }
-
-
-    private static void putBooleanData(CSONElement currentElement, boolean value, String key) {
-        if(key != null) {
-            ((CSONObject)currentElement).put(key, value);
-        } else {
-            ((CSONArray)currentElement).add(value);
-        }
-    }
 
 
     private static String putElementData(CSONElement currentElement, CSONElement value, String key, boolean allowComment, CommentObject keyCommentObject, CommentObject valueCommentObject) {
         if(key != null) {
-            ((CSONObject)currentElement).put(key, value);
+            ((CSONObject)currentElement).putByParser(key, value);
         } else {
-            ((CSONArray)currentElement).add(value);
+            ((CSONArray)currentElement).addByParser(value);
         }
         if(allowComment) {
             putComment(currentElement, key, keyCommentObject, valueCommentObject);

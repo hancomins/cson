@@ -1,9 +1,11 @@
 package com.hancomins.cson;
 
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("CSONArray 테스트 (성공)")
 public class CSONArrayTest {
 
     @Test

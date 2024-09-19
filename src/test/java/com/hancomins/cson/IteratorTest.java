@@ -1,6 +1,7 @@
 package com.hancomins.cson;
 
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("IteratorTest (성공)")
 public class IteratorTest {
     @Test
     public void csonArrayIteratorTest() {

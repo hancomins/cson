@@ -41,6 +41,7 @@ public class MockBigInteger extends Number implements Comparable<MockBigInteger>
 
 
     private MockBigInteger(int signum, int[] magnitude) {
+
         this.mag = stripLeadingZeroInts(magnitude);
 
         if (signum < -1 || signum > 1)
@@ -223,12 +224,12 @@ public class MockBigInteger extends Number implements Comparable<MockBigInteger>
             }
         }
 
-        while(len > offset && Character.isSpaceChar(val[lastIndex])) {
+        /*while(len > offset && Character.isSpaceChar(val[lastIndex])) {
             lastIndex--;
             if (lastIndex <= offset) {
                 throw new NumberFormatException("Zero lengthRefBigInteger");
             }
-        }
+        }*/
         int sign = 1;
         len = lastIndex - offset + 1;
         if(val[offset] == '-') {

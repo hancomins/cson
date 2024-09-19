@@ -19,6 +19,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
+
 	protected Map<String, Object> dataMap = new LinkedHashMap<>();
 	private Map<String, KeyValueCommentObject> keyValueCommentMap;
 
@@ -185,9 +186,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	private void parse(Reader stringReader, StringFormatOption<?> options) {
 		StringFormatType type = options.getFormatType();
-		if(JSONOptions.isPureJSONOption(options)) {
+		/*if(JSONOptions.isPureJSONOption(options)) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
-		} else {
+		} else {*/
 			//JSON5Parser.parsePureJSON(stringReader, this, (JSONOptions)options);
 
 			//JSON5ParserX
@@ -200,7 +201,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-		}
+		//}
 
 
 	}
@@ -245,6 +246,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 	}
 
+
+
 	private void putToDataMap(String key, Object value) {
 		if(allowJsonPathKey && key.startsWith("$.")) {
 			key = key.substring(2);
@@ -253,6 +256,15 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 		dataMap.put(key, value);
 	}
+
+
+	CSONObject putByParser(String key, Object value) {
+		dataMap.put(key, value);
+		//list.add(new AbstractMap.SimpleEntry<>(key, value));
+		return this;
+	}
+
+
 
 
 	public CSONObject put(String key, Object value) {
