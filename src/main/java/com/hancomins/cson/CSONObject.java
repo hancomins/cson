@@ -23,6 +23,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 	protected Map<String, Object> dataMap = new LinkedHashMap<>();
 	private Map<String, KeyValueCommentObject> keyValueCommentMap;
 
+	private String lastKeyByParser;
+
 
 
 	public static CSONObject fromJson(String value,StringFormatOption<?> stringFormatOption)  {
@@ -260,8 +262,12 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	CSONObject putByParser(String key, Object value) {
 		dataMap.put(key, value);
-		//list.add(new AbstractMap.SimpleEntry<>(key, value));
+		lastKeyByParser = key;
 		return this;
+	}
+
+	String getLastPutKeyAndSetNull() {
+		return lastKeyByParser;
 	}
 
 
