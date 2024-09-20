@@ -68,6 +68,7 @@ class ValueBuffer {
     boolean unicodeExtend = false;
     int unicodeCharCount = 0;
 
+    private boolean endString = false;
 
 
     private boolean allowNaN = false;
@@ -85,15 +86,7 @@ class ValueBuffer {
 
 
     private DoubtMode doubtMode_ = DoubtMode.None;
-
-
-
-
-
-
-    private String resultString;
-
-    private Boolean resultBoolean;
+    private char quoteChar = '\0';
 
 
     ValueBuffer(NumberConversionUtil.NumberConversionOption numberConversionOption) {
@@ -119,8 +112,9 @@ class ValueBuffer {
 
 
 
-    public ValueBuffer setOnlyString(boolean onlyString) {
+    public ValueBuffer setOnlyString(char quote) {
         this.doubtMode_ = DoubtMode.String;
+        quoteChar = quote;
         return this;
     }
 
@@ -147,6 +141,7 @@ class ValueBuffer {
         unicodeExtend = false;
         unicodeCharCount = 0;
         markStartUnicodeIndex = -1;
+        endString = false;
 
 
         numberBuffer.reset();
@@ -436,6 +431,10 @@ class ValueBuffer {
         return bigInteger;
     }
 
+    boolean isEndQuote() {
+        return endString;
+    }
+
 
 
     int markStartUnicodeIndex = -1;
@@ -489,6 +488,11 @@ class ValueBuffer {
             throw new CSONException(ExceptionMessages.getCtrlCharNotAllowed(c));
         }
         else {
+            if(c == quoteChar) {
+                endString = true;
+                return;
+            }
+
             characterBuffer.append(c);
         }
     }
