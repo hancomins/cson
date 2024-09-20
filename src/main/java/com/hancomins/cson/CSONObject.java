@@ -850,6 +850,27 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return this;
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
+    public CSONObject appendCommentAfterKey(String key, String comment) {
+		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
+		if(!keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
+			keyValueCommentObject.getKeyCommentObject().appendTrailingComment(comment);
+		} else {
+			keyValueCommentObject.setKeyCommentObject(new CommentObject(null, comment));
+		}
+		return this;
+	}
+
+	public CSONObject appendCommentForKey(String key, String comment) {
+		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
+		if(!keyValueCommentObject.isNullOrEmptyKeyCommentObject()) {
+			keyValueCommentObject.getKeyCommentObject().appendLeadingComment(comment);
+		} else {
+			keyValueCommentObject.setKeyCommentObject(new CommentObject(comment, null));
+		}
+		return this;
+	}
+
 
 	@SuppressWarnings("UnusedReturnValue")
 	public CSONObject setCommentAfterKey(String key, String comment) {
@@ -858,6 +879,16 @@ public class CSONObject extends CSONElement implements Cloneable {
 			keyValueCommentObject.getKeyCommentObject().setTrailingComment(comment);
 		} else {
 			keyValueCommentObject.setKeyCommentObject(new CommentObject(null, comment));
+		}
+		return this;
+	}
+
+	public CSONObject appendCommentForValue(String key, String comment) {
+		KeyValueCommentObject keyValueCommentObject = getOrCreateCommentObject(key);
+		if(!keyValueCommentObject.isNullOrEmptyValueCommentObject()) {
+			keyValueCommentObject.getValueCommentObject().appendLeadingComment(comment);
+		} else {
+			keyValueCommentObject.setValueCommentObject(new CommentObject(comment, null));
 		}
 		return this;
 	}

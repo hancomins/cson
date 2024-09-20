@@ -132,6 +132,7 @@ public class CharacterBuffer implements CharSequence {
 
 
 
+
     public void shiftLeft(int start) {
         System.arraycopy(chars, start, chars, 0, length - start);
         length -= start;

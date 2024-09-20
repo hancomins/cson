@@ -1,6 +1,6 @@
 package com.hancomins.cson;
 
-public enum CommentParsingState {
+public enum CommentState {
     None,
     Header,
     Tail,
