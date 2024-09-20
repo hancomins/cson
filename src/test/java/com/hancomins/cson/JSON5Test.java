@@ -190,7 +190,7 @@ public class JSON5Test {
                 " /*이상한 코멘트*/: // 값 앞 코멘트 \n 'value3' // 값 뒤 코멘트 \n /*123 */,\"LFARRAY\":[\"sdfasdf \\\n123\"]  ,  \n /*123*/ } /* 꼬리 다음 코멘트 */";
         CSONObject.setDefaultStringFormatOption(JSONOptions.json5());
         CSONObject csonObject = new CSONObject(json5Str);
-        assertEquals("코멘트입니다.\n222",csonObject.getCommentBeforeKey("key"));
+        assertEquals(" 코멘트입니다. \n222 ",csonObject.getCommentBeforeKey("key"));
         assertEquals("array코멘트", csonObject.getCommentBeforeKey("array"));
         assertEquals("array코멘트 값 뒤",csonObject.getCommentObjectOfValue("array").getTrailingComment());
 
@@ -234,12 +234,12 @@ public class JSON5Test {
 
         CSONObject.setDefaultStringFormatOption(JSONOptions.json5());
         CSONObject origin = new CSONObject(json5Str , JSONOptions.json5().setKeyQuote(""));
-        assertEquals("오브젝트 코멘트",origin.getCommentAfterKey("object"));
-        assertEquals("key3comment",origin.getCommentBeforeKey("key3"));
+        assertEquals(" 오브젝트 코멘트 ",origin.getCommentAfterKey("object"));
+        assertEquals(" key3comment ",origin.getCommentBeforeKey("key3"));
         //System.out.println(origin);
         CSONObject  csonObject = new CSONObject(json5Str , JSONOptions.json5());
 
-        assertEquals("코멘트입니다.\n222",csonObject.getCommentObjectOfKey("key").getLeadingComment());
+        assertEquals(" 코멘트입니다. \n222 ",csonObject.getCommentObjectOfKey("key").getLeadingComment());
 
         // ANSI escape code for green text
         String greenText = "\u001B[32m";
@@ -254,7 +254,7 @@ public class JSON5Test {
 
 
 
-        assertEquals("오브젝트 코멘트",csonObject.getCommentAfterKey("object"));
+        assertEquals(" 오브젝트 코멘트 ",csonObject.getCommentAfterKey("object"));
         System.out.println(csonObject.toString(JSONOptions.json5()));
 
         assertEquals("코멘트입니다.\n222",csonObject.getCommentObjectOfKey("key").getLeadingComment());
@@ -393,6 +393,8 @@ public class JSON5Test {
 
         csonArray.setHeadComment("배열 앞 코멘트");
         csonArray.setTailComment("배열 뒤 코멘트");
+
+
 
         assertEquals(csonArray.toString(), new CSONArray(csonArray.toString(), JSONOptions.json5()).toString());
 

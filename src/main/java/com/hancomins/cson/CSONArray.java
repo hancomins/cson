@@ -2,6 +2,8 @@ package com.hancomins.cson;
 
 
 
+import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.StringFormatType;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.DataConverter;
 import com.hancomins.cson.util.DataReadFailException;
@@ -26,7 +28,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 
-	public static CSONArray fromJson(String value,StringFormatOption<?> stringFormatOption) {
+	public static CSONArray fromJson(String value, StringFormatOption<?> stringFormatOption) {
 		return new CSONArray(value, stringFormatOption);
 	}
 

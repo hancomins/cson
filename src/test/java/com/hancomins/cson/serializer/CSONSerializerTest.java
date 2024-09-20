@@ -3,7 +3,7 @@ package com.hancomins.cson.serializer;
 import com.hancomins.cson.CSONArray;
 import com.hancomins.cson.CSONObject;
 import com.hancomins.cson.JSONOptions;
-import com.hancomins.cson.StringFormatOption;
+import com.hancomins.cson.options.StringFormatOption;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;

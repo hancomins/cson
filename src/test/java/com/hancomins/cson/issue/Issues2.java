@@ -2,7 +2,7 @@ package com.hancomins.cson.issue;
 
 
 import com.hancomins.cson.CSONObject;
-import com.hancomins.cson.StringFormatOption;
+import com.hancomins.cson.options.StringFormatOption;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -163,7 +163,7 @@ public class JSONWriter {
 			boolean isSlashStar = !isPretty || commentType == COMMENT_SLASH_STAR || commentType == COMMENT_COMMA_AND_SLASH_STAR || commentType == COMMENT_COMMA_AND_SLASH_STAR_IN_ARRAY_VALUE;
 			boolean isMultiLine = commentLines.length > 1;
 			for (int i = 0, n = commentLines.length; i < n; i++) {
-				String commentLine = commentLines[i].trim();
+				String commentLine = commentLines[i];
 				if(commentLine.isEmpty()) {
 					stringBuilder.append("\n");
 					continue;
@@ -181,7 +181,7 @@ public class JSONWriter {
 							stringBuilder.append("\n");
 							writeDepthTab(stringBuilder);
 						}
-						stringBuilder.append("/* ");
+						stringBuilder.append("/*");
 					} else {
 						stringBuilder.append("\n");
 					}
@@ -216,7 +216,7 @@ public class JSONWriter {
 			}
 
 			if(isSlashStar) {
-				stringBuilder.append(" */");
+				stringBuilder.append("*/");
 				if(isMultiLine) {
 					stringBuilder.append("\n");
 					writeDepthTab(stringBuilder);

@@ -46,6 +46,17 @@ public class CharacterBuffer implements CharSequence {
         return new String(chars, start, length - (length - end) - start);
     }
 
+    public String toEndTrimString() {
+        int end= 0;
+        for(int i = length - 1; i >= 0; i--) {
+            if(!Character.isWhitespace(chars[i])) {
+                end = i + 1;
+                break;
+            }
+        }
+        return new String(chars, 0, length - (length - end));
+    }
+
     public CharacterBuffer append(char c) {
         ensureCapacity(length + 1);
         chars[length++] = c;

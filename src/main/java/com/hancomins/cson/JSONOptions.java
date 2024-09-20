@@ -1,6 +1,9 @@
 package com.hancomins.cson;
 
 
+import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.StringFormatType;
+
 @SuppressWarnings("UnusedReturnValue")
 public class JSONOptions implements StringFormatOption<JSONOptions> {
 

@@ -1,7 +1,9 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.options.StringFormatOption;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -14,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
+@DisplayName("CSONTest (성공)")
 public class CSONTest {
 
 
@@ -189,15 +192,16 @@ public class CSONTest {
 
     @Test
     public void booleanInArray() {
-        CSONArray csonArray = new CSONArray();
+        CSONArray csonArray = new CSONArray(StringFormatOption.json5().setPretty(false));
         csonArray.add(true);
         csonArray.add(false);
         csonArray.add(true);
         assertEquals(csonArray.toString(), "[true,false,true]");
 
-        CSONObject csonObject = new CSONObject();
+        CSONObject csonObject = new CSONObject(StringFormatOption.json().setPretty(false));
         csonObject.put("true", true);
         assertEquals(csonObject.toString(), "{\"true\":true}");
+
 
 
 

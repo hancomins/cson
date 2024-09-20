@@ -1,5 +1,7 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.StringFormatType;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.*;
 
@@ -27,7 +29,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	public static CSONObject fromJson(String value,StringFormatOption<?> stringFormatOption)  {
+	public static CSONObject fromJson(String value, StringFormatOption<?> stringFormatOption)  {
 		return new CSONObject(value, stringFormatOption);
 	}
 

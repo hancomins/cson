@@ -1,8 +1,9 @@
-package com.hancomins.cson;
+package com.hancomins.cson.options;
 
-import com.hancomins.cson.util.NumberConversionUtil;
+import com.hancomins.cson.JSONOptions;
 
-public interface StringFormatOption<T> extends NumberConversionUtil.MutableNumberConversionOption<T> {
+
+public interface StringFormatOption<T> extends MutableNumberConversionOption<T> {
 
 
     StringFormatType getFormatType();

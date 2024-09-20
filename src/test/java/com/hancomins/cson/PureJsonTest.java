@@ -1,7 +1,8 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.options.StringFormatOption;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
-import com.hancomins.cson.util.NumberConversionUtil;
+
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -182,7 +183,7 @@ public class PureJsonTest {
         //assertEquals(testJSON.replace("0xff", "255").replace("75.50", "75.5"), csonObject.toString());
 
         NoSynchronizedStringReader stringReader2 = new NoSynchronizedStringReader(testJSON);
-        CSONObject csonObjectPure = (CSONObject)PureJSONParser.parsePureJSON(stringReader2, NumberConversionUtil.DEFAULT_NUMBER_CONVERSION_OPTION);
+        CSONObject csonObjectPure = new CSONObject(stringReader2, StringFormatOption.json());
         stringReader2.close();
 
 

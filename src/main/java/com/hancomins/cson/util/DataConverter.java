@@ -3,6 +3,8 @@ package com.hancomins.cson.util;
 import com.hancomins.cson.CSONArray;
 import com.hancomins.cson.CSONException;
 import com.hancomins.cson.CSONObject;
+import com.hancomins.cson.ValueBuffer;
+import com.hancomins.cson.options.NumberConversionOption;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -367,12 +369,13 @@ public class DataConverter {
 			}
 		}
 		else if(value instanceof String) {
-			try {
-				Number no = NumberConversionUtil.stringToNumber((String)value, NumberConversionUtil.DEFAULT_NUMBER_CONVERSION_OPTION);
-				return toBoxingNumberOfType(no, type);
-			} catch (NumberFormatException ignored) {
-				return null;
+			ValueBuffer valueBuffer = new ValueBuffer(NumberConversionOption.DEFAULT);
+			valueBuffer.append((String)value);
+			Object numberValue = valueBuffer.parseValue();
+			if(numberValue instanceof Number) {
+				return toBoxingNumberOfType(numberValue, type);
 			}
+			return null;
 		}
 		return null;
 	}

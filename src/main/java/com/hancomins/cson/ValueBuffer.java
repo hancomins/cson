@@ -1,40 +1,27 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.options.NumberConversionOption;
 import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.MockBigInteger;
 import com.hancomins.cson.util.NullValue;
-import com.hancomins.cson.util.NumberConversionUtil;
+
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-class ValueBuffer {
+public class ValueBuffer {
 
 
-    private CharacterBuffer numberBuffer;
-    private CharacterBuffer characterBuffer;
-
-    private static final char[] NaNSign = new char[]{'n','a','n'}; // 3
-    private static final char[] Null = new char[]{'n','u','l','l'}; // 4
-    private static final char[] TrueSign = new char[]{'t','r','u','e'}; // 4
-    private static final char[] FalseSign = new char[]{'f','a','l','s','e'}; // 5
-    private static final char[] InfinitySign = new char[]{'i','n','f','i','n','i','t','y'}; // 8
-    private static final char[] HexadecimalSign = new char[]{'0','x'};
-
-
-
+    private final CharacterBuffer numberBuffer;
+    private final CharacterBuffer characterBuffer;
 
 
 
     enum DoubtMode {
 
         None,
-        NaN,
         Null,
-        Infinity,
-        NegativeInfinity,
         Hexadecimal,
-        Exponential,
 
         True,
         False,
@@ -49,9 +36,6 @@ class ValueBuffer {
         ExponentialNegativeNumber,
 
         ExponentialNumber,
-
-
-
 
 
 
@@ -89,11 +73,11 @@ class ValueBuffer {
     private char quoteChar = '\0';
 
 
-    ValueBuffer(NumberConversionUtil.NumberConversionOption numberConversionOption) {
+    public ValueBuffer(NumberConversionOption numberConversionOption) {
         this(new CharacterBuffer(), numberConversionOption);
     }
 
-    ValueBuffer(CharacterBuffer characterBuffer, NumberConversionUtil.NumberConversionOption numberConversionOption) {
+    ValueBuffer(CharacterBuffer characterBuffer, NumberConversionOption numberConversionOption) {
         this.characterBuffer = characterBuffer;
         numberBuffer = new CharacterBuffer();
         allowNaN = numberConversionOption.isAllowNaN();
@@ -105,9 +89,8 @@ class ValueBuffer {
 
     }
 
-    public ValueBuffer setAllowControlChar(boolean allowControlChar) {
+    public void setAllowControlChar(boolean allowControlChar) {
         this.allowControlChar = allowControlChar;
-        return this;
     }
 
 
@@ -120,17 +103,13 @@ class ValueBuffer {
 
 
 
-    /**
-     * 오직 테스트에서만 사용한다.
-     * @param value
-     */
-    void append(String value) {
+    public void append(String value) {
         for(int i = 0; i < value.length(); ++i) {
             append(value.charAt(i));
         }
     }
 
-    ValueBuffer reset() {
+    public ValueBuffer reset() {
 
         characterBuffer.reset();
         doubtMode_ = DoubtMode.None;
@@ -145,20 +124,12 @@ class ValueBuffer {
 
 
         numberBuffer.reset();
-        sign = Sign.None;
         return this;
     }
 
-    enum Sign {
-            None,
-        Positive,
-        Negative
-    }
-    private Sign sign = Sign.None;
 
 
-
-    void append(char c) {
+    public void append(char c) {
         switch (doubtMode_) {
             case None:
                 switch (c) {
@@ -284,7 +255,8 @@ class ValueBuffer {
                     doubtMode_ = DoubtMode.RealNumber;
                     characterBuffer.append(c);
                     numberBuffer.append(c);
-                } else if(c == 'e' || c == 'E') {
+                } else //noinspection DuplicatedCode
+                    if(c == 'e' || c == 'E') {
                     doubtMode_ = DoubtMode.ExponentialNumberStart;
                     characterBuffer.append(c);
                     numberBuffer.append(c);
@@ -439,10 +411,7 @@ class ValueBuffer {
 
     int markStartUnicodeIndex = -1;
 
-    boolean isSpecialChar() {
-        return isSpecialChar;
-    }
-    
+
     private void appendChar_(char c) {
         if(c == '\\' && !isSpecialChar) {
             isSpecialChar = true;
@@ -497,13 +466,6 @@ class ValueBuffer {
         }
     }
 
-    void prev() {
-        int len = characterBuffer.length();
-        if(len > 0) {
-            characterBuffer.setLength(len - 1);
-        }
-
-    }
 
 
 
@@ -541,7 +503,7 @@ class ValueBuffer {
                 end -= 1;
                 ++markStartUnicodeIndex;
             }
-            String unicode = characterBuffer.subSequence(markStartUnicodeIndex, end).toString();
+            String unicode = characterBuffer.subSequence(markStartUnicodeIndex, end);
             if(unicodeExtend) {
                 characterBuffer.setLength(markStartUnicodeIndex - 1);
             } else {
@@ -568,6 +530,7 @@ class ValueBuffer {
         return characterBuffer.toString();
     }
 
+    @SuppressWarnings("unused")
     public String toTrimString() {
         if(doubtMode_ == DoubtMode.Null) {
             return null;
@@ -589,17 +552,10 @@ class ValueBuffer {
         return (c >= '1' && c <= '9') || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F';
     }
 
+    @SuppressWarnings("unused")
     boolean isEmpty() {
         return characterBuffer.isEmpty();
     }
-
-
-
-    private static boolean isNumberOrSign(char c) {
-        return (c >= '0' && c <= '9');
-    }
-
-
 
 
 

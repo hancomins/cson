@@ -119,7 +119,7 @@ public class CommentBuffer {
         if(commentBuffer == null) {
             return "";
         }
-        return commentBuffer.toString();
+        return commentBuffer.toEndTrimString();
     }
 
 
