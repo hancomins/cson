@@ -1,6 +1,6 @@
 package com.hancomins.cson.serializer;
 
-import com.hancomins.cson.JSONOptions;
+import com.hancomins.cson.JSONParsingOptions;
 import com.hancomins.cson.CSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -302,7 +302,7 @@ public class CSONDeserializerTest {
         home.houseTypeEx2 = new HouseTypeEx();
 
         CSONObject cson = CSONSerializer.toCSONObject(home);
-        System.out.println(cson.toString(JSONOptions.json5()));
+        System.out.println(cson.toString(JSONParsingOptions.json5()));
         Home resultHome = CSONSerializer.fromCSONObject(cson, new Home());
         assertEquals(home.address.city, resultHome.address.city);
         assertEquals(home.address.street, resultHome.address.street);
@@ -317,7 +317,7 @@ public class CSONDeserializerTest {
         assertEquals(home.houseTypeEx2, resultHome.houseTypeEx2);
 
 
-        System.out.println(CSONSerializer.toCSONObject(resultHome).toString(JSONOptions.json5()));
+        System.out.println(CSONSerializer.toCSONObject(resultHome).toString(JSONParsingOptions.json5()));
 
     }
 
@@ -354,11 +354,11 @@ public class CSONDeserializerTest {
             }
         }
         CSONObject cson = CSONSerializer.toCSONObject(simpleObjectInArray);
-        System.out.println(cson.toString(JSONOptions.json5()));
-        System.out.println(CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JSONOptions.json5()));
+        System.out.println(cson.toString(JSONParsingOptions.json5()));
+        System.out.println(CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JSONParsingOptions.json5()));
 
 
-        assertEquals(cson.toString(JSONOptions.json5()), CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JSONOptions.json5()));
+        assertEquals(cson.toString(JSONParsingOptions.json5()), CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JSONParsingOptions.json5()));
 
 
     }
@@ -425,7 +425,7 @@ public class CSONDeserializerTest {
 
     @Test
     public void testBigDecimalValue() {
-        CSONObject csonObjectBigValue  = new CSONObject("{\"bigValue\":68542801231231231231231231231238550}", JSONOptions.json5())  ;
+        CSONObject csonObjectBigValue  = new CSONObject("{\"bigValue\":68542801231231231231231231231238550}", JSONParsingOptions.json5())  ;
         System.out.println(csonObjectBigValue);
         csonObjectBigValue = new CSONObject(csonObjectBigValue.toCSONBinary());
         Object obj = csonObjectBigValue.get("bigValue");

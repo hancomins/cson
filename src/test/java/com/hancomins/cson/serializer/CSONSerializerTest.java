@@ -2,8 +2,8 @@ package com.hancomins.cson.serializer;
 
 import com.hancomins.cson.CSONArray;
 import com.hancomins.cson.CSONObject;
-import com.hancomins.cson.JSONOptions;
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.JSONParsingOptions;
+import com.hancomins.cson.options.ParsingOption;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -137,7 +137,7 @@ public class CSONSerializerTest {
 
         testClassA.testBInTestB.name="BInB";
         CSONObject csonObject = CSONSerializer.toCSONObject(testClassA);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         assertEquals("A", csonObject.get("name"));
         assertEquals(1, csonObject.getCSONObject("value").get("int"));
         assertEquals("B", csonObject.getCSONObject("testB").get("name"));
@@ -242,7 +242,7 @@ public class CSONSerializerTest {
         testClassNull.testClassA2.testBInTestB = null;
 
         CSONObject csonObject = CSONSerializer.toCSONObject(testClassNull);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
         assertNotNull(csonObject.getCSONObject("testClassB1").getCSONObject("testC"));
         assertEquals("nameC", csonObject.getCSONObject("testClassB1").getCSONObject("testC").getString("name"));
@@ -301,7 +301,7 @@ public class CSONSerializerTest {
     public void arraySerializeTest() {
         ArrayTestClass arrayTestClass = new ArrayTestClass();
         CSONObject csonObject = CSONSerializer.toCSONObject(arrayTestClass);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         assertEquals(11, csonObject.getCSONArray("array").size());
         assertEquals(10, csonObject.getCSONArray("array").getInt(10));
 
@@ -351,8 +351,8 @@ public class CSONSerializerTest {
                 "      /* comment4 */'value4'/* commentAfter4 */,\n" +
                 "      /* commentNull */null    /* commentAfterNull */,/* comment5 */]/* commentAfter5 */, \n}";
 
-        CSONObject csonObject = new CSONObject(obj, JSONOptions.json5());
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        CSONObject csonObject = new CSONObject(obj, JSONParsingOptions.json5());
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
         CSONArray csonArray = csonObject.getCSONArray("key3");
         assertEquals(3, csonArray.size());
@@ -368,7 +368,7 @@ public class CSONSerializerTest {
         assertNull(csonArray.get(2));
 
 
-        csonObject = new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5());
+        csonObject = new CSONObject(csonObject.toString(JSONParsingOptions.json5()), JSONParsingOptions.json5());
         csonArray = csonObject.getCSONArray("key3");
         assertEquals(3, csonArray.size());
         assertEquals("value3", csonArray.get(0));
@@ -391,7 +391,7 @@ public class CSONSerializerTest {
         String json = "/* root comment */\n" +
                 "{}" +
                 "/* root comment end */";
-        CSONObject csonObject = new CSONObject(json, JSONOptions.json5());
+        CSONObject csonObject = new CSONObject(json, JSONParsingOptions.json5());
         assertEquals("root comment", csonObject.getHeadComment());
         assertEquals("root comment end", csonObject.getTailComment());
     }
@@ -401,11 +401,11 @@ public class CSONSerializerTest {
     public void simpleCommentTest() {
         CSONArray csonArray = new CSONArray();
         csonArray.addAll(new Object[]{"value3", "value4", new CSONObject()});
-        //System.out.println(csonArray.toString(JSONOptions.json5()));
+        //System.out.println(csonArray.toString(JSONParsingOptions.json5()));
 
         SimpleComment simpleComment = new SimpleComment();
         CSONObject csonObject = CSONSerializer.toCSONObject(simpleComment);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
         int referenceNumber = System.identityHashCode(csonObject);
 
@@ -427,15 +427,15 @@ public class CSONSerializerTest {
         // 출력
         System.out.println("객체의 레퍼런스 번호: " + referenceNumber);
         // cson Object 의 레퍼런스
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
 
-        assertEquals("comment1", new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentForKey("key1"));
-        assertEquals("commentAfterKey1", new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentAfterKey("key1"));
-        assertEquals(null, new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()) .getCommentAfterKey("key2"));
-        System.out.println(csonObject.toString(JSONOptions.json5()));
-        System.out.println(new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()));
-        assertEquals(csonObject.toString(JSONOptions.json5()), new CSONObject(csonObject.toString(JSONOptions.json5()), JSONOptions.json5()).toString(JSONOptions.json5()));
+        assertEquals("comment1", new CSONObject(csonObject.toString(JSONParsingOptions.json5()), JSONParsingOptions.json5()) .getCommentForKey("key1"));
+        assertEquals("commentAfterKey1", new CSONObject(csonObject.toString(JSONParsingOptions.json5()), JSONParsingOptions.json5()) .getCommentAfterKey("key1"));
+        assertEquals(null, new CSONObject(csonObject.toString(JSONParsingOptions.json5()), JSONParsingOptions.json5()) .getCommentAfterKey("key2"));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
+        System.out.println(new CSONObject(csonObject.toString(JSONParsingOptions.json5()), JSONParsingOptions.json5()));
+        assertEquals(csonObject.toString(JSONParsingOptions.json5()), new CSONObject(csonObject.toString(JSONParsingOptions.json5()), JSONParsingOptions.json5()).toString(JSONParsingOptions.json5()));
 
     }
 
@@ -450,7 +450,7 @@ public class CSONSerializerTest {
     public void byteArrayTest() {
         ByteArray byteArray = new ByteArray();
         CSONObject csonObject = CSONSerializer.toCSONObject(byteArray);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         byte[] buffer = csonObject.getByteArray("bytes");
         assertEquals(10, buffer.length);
         for(int i = 0; i < 10; i++) {
@@ -458,7 +458,7 @@ public class CSONSerializerTest {
         }
         byteArray.bytes = new byte[]{5,4,3,2,1,0};
         csonObject = CSONSerializer.toCSONObject(byteArray);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         buffer = csonObject.getByteArray("bytes");
         for(int i = 0; i < 6; i++) {
             assertEquals(byteArray.bytes[i], buffer[i]);
@@ -504,7 +504,7 @@ public class CSONSerializerTest {
         CSONObject csonObject = CSONSerializer.toCSONObject(mapClassTest);
 
 
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
         MapClassTest mapClassTest1 = CSONSerializer.fromCSONObject(csonObject, MapClassTest.class);
 
@@ -513,7 +513,7 @@ public class CSONSerializerTest {
 
         assertEquals(mapClassTest.map.size(), mapClassTest1.map.size());
 
-        assertEquals(csonObject.toString(JSONOptions.json5()), CSONSerializer.toCSONObject(mapClassTest1).toString(JSONOptions.json5()));
+        assertEquals(csonObject.toString(JSONParsingOptions.json5()), CSONSerializer.toCSONObject(mapClassTest1).toString(JSONParsingOptions.json5()));
 
 
 
@@ -538,7 +538,7 @@ public class CSONSerializerTest {
         Sim genericClass = new Sim();
         genericClass.collection.add(new GenericClass<>());
         CSONObject csonObject = CSONSerializer.toCSONObject(genericClass);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
     }
 
 
@@ -614,14 +614,14 @@ public class CSONSerializerTest {
 
         
         CSONObject csonObject = CSONSerializer.toCSONObject(testClassX);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         assertEquals(27, csonObject.getCSONObject("nickname").getInt("ageReal"));
         assertEquals(29, csonObject.getCSONObject("nickname").getInt("age"));
         assertEquals(csonObject.getCommentBeforeKey("nickname"), "닉네임 오브젝트.");
         assertEquals(csonObject.getCommentAfterKey("nickname"), "닉네임 오브젝트 끝.");
 
 
-        String json5 = csonObject.toString(JSONOptions.json5());
+        String json5 = csonObject.toString(JSONParsingOptions.json5());
 
         System.out.println(json5);
 
@@ -664,7 +664,7 @@ public class CSONSerializerTest {
         nestedObjectClass.testClassB.testC.name = "adsfadsfadsf";
         nestedObjectClass.testClassB.name = "123123";
         CSONObject csonObject = CSONSerializer.toCSONObject(nestedObjectClass);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
 
         NestedObjectClass nestedObjectClassCopied = CSONSerializer.fromCSONObject(csonObject, NestedObjectClass.class);
@@ -768,14 +768,14 @@ public class CSONSerializerTest {
     public void setterGetterTest() {
 
         // You can change the default options. (It will be applied to all CSONObject and CONSArray)
-        CSONObject.setDefaultStringFormatOption(StringFormatOption.json5());
+        CSONObject.setDefaultStringFormatOption(ParsingOption.json5());
         for(int count = 0; count < 1; ++count) {
 
 
             SetterGetterTestClass setterGetterTestClass = new SetterGetterTestClass();
 
             CSONObject csonObject = CSONSerializer.toCSONObject(setterGetterTestClass);
-            System.out.println(csonObject.toString(JSONOptions.json5()));
+            System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
             setterGetterTestClass = CSONSerializer.fromCSONObject(csonObject, SetterGetterTestClass.class);
 
@@ -824,7 +824,7 @@ public class CSONSerializerTest {
             }
 
 
-            System.out.println(csonObject.toString(JSONOptions.json5()));
+            System.out.println(csonObject.toString(JSONParsingOptions.json5()));
             assertEquals("name", csonObject.get("name"));
             csonObject.put("name", "1213123");
 
@@ -891,7 +891,7 @@ public class CSONSerializerTest {
        users.idUserMap.put("ffff", user2);
 
        CSONObject csonObject = CSONSerializer.toCSONObject(users);
-       csonObject.setStringFormatOption(StringFormatOption.json5());
+       csonObject.setStringFormatOption(ParsingOption.json5());
        System.out.println(csonObject);
        // Output
        /*
@@ -995,7 +995,7 @@ public class CSONSerializerTest {
         csonElementInClass.csonObject.put("name", "name");
         csonElementInClass.csonObjectInArray.put("name3", "name3");
         CSONObject csonObject = CSONSerializer.toCSONObject(csonElementInClass);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
         assertEquals(csonObject.getCSONArray("consObjectBySetterGetter"), new CSONArray().put(1,2));
 
@@ -1234,7 +1234,7 @@ public class CSONSerializerTest {
         ObjGenericClassTest<InterfaceTest, Integer> parsertObject = CSONSerializer.fromCSONObject(csonObject, ObjGenericClassTest.class);
         assertNotNull(parsertObject.value);
 
-        assertEquals( csonObject.toString(StringFormatOption.json5()),CSONObject.fromObject(parsertObject).toString(StringFormatOption.json5()));
+        assertEquals( csonObject.toString(ParsingOption.json5()),CSONObject.fromObject(parsertObject).toString(ParsingOption.json5()));
 
         System.out.println(CSONObject.fromObject(parsertObject));
 
@@ -1256,7 +1256,7 @@ public class CSONSerializerTest {
             }
         };
         CSONObject csonObject = CSONSerializer.toCSONObject(genericClassTest);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         GenericClassTest<InterfaceTest> parsertObject = CSONSerializer.fromCSONObject(csonObject, GenericClassTest.class);
     }
 
@@ -1315,7 +1315,7 @@ public class CSONSerializerTest {
         ResponseMessage<FileInfo> responseMessage = ResponseMessage.createFileInfoMessage(fileInfos);
 
         CSONObject csonObject = CSONObject.fromObject(responseMessage);
-        System.out.println(csonObject.toString(StringFormatOption.jsonPretty()));
+        System.out.println(csonObject.toString(ParsingOption.jsonPretty()));
 
     }
 
@@ -1352,7 +1352,7 @@ public class CSONSerializerTest {
     public void extendsTest2() {
         A2 a2 = new A2();
         CSONObject csonObject = CSONObject.fromObject(a2);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         A2 a2_1 = CSONObject.toObject(csonObject, A2.class);
 
         assertEquals(a2_1.name, "name2");
@@ -1494,7 +1494,7 @@ public class CSONSerializerTest {
         i2.i1iMap.put("1", new I1Impl());
         CSONObject csonObject = CSONObject.fromObject(i2);
 
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
 
         I2 i2_1 = CSONObject.toObject(csonObject, I2.class);
         assertEquals(i2_1.i1.getName(), "name by I1Impl");
@@ -1517,7 +1517,7 @@ public class CSONSerializerTest {
     public void enumTest() {
         EnumClass<ValueEnum> enumClass = new EnumClass<ValueEnum>();
         CSONObject csonObject = CSONObject.fromObject(enumClass);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         csonObject.put("valueEnum3", "sdafdasfadsf");
 
 
@@ -1561,14 +1561,14 @@ public class CSONSerializerTest {
         ResultMessageImpl<CSONObject> resultMessage = new ResultMessageImpl<>();
         resultMessage.setData(new CSONObject().put("time", 123123));
         CSONObject csonObject = CSONObject.fromObject(resultMessage);
-        System.out.println(csonObject.toString(JSONOptions.json5()));
+        System.out.println(csonObject.toString(JSONParsingOptions.json5()));
         assertEquals(csonObject.getCSONObject("data").getLong("time"), 123123);
 
         CSONObject parsedObject = CSONObject.fromObject(resultMessage);
 
-        System.out.println(parsedObject.toString(JSONOptions.json5()));
+        System.out.println(parsedObject.toString(JSONParsingOptions.json5()));
 
-        assertEquals(csonObject.toString(JSONOptions.json5()), parsedObject.toString(JSONOptions.json5()));
+        assertEquals(csonObject.toString(JSONParsingOptions.json5()), parsedObject.toString(JSONParsingOptions.json5()));
 
 
     }

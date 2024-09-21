@@ -1,6 +1,6 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.ParsingOption;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,8 +27,8 @@ public class UnicodeTest {
 
     @Test
     public void testBrokenString() {
-        CSONObject csonObject = new CSONObject("{a:'uceab'}", StringFormatOption.json5());
-        CSONArray csonArray = new CSONArray("[\"uceab\"]", StringFormatOption.json5());
+        CSONObject csonObject = new CSONObject("{a:'uceab'}", ParsingOption.json5());
+        CSONArray csonArray = new CSONArray("[\"uceab\"]", ParsingOption.json5());
 
         assertEquals("uceab", csonObject.get("a"));
         assertEquals("uceab", csonArray.get(0));
@@ -37,9 +37,9 @@ public class UnicodeTest {
 
     @Test
     public void testHex() {
-        CSONObject csonObjectHexString = new CSONObject("{a:'0xceab'}", StringFormatOption.json5());
-        CSONArray csonArray = new CSONArray("[0xceab]", StringFormatOption.json5());
-        CSONArray csonArrayHexString = new CSONArray("[0xceab, 0x0f]", StringFormatOption.json5());
+        CSONObject csonObjectHexString = new CSONObject("{a:'0xceab'}", ParsingOption.json5());
+        CSONArray csonArray = new CSONArray("[0xceab]", ParsingOption.json5());
+        CSONArray csonArrayHexString = new CSONArray("[0xceab, 0x0f]", ParsingOption.json5());
 
         assertEquals('캫', csonObjectHexString.optChar("a"));
         assertEquals(52907, csonArray.getInt(0));
@@ -56,22 +56,22 @@ public class UnicodeTest {
 
     @Test
     public void testUnicode() {
-        CSONObject csonObject = new CSONObject("{a:'\\uD83D\\uDE0A', b: '\\uceab'}", StringFormatOption.json5());
-        CSONArray csonArray = new CSONArray("['\\uD83D\\uDE0A']", StringFormatOption.json5());
+        CSONObject csonObject = new CSONObject("{a:'\\uD83D\\uDE0A', b: '\\uceab'}", ParsingOption.json5());
+        CSONArray csonArray = new CSONArray("['\\uD83D\\uDE0A']", ParsingOption.json5());
 
         assertEquals("😊", csonObject.get("a"));
         assertEquals("😊", csonArray.get(0));
 
         System.out.println(csonObject.toString());
 
-        csonObject = new CSONObject(csonObject.toString(), StringFormatOption.json5());
-        csonArray = new CSONArray(csonArray.toString(), StringFormatOption.json5());
+        csonObject = new CSONObject(csonObject.toString(), ParsingOption.json5());
+        csonArray = new CSONArray(csonArray.toString(), ParsingOption.json5());
 
         assertEquals("😊", csonObject.get("a"));
         assertEquals("😊", csonArray.get(0));
 
-        csonObject = new CSONObject(csonObject.toString(StringFormatOption.json()));
-        csonArray = new CSONArray(csonArray.toString(StringFormatOption.json()));
+        csonObject = new CSONObject(csonObject.toString(ParsingOption.json()));
+        csonArray = new CSONArray(csonArray.toString(ParsingOption.json()));
 
         assertEquals("😊", csonObject.get("a"));
         assertEquals("😊", csonArray.get(0));

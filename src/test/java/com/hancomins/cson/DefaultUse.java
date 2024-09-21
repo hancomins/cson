@@ -1,7 +1,7 @@
 package com.hancomins.cson;
 
 
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.ParsingOption;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -29,9 +29,9 @@ public class DefaultUse {
 
     @Test
     public void escapeSequenceTest() {
-        StringFormatOption<?> stringFormatOption =  CSONObject.getDefaultStringFormatOption();
-        CSONObject.setDefaultStringFormatOption(StringFormatOption.json());
-        CSONObject csonObject = new CSONObject(StringFormatOption.json());
+        ParsingOption<?> parsingOption =  CSONObject.getDefaultStringFormatOption();
+        CSONObject.setDefaultStringFormatOption(ParsingOption.json());
+        CSONObject csonObject = new CSONObject(ParsingOption.json());
         csonObject.put("string", "Hello\\nWorld");
         csonObject.put("string2", "Hello\\World");
         CSONArray csonArray = new CSONArray();
@@ -41,10 +41,10 @@ public class DefaultUse {
         String jsonString = csonObject.toString();
         System.out.println(jsonString);
         CSONObject csonObjetPure = new CSONObject(jsonString);
-        CSONObject csonObjectJson = new CSONObject(jsonString, StringFormatOption.json());
+        CSONObject csonObjectJson = new CSONObject(jsonString, ParsingOption.json());
         assertEquals("Hello\\World",csonObjectJson.get("string2"));
         assertEquals(jsonString, csonObjetPure.toString());
-        assertEquals(jsonString, csonObjectJson.toString(StringFormatOption.json().setUnprettyArray(true)));
+        assertEquals(jsonString, csonObjectJson.toString(ParsingOption.json().setUnprettyArray(true)));
         csonObjectJson.put("string3", "Hello/World");
         csonObjectJson = new CSONObject(csonObjectJson.toString());
         assertEquals("Hello/World", csonObjectJson.get("string3"));
@@ -52,12 +52,12 @@ public class DefaultUse {
 
         csonObject = new CSONObject();
         csonObject.put("st\"ring'4", "Hello\"World");
-        System.out.println(csonObject.toString(StringFormatOption.json5().setValueQuote("\"")));
+        System.out.println(csonObject.toString(ParsingOption.json5().setValueQuote("\"")));
 
-        CSONObject json5 = new CSONObject(csonObject.toString(StringFormatOption.json5()), StringFormatOption.json5());
+        CSONObject json5 = new CSONObject(csonObject.toString(ParsingOption.json5()), ParsingOption.json5());
         assertEquals("Hello\"World", json5.get("st\"ring'4"));
 
-        CSONObject.setDefaultStringFormatOption(stringFormatOption);
+        CSONObject.setDefaultStringFormatOption(parsingOption);
 
 
 

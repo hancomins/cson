@@ -15,7 +15,7 @@ public class JSONWriter {
 
 	private static final int DEFAULT_BUFFER_SIZE = 512;
 
-	private final JSONOptions jsonOptions;
+	private final JSONParsingOptions jsonParsingOptions;
 
 	private static final int COMMENT_BEFORE_KEY = 1;
 
@@ -115,27 +115,27 @@ public class JSONWriter {
 
 
 
-	public JSONWriter(JSONOptions jsonOptions) {
-		this.jsonOptions = jsonOptions;
-		if(jsonOptions.isPretty()) {
+	public JSONWriter(JSONParsingOptions jsonParsingOptions) {
+		this.jsonParsingOptions = jsonParsingOptions;
+		if(jsonParsingOptions.isPretty()) {
 			isPretty = true;
 		}
-		if(jsonOptions.isUnprettyArray()) {
+		if(jsonParsingOptions.isUnprettyArray()) {
 			isUnprettyArray = true;
 		}
-		if(jsonOptions.getDepthSpace() != null) {
-			depthSpace = jsonOptions.getDepthSpace();
+		if(jsonParsingOptions.getDepthSpace() != null) {
+			depthSpace = jsonParsingOptions.getDepthSpace();
 		}
 
 
-		keyQuote = jsonOptions.getKeyQuote();
-		valueQuote = jsonOptions.getValueQuote();
-		if(!jsonOptions.isAllowUnquoted() && keyQuote.isEmpty()) {
+		keyQuote = jsonParsingOptions.getKeyQuote();
+		valueQuote = jsonParsingOptions.getValueQuote();
+		if(!jsonParsingOptions.isAllowUnquoted() && keyQuote.isEmpty()) {
 			keyQuote = "\"";
 		}
-		if(!jsonOptions.isAllowSingleQuotes()) {
+		if(!jsonParsingOptions.isAllowSingleQuotes()) {
 			if(keyQuote.equals("'")) {
-				keyQuote = jsonOptions.isAllowUnquoted() ? "" : "\"";
+				keyQuote = jsonParsingOptions.isAllowUnquoted() ? "" : "\"";
 
 			}
 			if(valueQuote.equals("'")) {
@@ -150,9 +150,9 @@ public class JSONWriter {
 		}
 		keyQuoteChar = keyQuote.isEmpty() ? 0 : keyQuote.charAt(0);
 		valueQuoteChar = valueQuote.charAt(0);
-		isAllowLineBreak = jsonOptions.isAllowLineBreak();
+		isAllowLineBreak = jsonParsingOptions.isAllowLineBreak();
 
-		isComment = jsonOptions.isAllowComments() && !jsonOptions.isSkipComments();
+		isComment = jsonParsingOptions.isAllowComments() && !jsonParsingOptions.isSkipComments();
 	}
 
 
@@ -472,14 +472,14 @@ public class JSONWriter {
 
  	private void writeFloat(float value) {
 		hasValue = true;
-		if(jsonOptions.isAllowInfinity() && Float.isInfinite(value)) {
+		if(jsonParsingOptions.isAllowInfinity() && Float.isInfinite(value)) {
 			if(value > 0) {
 				stringBuilder.append("Infinity");
 			} else {
 				stringBuilder.append("-Infinity");
 			}
 		} else if(Float.isNaN(value)) {
-			if(jsonOptions.isAllowNaN()) {
+			if(jsonParsingOptions.isAllowNaN()) {
 				stringBuilder.append("NaN");
 			} else {
 				stringBuilder.append(valueQuote).append("NaN").append(valueQuote);
@@ -503,14 +503,14 @@ public class JSONWriter {
 
 	private void writeDouble(double value) {
 		hasValue = true;
-		if(jsonOptions.isAllowInfinity() && Double.isInfinite(value)) {
+		if(jsonParsingOptions.isAllowInfinity() && Double.isInfinite(value)) {
 			if(value > 0) {
 				stringBuilder.append("Infinity");
 			} else {
 				stringBuilder.append("-Infinity");
 			}
 		} else if(Double.isNaN(value)) {
-			if(jsonOptions.isAllowNaN()) {
+			if(jsonParsingOptions.isAllowNaN()) {
 				stringBuilder.append("NaN");
 			} else {
 				stringBuilder.append(valueQuote).append("NaN").append(valueQuote);
@@ -850,7 +850,7 @@ public class JSONWriter {
 
 
 	public static void writeJSONElement(CSONElement root,JSONWriter writer) {
-		//JSONWriter writer  = new JSONWriter((JSONOptions) stringFormatOption);
+		//JSONWriter writer  = new JSONWriter((JSONParsingOptions) stringFormatOption);
 
 		boolean allowComment = writer.isComment();
 

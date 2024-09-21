@@ -1,6 +1,6 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.ParsingOption;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
 
 import org.junit.jupiter.api.Test;
@@ -75,8 +75,8 @@ public class PureJsonTest {
                 "  ]";
 
 
-        CSONArray csonArraryOrigin = new CSONArray(testJSON, StringFormatOption.json());
-        CSONArray csonArrary = new CSONArray(testJSON, StringFormatOption.json());
+        CSONArray csonArraryOrigin = new CSONArray(testJSON, ParsingOption.json());
+        CSONArray csonArrary = new CSONArray(testJSON, ParsingOption.json());
 
         assertEquals(csonArraryOrigin.toString(), csonArrary.toString());
 
@@ -87,7 +87,7 @@ public class PureJsonTest {
     @Test
     public void NumberConversion() {
         String testJSON = "[" +Long.MIN_VALUE  + ", -0" + ", 10.11]";
-        CSONArray csonArraryOrigin = new CSONArray(testJSON, StringFormatOption.json());
+        CSONArray csonArraryOrigin = new CSONArray(testJSON, ParsingOption.json());
 
         System.out.println(csonArraryOrigin.toString());
 
@@ -177,21 +177,21 @@ public class PureJsonTest {
 
         testJSON = testJSON.replace(" ", "").replace("\n", "");
 
-        CSONElement csonElement = new CSONObject(testJSON, StringFormatOption.json());
+        CSONElement csonElement = new CSONObject(testJSON, ParsingOption.json());
         CSONObject csonObject = (CSONObject) csonElement;
         System.out.println(csonObject.toString());
         //assertEquals(testJSON.replace("0xff", "255").replace("75.50", "75.5"), csonObject.toString());
 
         NoSynchronizedStringReader stringReader2 = new NoSynchronizedStringReader(testJSON);
-        CSONObject csonObjectPure = new CSONObject(stringReader2, StringFormatOption.json());
+        CSONObject csonObjectPure = new CSONObject(stringReader2, ParsingOption.json());
         stringReader2.close();
 
 
 
-        CSONObject obj = new CSONObject(StringFormatOption.json5());
+        CSONObject obj = new CSONObject(ParsingOption.json5());
 
         // You can change the default options. (It will be applied to all CSONObject and CONSArray)
-        // CSONObject.setDefaultJSONOptions(StringFormatOption.json5());
+        // CSONObject.setDefaultJSONOptions(ParsingOption.json5());
         // Even if you change the default options, you can specify the options when creating the object.
 
         obj.put("name", "John");
@@ -228,7 +228,7 @@ public class PureJsonTest {
     public void parsingCommentJson() {
         Exception err = null;
         String json = "{\"key\": \"5\"/*주석입니다*/,\"a\":\"b\",}";
-        CSONObject csonObject = new CSONObject(json, JSONOptions.json()
+        CSONObject csonObject = new CSONObject(json, JSONParsingOptions.json()
                 .setAllowTrailingComma(true)
                 .setAllowComments(true)
                 .setSkipComments(false));
@@ -242,7 +242,7 @@ public class PureJsonTest {
         Exception err = null;
         String json = "{\"key\": \"5\",\"a\":\"b\",,}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -255,7 +255,7 @@ public class PureJsonTest {
         Exception err = null;
         String json = "{\"key\": \"5\",,\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -263,7 +263,7 @@ public class PureJsonTest {
         assertNotNull(err);
         err = null;
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -274,7 +274,7 @@ public class PureJsonTest {
 
         json = "{key: \"5\",\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -282,7 +282,7 @@ public class PureJsonTest {
         assertNotNull(err);
         err = null;
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -291,7 +291,7 @@ public class PureJsonTest {
         err = null;
         json = "{'key': \"5\",\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -303,7 +303,7 @@ public class PureJsonTest {
         err = null;
         json = "{\"key\": \"5\",\"a\":\"b\",}";
         try {
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json());
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -317,7 +317,7 @@ public class PureJsonTest {
         err = null;
         json = "{\"key\": \"5\",\"a\":\"b\"}";
         try {
-            CSONObject csonObject = new CSONObject(json, JSONOptions.json());
+            CSONObject csonObject = new CSONObject(json, JSONParsingOptions.json());
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -346,15 +346,15 @@ public class PureJsonTest {
                 " \n]\n" +
                 "}";
 
-        CSONObject csonObject = new CSONObject(testJSON, StringFormatOption.json());
+        CSONObject csonObject = new CSONObject(testJSON, ParsingOption.json());
         System.out.println(csonObject.toString());
 
-        CSONObject csonObject2 = new CSONObject(testJSON, StringFormatOption.json());
+        CSONObject csonObject2 = new CSONObject(testJSON, ParsingOption.json());
 
-        CSONObject csonObject3 = new CSONObject(testJSON, StringFormatOption.json5());
+        CSONObject csonObject3 = new CSONObject(testJSON, ParsingOption.json5());
 
-        assertEquals(csonObject.toString(StringFormatOption.jsonPretty()), csonObject2.toString(StringFormatOption.jsonPretty()));
-        assertEquals(csonObject.toString(StringFormatOption.jsonPretty()), csonObject3.toString(StringFormatOption.jsonPretty()));
+        assertEquals(csonObject.toString(ParsingOption.jsonPretty()), csonObject2.toString(ParsingOption.jsonPretty()));
+        assertEquals(csonObject.toString(ParsingOption.jsonPretty()), csonObject3.toString(ParsingOption.jsonPretty()));
 
 
     }

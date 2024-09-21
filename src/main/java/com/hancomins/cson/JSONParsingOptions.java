@@ -1,40 +1,40 @@
 package com.hancomins.cson;
 
 
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.ParsingOption;
 import com.hancomins.cson.options.StringFormatType;
 
 @SuppressWarnings("UnusedReturnValue")
-public class JSONOptions implements StringFormatOption<JSONOptions> {
+public class JSONParsingOptions implements ParsingOption<JSONParsingOptions> {
 
         private StringFormatType formatType = StringFormatType.JSON;
 
 
 
-        private JSONOptions() {
+        private JSONParsingOptions() {
         }
 
 
-        static boolean isPureJSONOption(StringFormatOption<?> stringFormatOption) {
-            if(!(stringFormatOption instanceof JSONOptions))
+        static boolean isPureJSONOption(ParsingOption<?> parsingOption) {
+            if(!(parsingOption instanceof JSONParsingOptions))
                 return false;
 
-            JSONOptions jsonOptions = (JSONOptions) stringFormatOption;
+            JSONParsingOptions jsonParsingOptions = (JSONParsingOptions) parsingOption;
             return
                     // 코멘트 사용 불가
-                    !jsonOptions.isAllowComments() &&
+                    !jsonParsingOptions.isAllowComments() &&
                     // 싱글 쿼트 사용 불가
-                    !jsonOptions.isAllowSingleQuotes() &&
+                    !jsonParsingOptions.isAllowSingleQuotes() &&
                     // 값과 } , ] 사이에 comma 사용 불가s
-                    !jsonOptions.isAllowTrailingComma() &&
+                    !jsonParsingOptions.isAllowTrailingComma() &&
                     // 연이은 comma 사용 불가
-                    !jsonOptions.isAllowConsecutiveCommas() &&
+                    !jsonParsingOptions.isAllowConsecutiveCommas() &&
                     // 키, 값 쿼트 생략 불가
-                    !jsonOptions.isAllowUnquoted() &&
+                    !jsonParsingOptions.isAllowUnquoted() &&
                     // key 쿼트 " 만 사용
-                    "\"".equals(jsonOptions.getKeyQuote()) &&
+                    "\"".equals(jsonParsingOptions.getKeyQuote()) &&
                     // value 쿼트 " 만 사용
-                    "\"".equals(jsonOptions.getValueQuote());
+                    "\"".equals(jsonParsingOptions.getValueQuote());
 
 
 
@@ -43,63 +43,60 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
 
 
 
-        public static JSONOptions json() {
-            JSONOptions jsonOptions = new JSONOptions();
-            jsonOptions.setPretty(false);
-            jsonOptions.setUnprettyArray(false);
-            jsonOptions.setDepthSpace("  ");
-            jsonOptions.setAllowComments(false);
-            jsonOptions.setSkipComments(true);
-            jsonOptions.setIgnoreNonNumeric(true);
+        public static JSONParsingOptions json() {
+            JSONParsingOptions jsonParsingOptions = new JSONParsingOptions();
+            jsonParsingOptions.setPretty(false);
+            jsonParsingOptions.setUnprettyArray(false);
+            jsonParsingOptions.setDepthSpace("  ");
+            jsonParsingOptions.setAllowComments(false);
+            jsonParsingOptions.setSkipComments(true);
+            jsonParsingOptions.setIgnoreNonNumeric(true);
 
-            jsonOptions.setAllowNaN(false);
-            jsonOptions.setAllowPositiveSing(false);
-            jsonOptions.setAllowInfinity(false);
-            jsonOptions.setAllowUnquoted(false);
-            jsonOptions.setAllowTrailingComma(false);
+            jsonParsingOptions.setAllowNaN(false);
+            jsonParsingOptions.setAllowPositiveSing(false);
+            jsonParsingOptions.setAllowInfinity(false);
+            jsonParsingOptions.setAllowUnquoted(false);
+            jsonParsingOptions.setAllowTrailingComma(false);
 
-            jsonOptions.setAllowSingleQuotes(false);
-            jsonOptions.setAllowHexadecimal(true);
-            jsonOptions.setLeadingZeroOmission(true);
-            jsonOptions.setAllowPositiveSing(true);
+            jsonParsingOptions.setAllowSingleQuotes(false);
+            jsonParsingOptions.setAllowHexadecimal(true);
+            jsonParsingOptions.setLeadingZeroOmission(true);
+            jsonParsingOptions.setAllowPositiveSing(true);
 
 
 
-            jsonOptions.setAllowConsecutiveCommas(false);
-            jsonOptions.setKeyQuote("\"");
-            jsonOptions.setValueQuote("\"");
-            jsonOptions.setPretty(false);
-            jsonOptions.setUnprettyArray(true);
+            jsonParsingOptions.setAllowConsecutiveCommas(false);
+            jsonParsingOptions.setKeyQuote("\"");
+            jsonParsingOptions.setValueQuote("\"");
+            jsonParsingOptions.setPretty(false);
+            jsonParsingOptions.setUnprettyArray(true);
 
-            return jsonOptions;
+            return jsonParsingOptions;
         }
 
 
 
-        public static JSONOptions json5() {
-            JSONOptions jsonOptions = new JSONOptions();
-            jsonOptions.setPretty(true);
-            jsonOptions.setUnprettyArray(true);
-            jsonOptions.setDepthSpace("  ");
-            jsonOptions.setAllowComments(true);
-            jsonOptions.setSkipComments(false);
-            jsonOptions.setIgnoreNonNumeric(true);
-            jsonOptions.setAllowNaN(true);
-            jsonOptions.setAllowPositiveSing(true);
-            jsonOptions.setAllowInfinity(true);
-            jsonOptions.setAllowUnquoted(true);
-            jsonOptions.setAllowSingleQuotes(true);
-            jsonOptions.setAllowHexadecimal(true);
-            jsonOptions.setLeadingZeroOmission(true);
+        public static JSONParsingOptions json5() {
+            JSONParsingOptions jsonParsingOptions = new JSONParsingOptions();
+            jsonParsingOptions.setPretty(true);
+            jsonParsingOptions.setUnprettyArray(true);
+            jsonParsingOptions.setDepthSpace("  ");
+            jsonParsingOptions.setAllowComments(true);
+            jsonParsingOptions.setSkipComments(false);
+            jsonParsingOptions.setIgnoreNonNumeric(true);
+            jsonParsingOptions.setAllowNaN(true);
+            jsonParsingOptions.setAllowPositiveSing(true);
+            jsonParsingOptions.setAllowInfinity(true);
+            jsonParsingOptions.setAllowUnquoted(true);
+            jsonParsingOptions.setAllowSingleQuotes(true);
+            jsonParsingOptions.setAllowHexadecimal(true);
+            jsonParsingOptions.setLeadingZeroOmission(true);
 
-            jsonOptions.setAllowTrailingComma(true);
-            jsonOptions.setAllowBreakLine(true);
-            jsonOptions.formatType = StringFormatType.JSON5;
-            return jsonOptions;
+            jsonParsingOptions.setAllowTrailingComma(true);
+            jsonParsingOptions.setAllowBreakLine(true);
+            jsonParsingOptions.formatType = StringFormatType.JSON5;
+            return jsonParsingOptions;
         }
-
-
-        private boolean sealed = false;
 
         private boolean pretty = false;
         private boolean unprettyArray = false;
@@ -135,7 +132,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return keyQuote;
         }
 
-        public JSONOptions setKeyQuote(String keyQuote) {
+        public JSONParsingOptions setKeyQuote(String keyQuote) {
             if(keyQuote == null)
                 throw new IllegalArgumentException("keyQuote can not be null");
             if(keyQuote.length() > 1)
@@ -149,8 +146,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
         }
 
         @SuppressWarnings({"unused", "SameParameterValue"})
-        JSONOptions setValueQuote(String valueQuote) {
-            sealed = false;
+        JSONParsingOptions setValueQuote(String valueQuote) {
             if(valueQuote == null || valueQuote.isEmpty())
                 throw new IllegalArgumentException("valueQuote can not be null or empty");
             if(valueQuote.length() > 1)
@@ -171,7 +167,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowConsecutiveCommas;
         }
 
-        public JSONOptions setAllowConsecutiveCommas(boolean allowConsecutiveCommas) {
+        public JSONParsingOptions setAllowConsecutiveCommas(boolean allowConsecutiveCommas) {
             this.allowConsecutiveCommas = allowConsecutiveCommas;
             return this;
         }
@@ -180,12 +176,12 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowBreakLine;
         }
 
-        public JSONOptions setAllowBreakLine(boolean allowBreakLine) {
+        public JSONParsingOptions setAllowBreakLine(boolean allowBreakLine) {
             this.allowBreakLine = allowBreakLine;
             return this;
         }
 
-        public JSONOptions setAllowTrailingComma(boolean allowTrailingComma) {
+        public JSONParsingOptions setAllowTrailingComma(boolean allowTrailingComma) {
 
             this.allowTrailingComma = allowTrailingComma;
             return this;
@@ -195,8 +191,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowComments;
         }
 
-        public JSONOptions setAllowComments(boolean allowComments) {
-            sealed = false;
+        public JSONParsingOptions setAllowComments(boolean allowComments) {
             this.allowComments = allowComments;
             return this;
         }
@@ -205,7 +200,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return pretty;
         }
 
-        public JSONOptions setPretty(boolean pretty) {
+        public JSONParsingOptions setPretty(boolean pretty) {
             this.pretty = pretty;
             return this;
         }
@@ -214,7 +209,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return unprettyArray;
         }
 
-        public JSONOptions setUnprettyArray(boolean unprettyArray) {
+        public JSONParsingOptions setUnprettyArray(boolean unprettyArray) {
             this.unprettyArray = unprettyArray;
             return this;
         }
@@ -223,7 +218,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return depthSpace;
         }
 
-        public JSONOptions setDepthSpace(String depthSpace) {
+        public JSONParsingOptions setDepthSpace(String depthSpace) {
             if(depthSpace == null) depthSpace = "";
             this.depthSpace = depthSpace;
             return this;
@@ -234,7 +229,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return skipComments;
         }
 
-        public JSONOptions setSkipComments(boolean allowComment) {
+        public JSONParsingOptions setSkipComments(boolean allowComment) {
             this.skipComments = allowComment;
             return this;
         }
@@ -246,7 +241,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
         }
 
 
-        public JSONOptions setIgnoreNonNumeric(boolean ignoreNumberFormatError) {
+        public JSONParsingOptions setIgnoreNonNumeric(boolean ignoreNumberFormatError) {
             this.ignoreNumberFormatError = ignoreNumberFormatError;
             return this;
         }
@@ -255,7 +250,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowNaN;
         }
 
-        public JSONOptions setAllowNaN(boolean allowNaN) {
+        public JSONParsingOptions setAllowNaN(boolean allowNaN) {
             this.allowNaN = allowNaN;
             return this;
         }
@@ -266,7 +261,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
 
 
 
-    public JSONOptions setAllowPositiveSing(boolean allowPositiveSing) {
+    public JSONParsingOptions setAllowPositiveSing(boolean allowPositiveSing) {
             this.allowPositiveSing = allowPositiveSing;
             return this;
         }
@@ -275,7 +270,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowInfinity;
         }
 
-        public JSONOptions setAllowInfinity(boolean allowInfinity) {
+        public JSONParsingOptions setAllowInfinity(boolean allowInfinity) {
             this.allowInfinity = allowInfinity;
             return this;
         }
@@ -284,7 +279,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return this.allowUnquoted;
         }
 
-        public JSONOptions setAllowUnquoted(boolean unquoted) {
+        public JSONParsingOptions setAllowUnquoted(boolean unquoted) {
             this.allowUnquoted = unquoted;
             this.keyQuote = unquoted ? "" : this.keyQuote;
             return this;
@@ -294,7 +289,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowSingleQuotes;
         }
 
-        public JSONOptions setAllowSingleQuotes(boolean singleQuotes) {
+        public JSONParsingOptions setAllowSingleQuotes(boolean singleQuotes) {
             this.allowSingleQuotes = singleQuotes;
             this.valueQuote = singleQuotes ? "'" : this.valueQuote;
             return this;
@@ -304,7 +299,7 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowHexadecimal;
         }
 
-        public JSONOptions setAllowHexadecimal(boolean allowHexadecimal) {
+        public JSONParsingOptions setAllowHexadecimal(boolean allowHexadecimal) {
             this.allowHexadecimal = allowHexadecimal;
             return this;
         }
@@ -313,12 +308,12 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return isLeadingZeroOmission;
         }
 
-        public JSONOptions setLeadingZeroOmission(boolean leadingZeroOmission) {
+        public JSONParsingOptions setLeadingZeroOmission(boolean leadingZeroOmission) {
             isLeadingZeroOmission = leadingZeroOmission;
             return this;
         }
 
-        public JSONOptions setAllowControlChar(boolean allowControlChar) {
+        public JSONParsingOptions setAllowControlChar(boolean allowControlChar) {
             this.allowControlChar = allowControlChar;
             return this;
         }
@@ -327,13 +322,6 @@ public class JSONOptions implements StringFormatOption<JSONOptions> {
             return allowControlChar;
         }
 
-        private void seal() {
-            sealed = true;
-        }
-
-        boolean isBrokenSeal() {
-            return !sealed;
-        }
 
     @Override
     public StringFormatType getFormatType() {

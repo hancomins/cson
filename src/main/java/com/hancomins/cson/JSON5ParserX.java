@@ -26,7 +26,7 @@ final class JSON5ParserX {
      * @param rootElement 파싱된 결과를 저장할 CSONElement. CSONObject 또는 CSONArray 이어야 한다.
      * @param jsonOption JSON5 파싱 옵션
      */
-    static void parse(Reader reader,CSONElement rootElement, JSONOptions jsonOption) {
+    static void parse(Reader reader,CSONElement rootElement, JSONParsingOptions jsonOption) {
 
         final boolean singleQuote = jsonOption.isAllowSingleQuotes();
         final boolean allowUnquoted = jsonOption.isAllowUnquoted();

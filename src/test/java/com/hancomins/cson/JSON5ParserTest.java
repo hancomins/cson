@@ -1,6 +1,6 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.ParsingOption;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ public class JSON5ParserTest  {
 
 
 
-        CSONObject csonObject = new CSONObject(jsonKeyUnquoted, StringFormatOption.json5());
+        CSONObject csonObject = new CSONObject(jsonKeyUnquoted, ParsingOption.json5());
         System.out.println(csonObject.toString());
 
         assertEquals(csonObject.get("unquoted"), "and you can quote me on that\"");
@@ -40,7 +40,7 @@ public class JSON5ParserTest  {
 
 
 
-        csonObject = new CSONObject(jsonValueUnquoted, StringFormatOption.json5());
+        csonObject = new CSONObject(jsonValueUnquoted, ParsingOption.json5());
         System.out.println(csonObject.toString());
         assertEquals(csonObject.get("unquoted"), "and you can quote\n me on that\"");
         assertEquals(Double.valueOf(csonObject.getDouble("unquoted_integer")),  Double.valueOf( 123.0));
@@ -53,7 +53,7 @@ public class JSON5ParserTest  {
 
 
 
-        csonObject = new CSONObject(jsonValueSingleUnquoted, StringFormatOption.json5());
+        csonObject = new CSONObject(jsonValueSingleUnquoted, ParsingOption.json5());
         System.out.println(csonObject.toString());
         assertEquals(csonObject.get("singleQuoted"), "and you can quote me on that\"");
         assertEquals(Double.valueOf(csonObject.getDouble("singleQuoted_float")),  Double.valueOf( 123.0));
@@ -74,7 +74,7 @@ public class JSON5ParserTest  {
                     "}";
 
 
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json5().setAllowConsecutiveCommas(true));
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json5().setAllowConsecutiveCommas(true));
             System.out.println(csonObject);
             assertEquals("are just fine", csonObject.optString("consecutiveCommas"));
             assertNull(csonObject.get("nullValue"));
@@ -85,7 +85,7 @@ public class JSON5ParserTest  {
             assertEquals(3, csonObject.optCSONArray("arrays").getInt(3));
 
             try {
-                csonObject = new CSONObject(json, StringFormatOption.json().setAllowConsecutiveCommas(false));
+                csonObject = new CSONObject(json, ParsingOption.json().setAllowConsecutiveCommas(false));
                 assertEquals("are just fine", csonObject.optString("consecutiveCommas"));
                 fail();
             } catch (Exception e) {
@@ -103,7 +103,7 @@ public class JSON5ParserTest  {
 
 
 
-        CSONObject csonObject = new CSONObject(json, StringFormatOption.json5());
+        CSONObject csonObject = new CSONObject(json, ParsingOption.json5());
         assertEquals("Look, Mom!\nNo \\nnewlines!", csonObject.optString("lineBreaks"));
 
     }
@@ -122,7 +122,7 @@ public class JSON5ParserTest  {
          "  trailingComma: 'in objects', andIn: ['arrays',],\n" +
          "  \"backwardsCompatible\": \"with JSON\",\n" +
          "}";
-         CSONObject csonObject = new CSONObject(json, StringFormatOption.json5());
+         CSONObject csonObject = new CSONObject(json, ParsingOption.json5());
          assertEquals("and you can quote me on that", csonObject.optString("unquoted"));
          assertEquals("I can use \"double quotes\" here", csonObject.optString("singleQuotes"));
          assertEquals("Look, Mom!\nNo \\nnewlines!", csonObject.optString("lineBreaks"));
@@ -143,12 +143,12 @@ public class JSON5ParserTest  {
                     "}";
 
 
-            CSONObject csonObject = new CSONObject(json, StringFormatOption.json().setAllowTrailingComma(true));
+            CSONObject csonObject = new CSONObject(json, ParsingOption.json().setAllowTrailingComma(true));
             assertEquals("in objects", csonObject.optString("trailingComma"));
             assertEquals("arrays", csonObject.optCSONArray("andIn").optString(0));
 
             try {
-                csonObject = new CSONObject(json, StringFormatOption.json().setAllowTrailingComma(false));
+                csonObject = new CSONObject(json, ParsingOption.json().setAllowTrailingComma(false));
                 assertEquals("in objects", csonObject.optString("trailingComma"));
                 assertEquals("arrays", csonObject.optCSONArray("andIn").optString(0));
                 fail();
@@ -160,7 +160,7 @@ public class JSON5ParserTest  {
     @Test
     public void testCSONArray() {
         String array = "[1,2,3.3,4,5.5]";
-        CSONArray csonArray = new CSONArray(array, StringFormatOption.json());
+        CSONArray csonArray = new CSONArray(array, ParsingOption.json());
         assertEquals(1, csonArray.getInt(0));
         assertEquals(2, csonArray.getInt(1));
         assertEquals(3.3, csonArray.getDouble(2), 0.0001);
@@ -169,7 +169,7 @@ public class JSON5ParserTest  {
 
         System.out.println(csonArray.toString());
 
-        csonArray = new CSONArray(csonArray.toString(), StringFormatOption.json());
+        csonArray = new CSONArray(csonArray.toString(), ParsingOption.json());
         assertEquals(1, csonArray.getInt(0));
         assertEquals(2, csonArray.getInt(1));
         assertEquals(3.3, csonArray.getDouble(2), 0.0001);
@@ -181,12 +181,12 @@ public class JSON5ParserTest  {
 
     @Test
     public void testWeirdString() {
-        CSONObject csonObject = new CSONObject(StringFormatOption.json());
+        CSONObject csonObject = new CSONObject(ParsingOption.json());
         csonObject.put("weirdString", "stri \" \n\rng");
         assertEquals("stri \" \n\rng", csonObject.optString("weirdString"));
 
         System.out.println(csonObject.toString());
-        csonObject = new CSONObject(csonObject.toString(), StringFormatOption.json());
+        csonObject = new CSONObject(csonObject.toString(), ParsingOption.json());
         System.out.println(csonObject.toString());
 
 
@@ -198,7 +198,7 @@ public class JSON5ParserTest  {
                 "  nullValue: \n\n null\n\n,\n" +
                 " okValue: \"ok\",\n" +
                 "}";
-        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json5());
+        CSONObject csonObject = new CSONObject(complexJson5, ParsingOption.json5());
         assertNull(csonObject.opt("nullValue"));
         assertEquals("ok", csonObject.optString("okValue"));
     }
@@ -215,11 +215,11 @@ public class JSON5ParserTest  {
                 "  // Comment after value\n" +
                 "}";
 
-        JSONOptions jsonOptions = StringFormatOption.json5();
-        jsonOptions.setAllowComments(true);
-        jsonOptions.setSkipComments(false);
-        jsonOptions.setPretty(true);
-        CSONObject csonObject = new CSONObject(complexJson5, jsonOptions);
+        JSONParsingOptions jsonParsingOptions = ParsingOption.json5();
+        jsonParsingOptions.setAllowComments(true);
+        jsonParsingOptions.setSkipComments(false);
+        jsonParsingOptions.setPretty(true);
+        CSONObject csonObject = new CSONObject(complexJson5, jsonParsingOptions);
 
         System.out.println(csonObject);
 
@@ -230,7 +230,7 @@ public class JSON5ParserTest  {
 
         System.out.println(csonObject);
 
-        csonObject = new CSONObject(csonObject.toString(), StringFormatOption.json5());
+        csonObject = new CSONObject(csonObject.toString(), ParsingOption.json5());
 
         System.out.println(csonObject);
 
@@ -251,7 +251,7 @@ public class JSON5ParserTest  {
                 "}";
 
 
-        csonObject = new CSONObject(complexJson5, StringFormatOption.json5());
+        csonObject = new CSONObject(complexJson5, ParsingOption.json5());
 
         System.out.println(csonObject);
 
@@ -269,7 +269,7 @@ public class JSON5ParserTest  {
                 " value //Comment after value\n" +
                 "}";
 
-        csonObject = new CSONObject(complexJson5, StringFormatOption.json5());
+        csonObject = new CSONObject(complexJson5, ParsingOption.json5());
 
         System.out.println(csonObject);
 
@@ -289,7 +289,7 @@ public class JSON5ParserTest  {
                 + " // Comment after value2\n" +
                 "}";
 
-        csonObject = new CSONObject(complexJson5, StringFormatOption.json5());
+        csonObject = new CSONObject(complexJson5, ParsingOption.json5());
 
         System.out.println(csonObject);
 
@@ -318,7 +318,7 @@ public class JSON5ParserTest  {
                 "  trailing1Comma: 'this is fine',\n" +
                 "}";
 
-        CSONObject csonObject = new CSONObject(complexJson5, StringFormatOption.json5().setPretty(true));
+        CSONObject csonObject = new CSONObject(complexJson5, ParsingOption.json5().setPretty(true));
 
         // Assert basic values
         assertEquals("unquoted string value", csonObject.optString("unquotedKey"));
@@ -377,7 +377,7 @@ public class JSON5ParserTest  {
                 " unquoted_integer: 123" +
                 "}";*/
 
-        JSONOptions jsonOption = StringFormatOption.json();
+        JSONParsingOptions jsonOption = ParsingOption.json();
         jsonOption.setAllowComments(false);
         //jsonOption.setAllowConsecutiveCommas(false);
         //jsonOption.setAllowTrailingComma(true);
@@ -399,7 +399,7 @@ public class JSON5ParserTest  {
             if(csonTest) {
                 start = System.currentTimeMillis();
                 for (int i = 0; i < testCaseInCycle; i++) {
-                    CSONObject csonObject1 = new CSONObject(testData, StringFormatOption.json());
+                    CSONObject csonObject1 = new CSONObject(testData, ParsingOption.json());
                 }
                 time = System.currentTimeMillis() - start;
                 System.out.println("CSON: " + time);

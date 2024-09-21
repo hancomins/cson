@@ -2,7 +2,7 @@ package com.hancomins.cson;
 
 
 
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.ParsingOption;
 import com.hancomins.cson.options.StringFormatType;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.DataConverter;
@@ -28,17 +28,17 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 
-	public static CSONArray fromJson(String value, StringFormatOption<?> stringFormatOption) {
-		return new CSONArray(value, stringFormatOption);
+	public static CSONArray fromJson(String value, ParsingOption<?> parsingOption) {
+		return new CSONArray(value, parsingOption);
 	}
 
 	public static CSONArray fromJson(String value)  {
 		return new CSONArray(value, getDefaultStringFormatOption());
 	}
 
-	public static CSONArray fromJson(Path path, Charset charset, StringFormatOption<?> stringFormatOption) throws IOException {
+	public static CSONArray fromJson(Path path, Charset charset, ParsingOption<?> parsingOption) throws IOException {
 		try (Reader reader = Files.newBufferedReader(path, charset)) {
-			return new CSONArray(reader, stringFormatOption);
+			return new CSONArray(reader, parsingOption);
 		}
 	}
 
@@ -121,7 +121,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		parse(stringSource, getStringFormatOption());
 	}
 
-	public CSONArray(Reader source, StringFormatOption<?> options) throws CSONException {
+	public CSONArray(Reader source, ParsingOption<?> options) throws CSONException {
 		super(ElementType.Array,options);
 		parse(source, options);
 	}
@@ -134,7 +134,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		noSynchronizedStringReader.close();;
 	}
 
-	public CSONArray(String jsonArray, StringFormatOption<?> options) throws CSONException {
+	public CSONArray(String jsonArray, ParsingOption<?> options) throws CSONException {
 		super(ElementType.Array,options);
 		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(jsonArray);
 		parse(noSynchronizedStringReader, options);
@@ -142,8 +142,8 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	}
 
 
-	public CSONArray(StringFormatOption<?> stringFormatOption) {
-		super(ElementType.Object,stringFormatOption);
+	public CSONArray(ParsingOption<?> parsingOption) {
+		super(ElementType.Object, parsingOption);
 	}
 
 
@@ -153,20 +153,20 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	}
 
 
-	public CSONArray(JSONOptions jsonOptions) {
+	public CSONArray(JSONParsingOptions jsonParsingOptions) {
 
-		super(ElementType.Array,jsonOptions);
+		super(ElementType.Array, jsonParsingOptions);
 	}
 
 
-	private void parse(Reader stringReader, StringFormatOption<?> options) {
+	private void parse(Reader stringReader, ParsingOption<?> options) {
 		StringFormatType type = options.getFormatType();
-		/*if(JSONOptions.isPureJSONOption(options)) {
+		/*if(JSONParsingOptions.isPureJSONOption(options)) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else {*/
-			//new JSONParser(new JSONTokener(stringReader, (JSONOptions)options)).parseArray(this);
-			//new JSON5ParserV((JSONOptions) options).parsePureJSON(stringReader, this);
-			JSON5ParserX.parse(stringReader, this, (JSONOptions)options);
+			//new JSONParser(new JSONTokener(stringReader, (JSONParsingOptions)options)).parseArray(this);
+			//new JSON5ParserV((JSONParsingOptions) options).parsePureJSON(stringReader, this);
+			JSON5ParserX.parse(stringReader, this, (JSONParsingOptions)options);
 		//}
 	}
 
@@ -505,7 +505,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 	@Override
-	public void setStringFormatOption(StringFormatOption<?> defaultJSONOptions) {
+	public void setStringFormatOption(ParsingOption<?> defaultJSONOptions) {
 		super.setStringFormatOption(defaultJSONOptions);
 		for(Object obj : list) {
 			if(obj instanceof CSONElement) {
@@ -1203,13 +1203,13 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		return toString(getStringFormatOption());
 	}
 
-	public String toString(StringFormatOption<?> stringFormatOption) {
-		if(stringFormatOption instanceof JSONOptions) {
-			JSONWriter jsonWriter  = new JSONWriter((JSONOptions) stringFormatOption);
+	public String toString(ParsingOption<?> parsingOption) {
+		if(parsingOption instanceof JSONParsingOptions) {
+			JSONWriter jsonWriter  = new JSONWriter((JSONParsingOptions) parsingOption);
 			write(jsonWriter, true);
 			return jsonWriter.toString();
 		}
-		return this.toString(StringFormatOption.json());
+		return this.toString(ParsingOption.json());
 	}
 
 

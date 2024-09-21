@@ -1,8 +1,6 @@
 package com.hancomins.cson;
 
 
-import org.json.JSONObject;
-
 public class PerformanceTest {
 
     public static void main(String[] args) {
@@ -14,7 +12,7 @@ public class PerformanceTest {
         for(int count = 0; count < 10; ++count) {
             long start = System.currentTimeMillis();
             for (int i = 0; i < 100000; i++) {
-                CSONObject csonObject = new CSONObject(json, JSONOptions.json5());
+                CSONObject csonObject = new CSONObject(json, JSONParsingOptions.json5());
                 //JSONObject jsonObject = new JSONObject(json);
 
 

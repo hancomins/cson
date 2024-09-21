@@ -2,7 +2,7 @@ package com.hancomins.cson.serializer;
 
 import com.hancomins.cson.CSONArray;
 import com.hancomins.cson.CSONObject;
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.ParsingOption;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -122,7 +122,7 @@ public class SerializeInCSONElementTest {
             assertEquals( i + "", list.get(i).data);
         }
 
-        csonObject.setStringFormatOption(StringFormatOption.jsonPretty());
+        csonObject.setStringFormatOption(ParsingOption.jsonPretty());
         List<String> stringList=  csonObject.getList("list", String.class);
         for(int i = 0; i < 10; i++) {
             System.out.println(stringList.get(i));

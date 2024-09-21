@@ -1,12 +1,11 @@
 package com.hancomins.cson.options;
 
+@SuppressWarnings("UnusedReturnValue")
 public interface MutableNumberConversionOption<T> extends NumberConversionOption {
-
-
-    public  T setAllowNaN(boolean enable);
-    public  T  setAllowInfinity(boolean enable);
-    public  T  setAllowHexadecimal(boolean enable);
-    public  T  setLeadingZeroOmission(boolean enable);
-    public  T  setAllowPositiveSing(boolean enable);
-    public  T  setIgnoreNonNumeric(boolean enable);
+    T  setAllowNaN(boolean enable);
+    T  setAllowInfinity(boolean enable);
+    T  setAllowHexadecimal(boolean enable);
+    T  setLeadingZeroOmission(boolean enable);
+    T  setAllowPositiveSing(boolean enable);
+    T  setIgnoreNonNumeric(boolean enable);
 }

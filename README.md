@@ -41,11 +41,11 @@ dependencies {
     ```
 * If you want to print the json string pretty, do as follows.
    ```java
-    JSONOptions jsonOptions = StringFormatOption.json();
-    jsonOptions.setPretty(true);
+    JSONOptions jsonParsingOptions = StringFormatOption.json();
+    jsonParsingOptions.setPretty(true);
     // Only arrays can be displayed on one line.
-    jsonOptions.setUnprettyArray(true);
-    String prettyJSONString = csonObjectPure.toString(jsonOptions);
+    jsonParsingOptions.setUnprettyArray(true);
+    String prettyJSONString = csonObjectPure.toString(jsonParsingOptions);
     //{
     //  "name": "John",
     //  "age": 25,

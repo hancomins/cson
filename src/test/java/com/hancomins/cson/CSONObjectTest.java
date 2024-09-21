@@ -1,7 +1,7 @@
 package com.hancomins.cson;
 
 
-import com.hancomins.cson.options.StringFormatOption;
+import com.hancomins.cson.options.ParsingOption;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,10 +70,10 @@ public class CSONObjectTest {
 
         JSONObject jsonObject = new JSONObject("{\"key\": \"va \\\" \\n \\r lue\"}");
 
-        CSONObject csonObjectA = new CSONObject("{\"key\": \"va \\\" \\n \\r lue\"}", JSONOptions.json());
+        CSONObject csonObjectA = new CSONObject("{\"key\": \"va \\\" \\n \\r lue\"}", JSONParsingOptions.json());
         System.out.println(csonObjectA.toString());
-        JSONObject jsonObjectA = new JSONObject(csonObjectA.toString(JSONOptions.json()));
-        new CSONObject(csonObjectA.toString(), JSONOptions.json());
+        JSONObject jsonObjectA = new JSONObject(csonObjectA.toString(JSONParsingOptions.json()));
+        new CSONObject(csonObjectA.toString(), JSONParsingOptions.json());
 
         System.out.println("--------------------------------------------------");
 
@@ -83,13 +83,13 @@ public class CSONObjectTest {
         assertEquals(csonObject.toString(), csonObject2.toString());
 
         System.out.println(csonObject.toString());
-        JSONObject jsonObject1 = new JSONObject(csonObject.toString(JSONOptions.json()));
-        assertEquals(csonObject2,new CSONObject(csonObject.toString(JSONOptions.json())));
+        JSONObject jsonObject1 = new JSONObject(csonObject.toString(JSONParsingOptions.json()));
+        assertEquals(csonObject2,new CSONObject(csonObject.toString(JSONParsingOptions.json())));
 
-        JSONOptions jsonOptions = JSONOptions.json().setPretty(true);
+        JSONParsingOptions jsonParsingOptions = JSONParsingOptions.json().setPretty(true);
 
 
-        assertEquals(csonObject2.toString(jsonOptions),new CSONObject(csonObject.toString(jsonOptions)).toString(jsonOptions));
+        assertEquals(csonObject2.toString(jsonParsingOptions),new CSONObject(csonObject.toString(jsonParsingOptions)).toString(jsonParsingOptions));
         assertEquals(csonObject2,new CSONObject(csonObject.toBytes()));
     }
 
@@ -146,10 +146,10 @@ public class CSONObjectTest {
     @Test
     @DisplayName("비어있는 CSONObject 와 CSONArray 파싱 테스트")
     public void emptyCSONObjectAndArrayTest() {
-        StringFormatOption<?> stringFormatOption = CSONObject.getDefaultStringFormatOption();
-        CSONObject.setDefaultStringFormatOption(JSONOptions.json());
-        CSONObject csonObject = new CSONObject("{}", JSONOptions.json());
-        CSONArray csonArray = new CSONArray("[]", JSONOptions.json());
+        ParsingOption<?> parsingOption = CSONObject.getDefaultStringFormatOption();
+        CSONObject.setDefaultStringFormatOption(JSONParsingOptions.json());
+        CSONObject csonObject = new CSONObject("{}", JSONParsingOptions.json());
+        CSONArray csonArray = new CSONArray("[]", JSONParsingOptions.json());
 
         assertEquals(0, csonObject.size());
         assertEquals(0, csonArray.size());
@@ -163,7 +163,7 @@ public class CSONObjectTest {
 
         assertEquals("{\"emptyObject\":{},\"emptyArray\":[]}", complexCSONObject.toString());
 
-        CSONObject.setDefaultStringFormatOption(stringFormatOption);
+        CSONObject.setDefaultStringFormatOption(parsingOption);
 
 
 
@@ -180,7 +180,7 @@ public class CSONObjectTest {
 
         byte[] buffer = csonObject.getByteArray("byte[]");
         byte[] bufferOrigin = buffer;
-        String jsonString = csonObject.toString(JSONOptions.json());
+        String jsonString = csonObject.toString(JSONParsingOptions.json());
 
 
 
@@ -189,7 +189,7 @@ public class CSONObjectTest {
 
         System.out.println(jsonString);
         String bufferBase64 = "base64," + Base64.getEncoder().encodeToString(buffer);
-        CSONObject compareCSONObject = new CSONObject(jsonString, JSONOptions.json());
+        CSONObject compareCSONObject = new CSONObject(jsonString, JSONParsingOptions.json());
 
 
         assertEquals(1, compareCSONObject.getInt("1"));
