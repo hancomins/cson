@@ -6,7 +6,7 @@ import java.io.Reader;
 public class NoSynchronizedStringReader extends Reader {
 
         private char[] strBuffer;
-        private int length;
+        private final int length;
         private int next = 0;
         private int mark = 0;
 

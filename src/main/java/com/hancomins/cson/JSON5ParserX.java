@@ -81,11 +81,12 @@ final class JSON5ParserX {
 
 
 
+
         CSONElement currentElement = null;
         CSONElement parentElement = null;
 
 
-        CharacterBuffer keyBuffer_ = new CharacterBuffer(128);
+        CharacterBuffer keyBuffer_ = new CharacterBuffer(16);
         ValueBuffer valueBuffer = new ValueBuffer(keyBuffer_,jsonOption);
         ArrayStack<CSONElement> csonElements = new ArrayStack<>();
 
@@ -192,6 +193,7 @@ final class JSON5ParserX {
                             switch (c) {
                                 case '\n':
                                 case '\t':
+                                case '\r':
                                 case ' ':
                                     currentParsingState = ParsingState.WaitKeyEndSeparator;
                                     key = valueBuffer.getStringAndReset();
@@ -323,6 +325,7 @@ final class JSON5ParserX {
                                     key = null;
                                     continue PREV_LOOP;
                                 case ' ':
+                                case '\r':
                                 case '\n':
                                 case '\t':
                                     isJSON5 = putValueInUnquoted(valueBuffer, currentElement, key, allowUnquoted, ignoreNonNumeric);
@@ -425,6 +428,7 @@ final class JSON5ParserX {
                                 currentParsingState = commentBuffer.lastParsingState();
                                 // 주석 상태가 유효하지 않다면, 주석 상태를 끝내고 다음 상태로 전환한다.
                                 if(currentParsingState == ParsingState.InValueUnquoted || currentParsingState == ParsingState.InKeyUnquoted) {
+
                                     valueBuffer.append('/');
                                     valueBuffer.append(c);
                                     continue;

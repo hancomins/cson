@@ -7,7 +7,7 @@ public class CharacterBuffer implements CharSequence {
     private char[] chars;
 
     private int length = 0;
-    private int capacity = 64;
+    private int capacity = 16;
 
 
     public CharacterBuffer() {
