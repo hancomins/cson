@@ -27,75 +27,9 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	private ArrayList<Object> list = new ArrayList<>();
 	private ArrayList<CommentObject> commentObjectList = null;
 
+	private ParsingOptions<?> parsingOptions = ParsingOptions.DEFAULT;
 
 
-	public static CSONArray fromJson(String value, ParsingOptions<?> parsingOptions) {
-		return new CSONArray(value, parsingOptions);
-	}
-
-	public static CSONArray fromJson(String value)  {
-		return new CSONArray(value, getDefaultStringFormatOption());
-	}
-
-	public static CSONArray fromJson(Path path, Charset charset, ParsingOptions<?> parsingOptions) throws IOException {
-		try (Reader reader = Files.newBufferedReader(path, charset)) {
-			return new CSONArray(reader, parsingOptions);
-		}
-	}
-
-	public static CSONArray fromJson(Path path, Charset charset) throws IOException {
-		try (Reader reader = Files.newBufferedReader(path, charset)) {
-			return new CSONArray(reader, getDefaultStringFormatOption());
-		}
-	}
-
-	public static CSONArray fromJson(InputStream inputStream) throws IOException {
-		try(InputStreamReader inputStreamReader = new InputStreamReader(inputStream)) {
-			return new CSONArray(inputStreamReader, getDefaultStringFormatOption());
-		}
-	}
-
-
-	public static CSONArray fromJson(Reader reader) throws IOException {
-		return new CSONArray(reader, getDefaultStringFormatOption());
-	}
-
-
-	public static CSONArray fromBinaryCSON(Path path) throws IOException {
-		try(InputStream inputStream = Files.newInputStream(path)) {
-			return fromBinaryCSON(inputStream);
-		}
-	}
-
-	public static CSONArray fromBinaryCSON(InputStream inputStream) throws IOException {
-		CSONArray csonArray = new CSONArray();
-		try {
-			csonArray.list = ((CSONArray) BinaryCSONParser.parse(inputStream)).list;
-		} catch (DataReadFailException e) {
-			Throwable cause = e.getCause();
-			if(cause instanceof IOException) {
-				throw (IOException)cause;
-			}
-			throw e;
-		}
-		return csonArray;
-	}
-
-	public static CSONArray fromBinaryCSON(ByteBuffer byteBuffer) {
-		CSONArray csonArray = new CSONArray();
-		csonArray.list = ((CSONArray) BinaryCSONParser.parse(byteBuffer)).list;
-		return csonArray;
-	}
-
-
-	public static CSONArray fromBinaryCSON(byte[] binaryCSON, int offset, int len){
-		ByteBuffer byteBuffer = ByteBuffer.wrap(binaryCSON, offset, len);
-		return fromBinaryCSON(byteBuffer);
-	}
-
-	public static CSONArray fromBinaryCSON(byte[] binaryCSON) {
-		return fromBinaryCSON(binaryCSON, 0, binaryCSON.length);
-	}
 
 	public static CSONArray fromCollection(Collection<?> collection) {
 		return CSONSerializer.collectionToCSONArray(collection);
@@ -111,7 +45,6 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 	public CSONArray() {
-
 		super(ElementType.Array, getDefaultStringFormatOption());
 	}
 
