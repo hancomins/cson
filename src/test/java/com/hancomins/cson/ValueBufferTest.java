@@ -1,6 +1,6 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.ParsingOption;
+import com.hancomins.cson.options.ParsingOptions;
 import com.hancomins.cson.util.NullValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ public class ValueBufferTest {
     @Test
     @DisplayName("Null 값 파싱 테스트")
     public void nullTest() {
-        ParsingOption<?> json5Option = ParsingOption.json5();
+        ParsingOptions<?> json5Option = ParsingOptions.json5();
         ValueBuffer state = new ValueBuffer(json5Option);
         state.reset();
         state.append("null");
@@ -27,7 +27,7 @@ public class ValueBufferTest {
     @DisplayName("내려쓰기 테스트")
     public void testBreakLine() {
         String value = "value5!\\\n\\tbreak line";
-        ParsingOption<?> json5Option = ParsingOption.json5();
+        ParsingOptions<?> json5Option = ParsingOptions.json5();
         ValueBuffer state = new ValueBuffer(json5Option);
         state.reset();
         state.append(value);
@@ -40,7 +40,7 @@ public class ValueBufferTest {
     @DisplayName("Infinity 값 파싱 테스트")
     public void infinityParseTest() {
 
-        ParsingOption<?> json5Option = ParsingOption.json5();
+        ParsingOptions<?> json5Option = ParsingOptions.json5();
         ValueBuffer state = new ValueBuffer(json5Option);
         state.reset();
         state.append("Infinity");
@@ -65,14 +65,14 @@ public class ValueBufferTest {
         value = state.parseValue();
         assertEquals(Double.NEGATIVE_INFINITY, value);
 
-        json5Option = ParsingOption.json5().setAllowInfinity(false);
+        json5Option = ParsingOptions.json5().setAllowInfinity(false);
         state = new ValueBuffer(json5Option);
         state.reset();
         state.append("+Infinity");
         value = state.parseValue();
         assertEquals("+Infinity", value);
 
-        json5Option = ParsingOption.json5().setAllowInfinity(false).setIgnoreNonNumeric(false);
+        json5Option = ParsingOptions.json5().setAllowInfinity(false).setIgnoreNonNumeric(false);
         state = new ValueBuffer(json5Option);
         state.reset();
         state.append("+Infinity");
@@ -93,7 +93,7 @@ public class ValueBufferTest {
     public void nanParseTest() {
 
         Object value;
-        ParsingOption<?> json5Option = ParsingOption.json5();
+        ParsingOptions<?> json5Option = ParsingOptions.json5();
         ValueBuffer state = new ValueBuffer(json5Option);
         state.reset();
         state.append("NaN");
@@ -111,7 +111,7 @@ public class ValueBufferTest {
     @Test
     @DisplayName( "숫자 파싱 테스트")
     public void numberParseTest() {
-        ParsingOption<?> json5Option = ParsingOption.json5();
+        ParsingOptions<?> json5Option = ParsingOptions.json5();
         ValueBuffer state = new ValueBuffer(json5Option);
 
 
@@ -215,7 +215,7 @@ public class ValueBufferTest {
 
     @Test
     public void escapeChar() {
-        ParsingOption<?> json5Option = ParsingOption.json5();
+        ParsingOptions<?> json5Option = ParsingOptions.json5();
         ValueBuffer state = new ValueBuffer(json5Option);
 
         state.reset();
@@ -249,7 +249,7 @@ public class ValueBufferTest {
     @Test
     @DisplayName("지수 파싱 테스트")
     public void exponentExpressionTest() {
-        ParsingOption<?> json5Option = ParsingOption.json5();
+        ParsingOptions<?> json5Option = ParsingOptions.json5();
         ValueBuffer state = new ValueBuffer(json5Option);
 
         state.reset();
@@ -287,7 +287,7 @@ public class ValueBufferTest {
     @Test
     @DisplayName("16진수 파싱 테스트")
     public void hexValueTest() {
-        ParsingOption<?> json5Option = ParsingOption.json5();
+        ParsingOptions<?> json5Option = ParsingOptions.json5();
         ValueBuffer state = new ValueBuffer(json5Option);
 
         state.reset();

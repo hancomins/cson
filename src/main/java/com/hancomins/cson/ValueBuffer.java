@@ -1,6 +1,6 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.NumberConversionOption;
+import com.hancomins.cson.options.INumberConversionOption;
 import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.MockBigInteger;
 import com.hancomins.cson.util.NullValue;
@@ -73,19 +73,19 @@ public class ValueBuffer {
     private char quoteChar = '\0';
 
 
-    public ValueBuffer(NumberConversionOption numberConversionOption) {
-        this(new CharacterBuffer(), numberConversionOption);
+    public ValueBuffer(INumberConversionOption INumberConversionOption) {
+        this(new CharacterBuffer(), INumberConversionOption);
     }
 
-    ValueBuffer(CharacterBuffer characterBuffer, NumberConversionOption numberConversionOption) {
+    ValueBuffer(CharacterBuffer characterBuffer, INumberConversionOption INumberConversionOption) {
         this.characterBuffer = characterBuffer;
         numberBuffer = new CharacterBuffer();
-        allowNaN = numberConversionOption.isAllowNaN();
-        allowInfinity = numberConversionOption.isAllowInfinity();
-        allowHexadecimal = numberConversionOption.isAllowHexadecimal();
-        leadingZeroOmission = numberConversionOption.isLeadingZeroOmission();
-        allowPositiveSign = numberConversionOption.isAllowPositiveSing();
-        onlyPrimitiveValue = !numberConversionOption.isIgnoreNonNumeric();
+        allowNaN = INumberConversionOption.isAllowNaN();
+        allowInfinity = INumberConversionOption.isAllowInfinity();
+        allowHexadecimal = INumberConversionOption.isAllowHexadecimal();
+        leadingZeroOmission = INumberConversionOption.isLeadingZeroOmission();
+        allowPositiveSign = INumberConversionOption.isAllowPositiveSing();
+        onlyPrimitiveValue = !INumberConversionOption.isIgnoreNonNumeric();
 
     }
 

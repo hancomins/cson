@@ -1,5 +1,6 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.options.JsonWritingOptions;
 import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.EscapeUtil;
 import com.hancomins.cson.util.NullValue;
@@ -15,7 +16,7 @@ public class JSONWriter {
 
 	private static final int DEFAULT_BUFFER_SIZE = 512;
 
-	private final JSONParsingOptions jsonParsingOptions;
+	private final JsonWritingOptions jsonParsingOptions;
 
 	private static final int COMMENT_BEFORE_KEY = 1;
 
@@ -115,16 +116,16 @@ public class JSONWriter {
 
 
 
-	public JSONWriter(JSONParsingOptions jsonParsingOptions) {
-		this.jsonParsingOptions = jsonParsingOptions;
+	public JSONWriter(JsonWritingOptions jsonWritingOptions) {
+		this.jsonParsingOptions = jsonWritingOptions;
 		if(jsonParsingOptions.isPretty()) {
 			isPretty = true;
 		}
 		if(jsonParsingOptions.isUnprettyArray()) {
 			isUnprettyArray = true;
 		}
-		if(jsonParsingOptions.getDepthSpace() != null) {
-			depthSpace = jsonParsingOptions.getDepthSpace();
+		if(jsonParsingOptions.getSpace() > 0) {
+			depthSpace = jsonParsingOptions.getDepthString();
 		}
 
 
@@ -152,7 +153,7 @@ public class JSONWriter {
 		valueQuoteChar = valueQuote.charAt(0);
 		isAllowLineBreak = jsonParsingOptions.isAllowLineBreak();
 
-		isComment = jsonParsingOptions.isAllowComments() && !jsonParsingOptions.isSkipComments();
+		isComment = !jsonParsingOptions.isSkipComments();
 	}
 
 
@@ -850,7 +851,7 @@ public class JSONWriter {
 
 
 	public static void writeJSONElement(CSONElement root,JSONWriter writer) {
-		//JSONWriter writer  = new JSONWriter((JSONParsingOptions) stringFormatOption);
+		//JSONWriter writer  = new JSONWriter((JsonParsingOptions) stringFormatOption);
 
 		boolean allowComment = writer.isComment();
 

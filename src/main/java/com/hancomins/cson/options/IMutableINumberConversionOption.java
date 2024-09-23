@@ -1,7 +1,7 @@
 package com.hancomins.cson.options;
 
 @SuppressWarnings("UnusedReturnValue")
-public interface MutableNumberConversionOption<T> extends NumberConversionOption {
+public interface IMutableINumberConversionOption<T> extends INumberConversionOption {
     T  setAllowNaN(boolean enable);
     T  setAllowInfinity(boolean enable);
     T  setAllowHexadecimal(boolean enable);

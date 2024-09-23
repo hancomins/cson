@@ -1,7 +1,7 @@
 package com.hancomins.cson.serializer;
 
 import com.hancomins.cson.*;
-import com.hancomins.cson.options.ParsingOption;
+import com.hancomins.cson.options.ParsingOptions;
 import com.hancomins.cson.util.DataConverter;
 
 
@@ -209,7 +209,7 @@ public class CSONSerializer {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> List<T> csonArrayToList(CSONArray csonArray, Class<T> valueType, ParsingOption<?> parsingOption, boolean ignoreError, T defaultValue) {
+    public static <T> List<T> csonArrayToList(CSONArray csonArray, Class<T> valueType, ParsingOptions<?> parsingOptions, boolean ignoreError, T defaultValue) {
         Types types = Types.of(valueType);
         if(valueType.isPrimitive()) {
             if(ignoreError) {
@@ -270,8 +270,8 @@ public class CSONSerializer {
                     throw new CSONSerializerException("valueType is Character type. But value is not Character type. valueType=" + valueType.getName());
                 }
             } else if(valueType == String.class) {
-                if(parsingOption != null && value instanceof CSONElement) {
-                    result.add((T)((CSONElement) value).toString(parsingOption));
+                if(parsingOptions != null && value instanceof CSONElement) {
+                    result.add((T)((CSONElement) value).toString(parsingOptions));
                 } else {
                     result.add((T) value.toString());
                 }

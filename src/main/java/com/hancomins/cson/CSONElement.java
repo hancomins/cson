@@ -1,7 +1,8 @@
 package com.hancomins.cson;
 
 
-import com.hancomins.cson.options.ParsingOption;
+import com.hancomins.cson.options.ParsingOptions;
+import com.hancomins.cson.options.WritingOptions;
 import com.hancomins.cson.util.NullValue;
 
 import java.io.IOException;
@@ -16,7 +17,8 @@ import java.util.regex.Pattern;
 public abstract  class CSONElement implements Iterable<Object>  {
 
 
-	private static ParsingOption<?> DefaultJSONOptions = ParsingOption.json5();
+	private static ParsingOptions<?> DEFAULT_PARSING_OPTION = ParsingOptions.json5();
+	private static WritingOptions<?> DEFAULT_WRITING_OPTION = WritingOptions.json();
 
 	private static final Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
 	private static final Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");
@@ -28,7 +30,7 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	private byte[] versionRaw = BinaryCSONDataType.VER_RAW;
 	private final ElementType type;
 
-	private ParsingOption<?> jsonOptions = DefaultJSONOptions;
+	private ParsingOptions<?> jsonOptions = DEFAULT_PARSING_OPTION;
 
 
 	protected boolean allowJsonPathKey = true;
@@ -36,9 +38,9 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	private boolean unknownObjectToString = false;
 
 
-	protected CSONElement(ElementType type, ParsingOption<?> parsingOption) {
+	protected CSONElement(ElementType type, ParsingOptions<?> parsingOptions) {
 		this.type = type;
-		this.jsonOptions = parsingOption;
+		this.jsonOptions = parsingOptions;
 	}
 
 	protected CSONElement setAllowRawValue(boolean allowRawValue) {
@@ -67,22 +69,22 @@ public abstract  class CSONElement implements Iterable<Object>  {
 
 
 	@SuppressWarnings("unused")
-	public static ParsingOption<?> getDefaultStringFormatOption() {
-		return DefaultJSONOptions;
+	public static ParsingOptions<?> getDefaultStringFormatOption() {
+		return DEFAULT_PARSING_OPTION;
 	}
 
 
 	@SuppressWarnings("unused")
-	public static void setDefaultStringFormatOption(ParsingOption<?> defaultJSONOptions) {
-		DefaultJSONOptions = defaultJSONOptions;
+	public static void setDefaultStringFormatOption(ParsingOptions<?> defaultJSONOptions) {
+		DEFAULT_PARSING_OPTION = defaultJSONOptions;
 	}
 
 
-	public void setStringFormatOption(ParsingOption<?> defaultJSONOptions) {
+	public void setStringFormatOption(ParsingOptions<?> defaultJSONOptions) {
 		this.jsonOptions = defaultJSONOptions;
 	}
 
-	public ParsingOption<?> getStringFormatOption() {
+	public ParsingOptions<?> getStringFormatOption() {
 		return this.jsonOptions;
 	}
 
@@ -165,7 +167,7 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	protected abstract void write(JSONWriter writer, boolean root);
 
 
-	public abstract String toString(ParsingOption<?> option);
+	public abstract String toString(ParsingOptions<?> option);
 
 
 	public enum ElementType { Object, Array}

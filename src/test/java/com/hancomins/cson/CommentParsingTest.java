@@ -1,5 +1,6 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.options.JsonParsingOptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -68,7 +69,7 @@ public class CommentParsingTest {
         assertEquals("comment\nthis comment", csonObject.getCommentForKey("ke/y"));
         assertEquals("23", csonObject.getCommentAfterKey("ke/y"));
 
-        assertEquals("{}", csonObject.getCSONObject("ke/y").toString(JSONParsingOptions.json()));
+        assertEquals("{}", csonObject.getCSONObject("ke/y").toString(JsonParsingOptions.json()));
         assertEquals("코멘트1 \n 코멘트2\n\n코멘트3 ", csonObject.getCommentForValue("ke/y"));
         assertEquals("   코멘트 값 값 값 \n zzzz", csonObject.getCommentAfterValue("ke/y"));
     }
@@ -81,7 +82,7 @@ public class CommentParsingTest {
         assertEquals("ke/y", csonObject.keySet().iterator().next());
         assertEquals("comment\nthis comment", csonObject.getCommentForKey("ke/y"));
         assertEquals("23", csonObject.getCommentAfterKey("ke/y"));
-        assertEquals("[]", csonObject.getCSONArray("ke/y").toString(JSONParsingOptions.json()));
+        assertEquals("[]", csonObject.getCSONArray("ke/y").toString(JsonParsingOptions.json()));
         System.out.println(csonObject.getCSONArray("ke/y"));
 
         assertEquals("코멘트1 \n 코멘트2\n\n코멘트3 ", csonObject.getCommentForValue("ke/y"));

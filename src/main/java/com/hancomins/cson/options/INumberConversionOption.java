@@ -1,6 +1,6 @@
 package com.hancomins.cson.options;
 
-public interface NumberConversionOption {
+public interface INumberConversionOption {
      boolean isAllowNaN();
      boolean isAllowInfinity();
      boolean isAllowHexadecimal();
@@ -8,7 +8,7 @@ public interface NumberConversionOption {
      boolean isAllowPositiveSing();
      boolean isIgnoreNonNumeric();
 
-     NumberConversionOption DEFAULT =    new NumberConversionOption() {
+     INumberConversionOption DEFAULT =    new INumberConversionOption() {
           @Override
           public boolean isAllowNaN() {
                return true;

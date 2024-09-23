@@ -1,5 +1,6 @@
 package com.hancomins.cson;
 
+import com.hancomins.cson.options.JsonParsingOptions;
 import com.hancomins.cson.util.ArrayStack;
 import com.hancomins.cson.util.CharacterBuffer;
 
@@ -26,13 +27,12 @@ final class JSON5ParserX {
      * @param rootElement 파싱된 결과를 저장할 CSONElement. CSONObject 또는 CSONArray 이어야 한다.
      * @param jsonOption JSON5 파싱 옵션
      */
-    static void parse(Reader reader,CSONElement rootElement, JSONParsingOptions jsonOption) {
+    static void parse(Reader reader,CSONElement rootElement, JsonParsingOptions jsonOption) {
 
         final boolean singleQuote = jsonOption.isAllowSingleQuotes();
         final boolean allowUnquoted = jsonOption.isAllowUnquoted();
         final boolean allowConsecutiveCommas = jsonOption.isAllowConsecutiveCommas();
         final boolean trailingComma = jsonOption.isAllowTrailingComma();
-        final boolean allowComment = jsonOption.isAllowComments();
 
 
 

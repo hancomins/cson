@@ -2,7 +2,7 @@ package com.hancomins.cson.issue;
 
 
 import com.hancomins.cson.CSONObject;
-import com.hancomins.cson.options.ParsingOption;
+import com.hancomins.cson.options.ParsingOptions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,7 +15,7 @@ public class Issues2 {
 
     @Test
     public void test() {
-        CSONObject cson = new CSONObject("{a: '', b: ['']}", ParsingOption.json5());
+        CSONObject cson = new CSONObject("{a: '', b: ['']}", ParsingOptions.json5());
         System.out.println(cson);
         assertEquals("", cson.get("a").toString());
         assertEquals("", cson.getCSONArray("b").getString(0));

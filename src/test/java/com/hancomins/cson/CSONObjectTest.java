@@ -1,7 +1,8 @@
 package com.hancomins.cson;
 
 
-import com.hancomins.cson.options.ParsingOption;
+import com.hancomins.cson.options.JsonParsingOptions;
+import com.hancomins.cson.options.ParsingOptions;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,10 +71,10 @@ public class CSONObjectTest {
 
         JSONObject jsonObject = new JSONObject("{\"key\": \"va \\\" \\n \\r lue\"}");
 
-        CSONObject csonObjectA = new CSONObject("{\"key\": \"va \\\" \\n \\r lue\"}", JSONParsingOptions.json());
+        CSONObject csonObjectA = new CSONObject("{\"key\": \"va \\\" \\n \\r lue\"}", JsonParsingOptions.json());
         System.out.println(csonObjectA.toString());
-        JSONObject jsonObjectA = new JSONObject(csonObjectA.toString(JSONParsingOptions.json()));
-        new CSONObject(csonObjectA.toString(), JSONParsingOptions.json());
+        JSONObject jsonObjectA = new JSONObject(csonObjectA.toString(JsonParsingOptions.json()));
+        new CSONObject(csonObjectA.toString(), JsonParsingOptions.json());
 
         System.out.println("--------------------------------------------------");
 
@@ -83,10 +84,10 @@ public class CSONObjectTest {
         assertEquals(csonObject.toString(), csonObject2.toString());
 
         System.out.println(csonObject.toString());
-        JSONObject jsonObject1 = new JSONObject(csonObject.toString(JSONParsingOptions.json()));
-        assertEquals(csonObject2,new CSONObject(csonObject.toString(JSONParsingOptions.json())));
+        JSONObject jsonObject1 = new JSONObject(csonObject.toString(JsonParsingOptions.json()));
+        assertEquals(csonObject2,new CSONObject(csonObject.toString(JsonParsingOptions.json())));
 
-        JSONParsingOptions jsonParsingOptions = JSONParsingOptions.json().setPretty(true);
+        JsonParsingOptions jsonParsingOptions = JsonParsingOptions.json().setPretty(true);
 
 
         assertEquals(csonObject2.toString(jsonParsingOptions),new CSONObject(csonObject.toString(jsonParsingOptions)).toString(jsonParsingOptions));
@@ -146,10 +147,10 @@ public class CSONObjectTest {
     @Test
     @DisplayName("비어있는 CSONObject 와 CSONArray 파싱 테스트")
     public void emptyCSONObjectAndArrayTest() {
-        ParsingOption<?> parsingOption = CSONObject.getDefaultStringFormatOption();
-        CSONObject.setDefaultStringFormatOption(JSONParsingOptions.json());
-        CSONObject csonObject = new CSONObject("{}", JSONParsingOptions.json());
-        CSONArray csonArray = new CSONArray("[]", JSONParsingOptions.json());
+        ParsingOptions<?> parsingOptions = CSONObject.getDefaultStringFormatOption();
+        CSONObject.setDefaultStringFormatOption(JsonParsingOptions.json());
+        CSONObject csonObject = new CSONObject("{}", JsonParsingOptions.json());
+        CSONArray csonArray = new CSONArray("[]", JsonParsingOptions.json());
 
         assertEquals(0, csonObject.size());
         assertEquals(0, csonArray.size());
@@ -163,7 +164,7 @@ public class CSONObjectTest {
 
         assertEquals("{\"emptyObject\":{},\"emptyArray\":[]}", complexCSONObject.toString());
 
-        CSONObject.setDefaultStringFormatOption(parsingOption);
+        CSONObject.setDefaultStringFormatOption(parsingOptions);
 
 
 
@@ -180,7 +181,7 @@ public class CSONObjectTest {
 
         byte[] buffer = csonObject.getByteArray("byte[]");
         byte[] bufferOrigin = buffer;
-        String jsonString = csonObject.toString(JSONParsingOptions.json());
+        String jsonString = csonObject.toString(JsonParsingOptions.json());
 
 
 
@@ -189,7 +190,7 @@ public class CSONObjectTest {
 
         System.out.println(jsonString);
         String bufferBase64 = "base64," + Base64.getEncoder().encodeToString(buffer);
-        CSONObject compareCSONObject = new CSONObject(jsonString, JSONParsingOptions.json());
+        CSONObject compareCSONObject = new CSONObject(jsonString, JsonParsingOptions.json());
 
 
         assertEquals(1, compareCSONObject.getInt("1"));

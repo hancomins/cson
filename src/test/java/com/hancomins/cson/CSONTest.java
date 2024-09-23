@@ -1,6 +1,7 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.ParsingOption;
+import com.hancomins.cson.options.JsonParsingOptions;
+import com.hancomins.cson.options.ParsingOptions;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +43,7 @@ public class CSONTest {
 
         jsonObject = new JSONObject(jsonObject.toString());
 
-        CSONObject csonObject = new CSONObject(new CSONObject(jsonObject.toString()).toString(JSONParsingOptions.json()), JSONParsingOptions.json());
+        CSONObject csonObject = new CSONObject(new CSONObject(jsonObject.toString()).toString(JsonParsingOptions.json()), JsonParsingOptions.json());
         Set<String> originalKeySet = jsonObject.keySet();
         Set<String> csonKeySet =csonObject.keySet();
         assertEquals(originalKeySet, csonKeySet);
@@ -192,13 +193,13 @@ public class CSONTest {
 
     @Test
     public void booleanInArray() {
-        CSONArray csonArray = new CSONArray(ParsingOption.json5().setPretty(false));
+        CSONArray csonArray = new CSONArray(ParsingOptions.json5().setPretty(false));
         csonArray.add(true);
         csonArray.add(false);
         csonArray.add(true);
         assertEquals(csonArray.toString(), "[true,false,true]");
 
-        CSONObject csonObject = new CSONObject(ParsingOption.json().setPretty(false));
+        CSONObject csonObject = new CSONObject(ParsingOptions.json().setPretty(false));
         csonObject.put("true", true);
         assertEquals(csonObject.toString(), "{\"true\":true}");
 

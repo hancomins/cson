@@ -1,6 +1,7 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.ParsingOption;
+import com.hancomins.cson.options.JsonParsingOptions;
+import com.hancomins.cson.options.ParsingOptions;
 import com.hancomins.cson.options.StringFormatType;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.*;
@@ -29,17 +30,17 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	public static CSONObject fromJson(String value, ParsingOption<?> parsingOption)  {
-		return new CSONObject(value, parsingOption);
+	public static CSONObject fromJson(String value, ParsingOptions<?> parsingOptions)  {
+		return new CSONObject(value, parsingOptions);
 	}
 
 	public static CSONObject fromJson(String value)  {
 		return new CSONObject(value, getDefaultStringFormatOption());
 	}
 
-	public static CSONObject fromJson(Path path, Charset charset, ParsingOption<?> parsingOption) throws IOException {
+	public static CSONObject fromJson(Path path, Charset charset, ParsingOptions<?> parsingOptions) throws IOException {
 		try (Reader reader = Files.newBufferedReader(path, charset)) {
-			return new CSONObject(reader, parsingOption);
+			return new CSONObject(reader, parsingOptions);
 		}
 	}
 
@@ -100,9 +101,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 	@SuppressWarnings("unused")
-	public static CSONObject fromObject(Object obj, ParsingOption<?> parsingOption) {
+	public static CSONObject fromObject(Object obj, ParsingOptions<?> parsingOptions) {
 		CSONObject csonObject = CSONSerializer.toCSONObject(obj);
-		csonObject.setStringFormatOption(parsingOption);
+		csonObject.setStringFormatOption(parsingOptions);
 		return csonObject;
 	}
 
@@ -173,35 +174,35 @@ public class CSONObject extends CSONElement implements Cloneable {
 		reader.close();
 	}
 
-	public CSONObject(ParsingOption<?> parsingOption) {
-		super(ElementType.Object, parsingOption);
+	public CSONObject(ParsingOptions<?> parsingOptions) {
+		super(ElementType.Object, parsingOptions);
 	}
 
-	public CSONObject(String json, ParsingOption<?> options) {
+	public CSONObject(String json, ParsingOptions<?> options) {
 		super(ElementType.Object, options);
 		NoSynchronizedStringReader reader = new NoSynchronizedStringReader(json);
 		parse(reader, options);
 		reader.close();
 	}
-	public CSONObject(Reader reader, ParsingOption<?> options) {
+	public CSONObject(Reader reader, ParsingOptions<?> options) {
 		super(ElementType.Object, options);
 		parse(reader, options);
 	}
 
-	private void parse(Reader stringReader, ParsingOption<?> options) {
+	private void parse(Reader stringReader, ParsingOptions<?> options) {
 		StringFormatType type = options.getFormatType();
-		/*if(JSONParsingOptions.isPureJSONOption(options)) {
+		/*if(JsonParsingOptions.isPureJSONOption(options)) {
 			PureJSONParser.parsePureJSON(stringReader, this, options);
 		} else {*/
-			//JSON5Parser.parsePureJSON(stringReader, this, (JSONParsingOptions)options);
+			//JSON5Parser.parsePureJSON(stringReader, this, (JsonParsingOptions)options);
 
 			//JSON5ParserX
-			//JSON5ParserV parserV = new JSON5ParserV((JSONParsingOptions) options);
+			//JSON5ParserV parserV = new JSON5ParserV((JsonParsingOptions) options);
 			//parserV.parsePureJSON(stringReader, this);
 			//parserV.reset();
 
-			//new( (JSONParsingOptions)options).parsePureJSON(stringReader, this);
-			JSON5ParserX.parse(stringReader, this, (JSONParsingOptions) options);
+			//new( (JsonParsingOptions)options).parsePureJSON(stringReader, this);
+			JSON5ParserX.parse(stringReader, this, (JsonParsingOptions) options);
 
 
 
@@ -1061,7 +1062,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	@Override
-	public void setStringFormatOption(ParsingOption<?> defaultJSONOptions) {
+	public void setStringFormatOption(ParsingOptions<?> defaultJSONOptions) {
 		super.setStringFormatOption(defaultJSONOptions);
 		for(Entry<String, Object> entry : dataMap.entrySet()) {
 			Object obj = entry.getValue();
@@ -1077,13 +1078,13 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return toString(getStringFormatOption());
 	}
 
-	public String toString(ParsingOption<?> parsingOption) {
-		if(parsingOption instanceof JSONParsingOptions) {
-			JSONWriter jsonWriter = new JSONWriter((JSONParsingOptions) parsingOption);
+	public String toString(ParsingOptions<?> parsingOptions) {
+		if(parsingOptions instanceof JsonParsingOptions) {
+			JSONWriter jsonWriter = new JSONWriter((JsonParsingOptions) parsingOptions);
 			write(jsonWriter, true);
 			return jsonWriter.toString();
 		}
-		return toString(JSONParsingOptions.json());
+		return toString(JsonParsingOptions.json());
 
 	}
 
