@@ -8,7 +8,7 @@ public class MutableINumberConversionOption<T> implements IMutableINumberConvers
     private boolean allowHexadecimal = true;
     private boolean leadingZeroOmission = true;
     private boolean allowPositiveSing = true;
-    private boolean ignoreNonNumeric = true;
+    private boolean ignoreNonNumeric = false;
 
 
 

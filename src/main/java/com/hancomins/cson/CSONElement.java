@@ -17,8 +17,10 @@ import java.util.regex.Pattern;
 public abstract  class CSONElement implements Iterable<Object>  {
 
 
-	private static ParsingOptions<?> DEFAULT_PARSING_OPTION = ParsingOptions.json5();
-	private static WritingOptions<?> DEFAULT_WRITING_OPTION = WritingOptions.json();
+
+	private ParsingOptions<?> parsingOptions = ParsingOptions.getDefaultParsingOptions();
+	private WritingOptions<?> writingOptions = WritingOptions.getDefaultWritingOptions();
+
 
 	private static final Pattern BASE64_PREFIX_REPLACE_PATTERN = Pattern.compile("(?i)^base64,");
 	private static final Pattern BASE64_PREFIX_PATTERN = Pattern.compile("^((?i)base64,)([a-zA-Z0-9+/]*={0,2})$");
@@ -30,7 +32,7 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	private byte[] versionRaw = BinaryCSONDataType.VER_RAW;
 	private final ElementType type;
 
-	private ParsingOptions<?> jsonOptions = DEFAULT_PARSING_OPTION;
+
 
 
 	protected boolean allowJsonPathKey = true;
@@ -38,9 +40,19 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	private boolean unknownObjectToString = false;
 
 
-	protected CSONElement(ElementType type, ParsingOptions<?> parsingOptions) {
+	protected CSONElement(ElementType type, ParsingOptions<?> parsingOptions, WritingOptions<?> writingOptions) {
 		this.type = type;
-		this.jsonOptions = parsingOptions;
+		this.parsingOptions = parsingOptions;
+		this.writingOptions = writingOptions;
+	}
+
+	protected CSONElement(ElementType type, WritingOptions<?> writingOptions) {
+		this.type = type;
+		this.writingOptions = writingOptions;
+	}
+
+	protected CSONElement(ElementType type) {
+		this.type = type;
 	}
 
 	protected CSONElement setAllowRawValue(boolean allowRawValue) {
@@ -58,6 +70,12 @@ public abstract  class CSONElement implements Iterable<Object>  {
 		this.unknownObjectToString = unknownObjectToString;
 	}
 
+	public <T extends CSONElement> T setWritingOptions(WritingOptions<?> writingOptions) {
+		this.writingOptions = writingOptions;
+        //noinspection unchecked
+        return (T) this;
+	}
+
 
 	protected boolean isUnknownObjectToString() {
 		return unknownObjectToString;
@@ -68,24 +86,8 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	}
 
 
-	@SuppressWarnings("unused")
-	public static ParsingOptions<?> getDefaultStringFormatOption() {
-		return DEFAULT_PARSING_OPTION;
-	}
-
-
-	@SuppressWarnings("unused")
-	public static void setDefaultStringFormatOption(ParsingOptions<?> defaultJSONOptions) {
-		DEFAULT_PARSING_OPTION = defaultJSONOptions;
-	}
-
-
-	public void setStringFormatOption(ParsingOptions<?> defaultJSONOptions) {
-		this.jsonOptions = defaultJSONOptions;
-	}
-
-	public ParsingOptions<?> getStringFormatOption() {
-		return this.jsonOptions;
+	public WritingOptions<?> getWritingOptions() {
+		return writingOptions;
 	}
 
 
@@ -167,7 +169,7 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	protected abstract void write(JSONWriter writer, boolean root);
 
 
-	public abstract String toString(ParsingOptions<?> option);
+	public abstract String toString(WritingOptions<?> option);
 
 
 	public enum ElementType { Object, Array}

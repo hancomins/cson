@@ -1,8 +1,6 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.JsonParsingOptions;
-import com.hancomins.cson.options.ParsingOptions;
-import com.hancomins.cson.options.StringFormatType;
+import com.hancomins.cson.options.*;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.*;
 
@@ -10,10 +8,6 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -30,80 +24,14 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	public static CSONObject fromJson(String value, ParsingOptions<?> parsingOptions)  {
-		return new CSONObject(value, parsingOptions);
-	}
-
-	public static CSONObject fromJson(String value)  {
-		return new CSONObject(value, getDefaultStringFormatOption());
-	}
-
-	public static CSONObject fromJson(Path path, Charset charset, ParsingOptions<?> parsingOptions) throws IOException {
-		try (Reader reader = Files.newBufferedReader(path, charset)) {
-			return new CSONObject(reader, parsingOptions);
-		}
-	}
-
-	public static CSONObject fromJson(Path path, Charset charset) throws IOException {
-		try (Reader reader = Files.newBufferedReader(path, charset)) {
-			return new CSONObject(reader, getDefaultStringFormatOption());
-		}
-	}
-
-	public static CSONObject fromJson(InputStream inputStream) throws IOException {
-		try(InputStreamReader inputStreamReader = new InputStreamReader(inputStream)) {
-			return new CSONObject(inputStreamReader, getDefaultStringFormatOption());
-		}
-	}
-
-
-	public static CSONObject fromJson(Reader reader) {
-		return new CSONObject(reader, getDefaultStringFormatOption());
-	}
-
-
-	public static CSONObject fromBinaryCSON(Path path) throws IOException {
-		try(InputStream inputStream = Files.newInputStream(path)) {
-			return fromBinaryCSON(inputStream);
-		}
-	}
-
-	public static CSONObject fromBinaryCSON(InputStream inputStream) throws IOException {
-		try {
-			return (CSONObject) BinaryCSONParser.parse(inputStream);
-		} catch (DataReadFailException e) {
-			Throwable cause = e.getCause();
-			if(cause instanceof IOException) {
-				throw (IOException)cause;
-			}
-			throw e;
-		}
-	}
-
-	public static CSONObject fromBinaryCSON(ByteBuffer byteBuffer) {
-		return ((CSONObject)BinaryCSONParser.parse(byteBuffer));
-	}
-
-
-	public static CSONObject fromBinaryCSON(byte[] binaryCSON, int offset, int len) {
-		ByteBuffer byteBuffer = ByteBuffer.wrap(binaryCSON, offset, len);
-		return fromBinaryCSON(byteBuffer);
-	}
-
-	public static CSONObject fromBinaryCSON(byte[] binaryCSON)  {
-		return fromBinaryCSON(binaryCSON, 0, binaryCSON.length);
-	}
-
-
-
 	public static CSONObject fromObject(Object obj) {
 		return CSONSerializer.toCSONObject(obj);
 	}
 
 	@SuppressWarnings("unused")
-	public static CSONObject fromObject(Object obj, ParsingOptions<?> parsingOptions) {
+	public static CSONObject fromObject(Object obj, WritingOptions<?> writingOptions) {
 		CSONObject csonObject = CSONSerializer.toCSONObject(obj);
-		csonObject.setStringFormatOption(parsingOptions);
+		csonObject.setWritingOptions(writingOptions);
 		return csonObject;
 	}
 
@@ -119,7 +47,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	public CSONObject(byte[] binaryCSON) {
-		super(ElementType.Object, getDefaultStringFormatOption());
+		super(ElementType.Object);
 		CSONObject csonObject = (CSONObject) BinaryCSONParser.parse(binaryCSON);
 		this.dataMap = csonObject.dataMap;
 	}
@@ -127,7 +55,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	public CSONObject(byte[] binaryCSON, int offset, int length) {
-		super(ElementType.Object, getDefaultStringFormatOption());
+		super(ElementType.Object);
 		CSONObject csonObject = (CSONObject) BinaryCSONParser.parse(binaryCSON, offset, length);
 		this.dataMap = csonObject.dataMap;
 	}
@@ -168,24 +96,24 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 	public CSONObject(String json) {
-		super(ElementType.Object, getDefaultStringFormatOption());
+		super(ElementType.Object);
 		NoSynchronizedStringReader reader =  new NoSynchronizedStringReader(json);
-		parse(reader, getStringFormatOption());
+		parse(reader, ParsingOptions.getDefaultParsingOptions());
 		reader.close();
 	}
 
-	public CSONObject(ParsingOptions<?> parsingOptions) {
-		super(ElementType.Object, parsingOptions);
+	public CSONObject(WritingOptions<?> writingOptions) {
+		super(ElementType.Object, writingOptions);
 	}
 
 	public CSONObject(String json, ParsingOptions<?> options) {
-		super(ElementType.Object, options);
+		super(ElementType.Object);
 		NoSynchronizedStringReader reader = new NoSynchronizedStringReader(json);
 		parse(reader, options);
 		reader.close();
 	}
 	public CSONObject(Reader reader, ParsingOptions<?> options) {
-		super(ElementType.Object, options);
+		super(ElementType.Object);
 		parse(reader, options);
 	}
 
@@ -216,7 +144,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	public CSONObject() {
-		super(ElementType.Object, getDefaultStringFormatOption());
+		super(ElementType.Object);
 	}
 
 
@@ -263,10 +191,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
-	CSONObject putByParser(String key, Object value) {
+	void putByParser(String key, Object value) {
 		dataMap.put(key, value);
 		lastKeyByParser = key;
-		return this;
 	}
 
 	String getLastPutKeyAndSetNull() {
@@ -473,7 +400,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 			return null;
 		}
 		try {
-			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), false, null);
+			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getWritingOptions(), false, null);
 		} catch (Throwable e) {
 			throw new CSONException(key, csonArray, "List<" + valueType.getTypeName() + ">", e);
 		}
@@ -695,14 +622,15 @@ public class CSONObject extends CSONElement implements Cloneable {
 			if(csonArray == null) {
 				return null;
 			}
-			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), true, defaultValue);
+			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getWritingOptions(), true, defaultValue);
 		} catch (Exception e) {
 			if(defaultValue != null) {
 				List<T> result = new ArrayList<>();
 				result.add(defaultValue);
 				return result;
 			} else {
-				return Collections.EMPTY_LIST;
+                //noinspection unchecked
+                return Collections.EMPTY_LIST;
 			}
 		}
 	}
@@ -814,7 +742,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 	 * @deprecated use {@link #optInt(String)} instead
 	 *
 	 */
-	@Deprecated
+	@SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
 	public int getInteger(String key) {
 		return getInt(key);
 	}
@@ -1062,29 +991,18 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	@Override
-	public void setStringFormatOption(ParsingOptions<?> defaultJSONOptions) {
-		super.setStringFormatOption(defaultJSONOptions);
-		for(Entry<String, Object> entry : dataMap.entrySet()) {
-			Object obj = entry.getValue();
-			if(obj instanceof CSONElement) {
-				((CSONElement) obj).setStringFormatOption(defaultJSONOptions);
-			}
-		}
+	public String toString() {
+		return toString(getWritingOptions());
 	}
-
 
 	@Override
-	public String toString() {
-		return toString(getStringFormatOption());
-	}
-
-	public String toString(ParsingOptions<?> parsingOptions) {
-		if(parsingOptions instanceof JsonParsingOptions) {
-			JSONWriter jsonWriter = new JSONWriter((JsonParsingOptions) parsingOptions);
+	public String toString(WritingOptions<?> writingOptions) {
+		if(writingOptions instanceof JsonWritingOptions) {
+			JSONWriter jsonWriter = new JSONWriter((JsonWritingOptions)writingOptions);
 			write(jsonWriter, true);
 			return jsonWriter.toString();
 		}
-		return toString(JsonParsingOptions.json());
+		return toString();
 
 	}
 

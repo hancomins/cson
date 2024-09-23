@@ -34,12 +34,12 @@ public class DataConverter {
 		}
 		if(allowFromData && value instanceof String) {
 			try {
-				return CSONArray.fromJson((String) value);
+				return new CSONArray((String) value);
 			} catch (CSONException ignored) {}
 		}
 		if(allowFromData && value instanceof byte[]) {
 			try {
-				return CSONArray.fromBinaryCSON((byte[]) value);
+				return new CSONArray((byte[]) value);
 			} catch (CSONException ignored) {}
 		}
 		return null;
@@ -51,12 +51,12 @@ public class DataConverter {
 		}
 		if(allowFromData && value instanceof String) {
 			try {
-				return CSONObject.fromJson((String) value);
+				return new CSONObject((String) value);
 			} catch (CSONException ignored) {}
 		}
 		if(allowFromData && value instanceof byte[]) {
 			try {
-				return CSONObject.fromBinaryCSON((byte[]) value);
+				return new CSONObject((byte[]) value);
 			} catch (CSONException ignored) {}
 		}
 
@@ -369,7 +369,7 @@ public class DataConverter {
 			}
 		}
 		else if(value instanceof String) {
-			ValueBuffer valueBuffer = new ValueBuffer(INumberConversionOption.DEFAULT);
+			ValueBuffer valueBuffer = new ValueBuffer(INumberConversionOption.DEFAULT_NUMBER_CONVERSION_OPTION);
 			valueBuffer.append((String)value);
 			Object numberValue = valueBuffer.parseValue();
 			if(numberValue instanceof Number) {

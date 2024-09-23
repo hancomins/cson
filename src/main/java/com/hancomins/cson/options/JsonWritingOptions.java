@@ -1,6 +1,6 @@
 package com.hancomins.cson.options;
 
-public class JsonWritingOptions extends WritingOptions<JsonWritingOptions> {
+public class JsonWritingOptions extends MutableINumberConversionOption<JsonWritingOptions> implements WritingOptions<JsonWritingOptions> {
     private boolean pretty = false;
     private boolean skipComments = false;
     private boolean isUnprettyArray = false;
@@ -61,6 +61,14 @@ public class JsonWritingOptions extends WritingOptions<JsonWritingOptions> {
 
     public static JsonWritingOptions prettyJson() {
         JsonWritingOptions jsonWritingOptions = JsonWritingOptions.json();
+        jsonWritingOptions.setPretty(true);
+        jsonWritingOptions.setSpace(4);
+        jsonWritingOptions.setUnprettyArray(false);
+        return jsonWritingOptions;
+    }
+
+    public static JsonWritingOptions prettyJson5() {
+        JsonWritingOptions jsonWritingOptions = JsonWritingOptions.json5();
         jsonWritingOptions.setPretty(true);
         jsonWritingOptions.setSpace(4);
         jsonWritingOptions.setUnprettyArray(false);

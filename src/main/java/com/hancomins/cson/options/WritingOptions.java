@@ -1,20 +1,26 @@
 package com.hancomins.cson.options;
 
-public class WritingOptions<T> extends MutableINumberConversionOption<T> {
+public interface WritingOptions<T> extends IMutableINumberConversionOption<T> {
 
-    protected WritingOptions() {
+
+    static void setDefaultWritingOptions(WritingOptions<?> options) {
+        DefaultOptions.DEFAULT_WRITING_OPTIONS = options;
+    }
+
+    static WritingOptions<?> getDefaultWritingOptions() {
+        return DefaultOptions.DEFAULT_WRITING_OPTIONS;
     }
 
 
-    public static JsonWritingOptions json5() {
+    static JsonWritingOptions json5() {
         return JsonWritingOptions.json5();
     }
 
-    public static JsonWritingOptions json() {
+    static JsonWritingOptions json() {
         return JsonWritingOptions.json();
     }
 
-    public static JsonWritingOptions jsonPretty() {
+    static JsonWritingOptions jsonPretty() {
         return JsonWritingOptions.prettyJson();
     }
 

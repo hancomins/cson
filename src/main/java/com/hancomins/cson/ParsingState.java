@@ -57,7 +57,7 @@ public enum ParsingState {
 
 
 
-    Number,
+    //Number,
 
     InValueUnquoted,
 

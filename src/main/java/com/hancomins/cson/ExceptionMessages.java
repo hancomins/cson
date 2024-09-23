@@ -27,6 +27,16 @@ public class ExceptionMessages {
 
     private static final String[] KEY_NOT_FOUND = {"Key not found in JSON string at line %d, position %d.", "문자열의 %d번째 줄 %d번째 위치에서 키를 찾을 수 없습니다."};
 
+    // { 또는 [ 를 찾을 수 없습니다.
+    public static final String[] JSON5_BRACKET_NOT_FOUND = {"Cannot find '{' or '[' in JSON string at line %d, position %d.", "문자열의 %d번째 줄 %d번째 위치에서 '{' 또는 '['를 찾을 수 없습니다."};
+
+    static String formatMessage(String[] message, Object... args) {
+        String localeMessage = message[localeIndex];
+        return String.format(localeMessage, args);
+
+    }
+
+
     static String getCSONObjectValueConvertError(String key, Object value, String type) {
         return String.format(OBJECT_VALUE_CONVERT_ERROR[localeIndex], key, value, type);
     }

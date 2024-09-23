@@ -6,10 +6,13 @@ public interface ParsingOptions<T> extends IMutableINumberConversionOption<T> {
 
 
 
-    //ParsingOptions<?> //DEFAULT_PARSING_OPTIONS = ParsingOptions.json5();
 
     static void setDefaultParsingOptions(ParsingOptions<?> options) {
-        DEFAULT_PARSING_OPTIONS = options;
+        DefaultOptions.DEFAULT_PARSING_OPTIONS = options;
+    }
+
+    static ParsingOptions<?> getDefaultParsingOptions() {
+        return DefaultOptions.DEFAULT_PARSING_OPTIONS;
     }
 
 

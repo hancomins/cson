@@ -64,6 +64,14 @@ public class ArrayStack<T>  {
 
 
 
+    public void clear() {
+        for(int i = 0; i <= top; ++i) {
+            stack[i] = null;
+        }
+        top = -1;
+    }
+
+
 
 
 

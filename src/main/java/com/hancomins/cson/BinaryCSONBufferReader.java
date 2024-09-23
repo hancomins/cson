@@ -306,7 +306,7 @@ class BinaryCSONBufferReader {
 	}
 	
 	
-	public static final byte[] readBuffer(byte type,byte rawType, DataReader byteBuffer) {
+	public static byte[] readBuffer(byte type, byte rawType, DataReader byteBuffer) {
 		switch(rawType) {
 			case BinaryCSONDataType.TYPE_RAW_MIDDLE :
 				int middleLenFirst = ((int)(type & 0x0F) << 8); 

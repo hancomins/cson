@@ -2,22 +2,15 @@ package com.hancomins.cson;
 
 
 
-import com.hancomins.cson.options.JsonParsingOptions;
-import com.hancomins.cson.options.ParsingOptions;
-import com.hancomins.cson.options.StringFormatType;
+import com.hancomins.cson.options.*;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.DataConverter;
-import com.hancomins.cson.util.DataReadFailException;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
 import com.hancomins.cson.util.NullValue;
 
 import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 
@@ -27,69 +20,62 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 	private ArrayList<Object> list = new ArrayList<>();
 	private ArrayList<CommentObject> commentObjectList = null;
 
-	private ParsingOptions<?> parsingOptions = ParsingOptions.DEFAULT;
-
-
 
 	public static CSONArray fromCollection(Collection<?> collection) {
 		return CSONSerializer.collectionToCSONArray(collection);
 	}
 
+	public static CSONArray fromCollection(Collection<?> collection, WritingOptions<?> writingOptions) {
+		CSONArray csonArray = CSONSerializer.collectionToCSONArray(collection);
+		csonArray.setWritingOptions(writingOptions);
+		return csonArray;
+	}
+
 	public static <T> Collection<T> toCollection(CSONArray csonArray, Class<T> clazz) {
-		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), false, null);
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getWritingOptions(), false, null);
 	}
 
 	public static <T> Collection<T> toCollection(CSONArray csonArray, Class<T> clazz, boolean ignoreError) {
-		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getStringFormatOption(), ignoreError, null);
+		return CSONSerializer.csonArrayToList(csonArray, clazz, csonArray.getWritingOptions(), ignoreError, null);
 	}
 
 
 	public CSONArray() {
-		super(ElementType.Array, getDefaultStringFormatOption());
+		super(ElementType.Array);
 	}
 
 
 
 	public CSONArray(Reader stringSource) throws CSONException {
-		super(ElementType.Array, getDefaultStringFormatOption());
-		parse(stringSource, getStringFormatOption());
+		super(ElementType.Array);
+		parse(stringSource, ParsingOptions.getDefaultParsingOptions());
 	}
 
 	public CSONArray(Reader source, ParsingOptions<?> options) throws CSONException {
-		super(ElementType.Array,options);
+		super(ElementType.Array);
 		parse(source, options);
 	}
 
 
 	public CSONArray(String jsonArray) throws CSONException {
-		super(ElementType.Array,getDefaultStringFormatOption());
+		super(ElementType.Array);
 		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(jsonArray);
-		parse(noSynchronizedStringReader, getStringFormatOption());
+		parse(noSynchronizedStringReader, ParsingOptions.getDefaultParsingOptions());
 		noSynchronizedStringReader.close();;
 	}
 
 	public CSONArray(String jsonArray, ParsingOptions<?> options) throws CSONException {
-		super(ElementType.Array,options);
+		super(ElementType.Array);
 		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(jsonArray);
 		parse(noSynchronizedStringReader, options);
 		noSynchronizedStringReader.close();
 	}
 
 
-	public CSONArray(ParsingOptions<?> parsingOptions) {
-		super(ElementType.Object, parsingOptions);
-	}
 
+	public CSONArray(WritingOptions<?> writingOptions) {
 
-	public CSONArray(byte[] binary,int offset, int len) {
-		super(ElementType.Array, getDefaultStringFormatOption());
-		this.list = ((CSONArray) BinaryCSONParser.parse(binary, offset, len)).list;
-	}
-
-
-	public CSONArray(JsonParsingOptions jsonParsingOptions) {
-
-		super(ElementType.Array, jsonParsingOptions);
+		super(ElementType.Array, writingOptions);
 	}
 
 
@@ -106,18 +92,24 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 	public CSONArray(int capacity) {
-		super(ElementType.Array, getDefaultStringFormatOption());
+		super(ElementType.Array);
 		this.list.ensureCapacity(capacity);
 	}
 
 	public CSONArray(Collection<?> objects) {
-		super(ElementType.Array, getDefaultStringFormatOption());
+		super(ElementType.Array);
 		list.addAll(objects);
 	}
 
 	public CSONArray(byte[] binaryJson) {
-		super(ElementType.Array, getDefaultStringFormatOption());
+		super(ElementType.Array);
 		this.list = ((CSONArray) BinaryCSONParser.parse(binaryJson)).list;
+	}
+
+
+	public CSONArray(byte[] binary,int offset, int len) {
+		super(ElementType.Array);
+		this.list = ((CSONArray) BinaryCSONParser.parse(binary, offset, len)).list;
 	}
 
 
@@ -438,16 +430,6 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 
 
-	@Override
-	public void setStringFormatOption(ParsingOptions<?> defaultJSONOptions) {
-		super.setStringFormatOption(defaultJSONOptions);
-		for(Object obj : list) {
-			if(obj instanceof CSONElement) {
-				((CSONElement)obj).setStringFormatOption(defaultJSONOptions);
-			}
-		}
-	}
-
 
 
 
@@ -618,7 +600,8 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 			return null;
 		}
 		try {
-			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), false, null);
+			
+			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getWritingOptions(), false, null);
 		} catch (Throwable e) {
 			throw new CSONException(index, csonArray, "List<" + valueType.getTypeName() + ">", e);
 		}
@@ -849,7 +832,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 			if(csonArray == null) {
 				return null;
 			}
-			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getStringFormatOption(), true, defaultValue);
+			return CSONSerializer.csonArrayToList(csonArray, valueType, csonArray.getWritingOptions(), true, defaultValue);
 		} catch (Exception e) {
 			if(defaultValue != null) {
 				List<T> result = new ArrayList<>();
@@ -1134,16 +1117,16 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 
 	@Override
 	public String toString() {
-		return toString(getStringFormatOption());
+		return toString(getWritingOptions());
 	}
 
-	public String toString(ParsingOptions<?> parsingOptions) {
-		if(parsingOptions instanceof JsonParsingOptions) {
-			JSONWriter jsonWriter  = new JSONWriter((JsonParsingOptions) parsingOptions);
+	public String toString(WritingOptions<?> writingOptions) {
+		if(writingOptions instanceof JsonWritingOptions) {
+			JSONWriter jsonWriter  = new JSONWriter((JsonWritingOptions)writingOptions);
 			write(jsonWriter, true);
 			return jsonWriter.toString();
 		}
-		return this.toString(ParsingOptions.json());
+		return this.toString();
 	}
 
 
