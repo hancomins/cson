@@ -86,7 +86,7 @@ final class JSON5ParserX {
         CSONElement parentElement = null;
 
 
-        CharacterBuffer keyBuffer_ = new CharacterBuffer(16);
+        CharacterBuffer keyBuffer_ = new CharacterBuffer(128);
         ValueBuffer valueBuffer = new ValueBuffer(keyBuffer_,jsonOption);
         ArrayStack<CSONElement> csonElements = new ArrayStack<>();
 

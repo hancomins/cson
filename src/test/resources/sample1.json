@@ -295,10 +295,10 @@
           "hospital": {
             "name": "Anytown General Hospital",
             "address": {
-              "street": "456 Hospital St",
-              "city": "Anytown",
-              "state": "CA",
-              "postalCode": "12345"
+              street: "456 Hospital St",
+              city: "Anytown",
+              state: "CA",
+              postalCode: "12345"
             }
           }
         }

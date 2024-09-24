@@ -41,6 +41,7 @@ public class ValueBuffer {
 
 
 
+
     }
 
 
@@ -109,6 +110,9 @@ public class ValueBuffer {
         }
     }
 
+
+
+
     public ValueBuffer reset() {
 
         characterBuffer.reset();
@@ -126,6 +130,8 @@ public class ValueBuffer {
         numberBuffer.reset();
         return this;
     }
+
+
 
 
 
@@ -347,7 +353,7 @@ public class ValueBuffer {
                 }
             }
             if(onlyPrimitiveValue) {
-                throw new NumberFormatException("Invalid number format VALUE: " + value);
+                //throw new NumberFormatException("Invalid number format VALUE: " + value);
             }
 
 
