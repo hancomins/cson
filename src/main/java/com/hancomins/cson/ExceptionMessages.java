@@ -27,13 +27,20 @@ public class ExceptionMessages {
 
     private static final String[] KEY_NOT_FOUND = {"Key not found in JSON string at line %d, position %d.", "문자열의 %d번째 줄 %d번째 위치에서 키를 찾을 수 없습니다."};
 
+
+    public static final String[] STRING_READ_ERROR = {"An error occurred while reading the string.", "문자열을 읽는중 에러가 발생하였습니다."};
+
     // { 또는 [ 를 찾을 수 없습니다.
-    public static final String[] JSON5_BRACKET_NOT_FOUND = {"Cannot find '{' or '[' in JSON string at line %d, position %d.", "문자열의 %d번째 줄 %d번째 위치에서 '{' 또는 '['를 찾을 수 없습니다."};
+    public static final String[] JSON5_BRACKET_NOT_FOUND = {"Cannot find '{' or '[' in JSON string.", " '{' 또는 '['를 찾을 수 없습니다."};
+
+    public static final String[] END_OF_STREAM = {"Unexpected end of stream", "예상치 못한 스트림의 끝입니다."};
+
+    public static final String[] UNEXPECTED_TOKEN_LONG = {"Unexpected token '%c'. One of \"%s\" is expected.", "예상치 못한 토큰 '%c'. \"%s\" 중에 하나가 와야합니다."};
+    public static final String[] UNEXPECTED_TOKEN = {"Unexpected token '%c'.", "예상치 못한 토큰 '%c'." };
 
     static String formatMessage(String[] message, Object... args) {
         String localeMessage = message[localeIndex];
         return String.format(localeMessage, args);
-
     }
 
 

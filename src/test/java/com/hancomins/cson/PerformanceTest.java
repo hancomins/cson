@@ -65,7 +65,7 @@ public class PerformanceTest {
 
 
            //JSONObject jsonObject = new JSONObject();
-            CSONObject csonObject = new CSONObject();
+            //CSONObject csonObject = new CSONObject();
 
         }
         System.out.println("Time Create: " + (System.currentTimeMillis() - startCreate) + "ms");
@@ -80,10 +80,9 @@ public class PerformanceTest {
                 //JSONArray jsonArray = new JSONArray(json);
                 //CSONArray csonArray = new CSONArray(json);
 
-                JSONObject jsonObject = new JSONObject(json);
-                //CSONObject csonObject = new CSONObject(json);
+                //JSONObject jsonObject = new JSONObject(json);
+                CSONObject csonObject = new CSONObject(json);
 
-                //jsonObject.toString();
 
 
             }

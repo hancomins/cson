@@ -44,38 +44,6 @@ public class JSON5ParserX {
 
 
 
-    /*public static <T extends CSONElement> T parse(Reader reader, JsonParsingOptions jsonOption) {
-        //noinspection unchecked
-        return (T) parse(reader, null, jsonOption);
-    }
-
-    public static CSONObject parseObject(Reader reader, JsonParsingOptions jsonOption) {
-        CSONElement csonElement = parse(reader, null, jsonOption);
-        if(csonElement instanceof CSONObject) {
-            return (CSONObject)csonElement;
-        } else {
-            CSONObject csonObject = new CSONObject(csonElement.getWritingOptions());
-            csonObject.putByParser("array", csonElement);
-            return csonObject;
-        }
-    }
-
-    public static CSONArray parseArray(Reader reader, JsonParsingOptions jsonOption) {
-        CSONElement csonElement = parse(reader, null, jsonOption);
-        if(csonElement instanceof CSONArray) {
-            return (CSONArray) csonElement;
-        } else {
-            CSONArray csonArray = new CSONArray(csonElement.getWritingOptions());
-            csonArray.addByParser(csonElement);
-            return csonArray;
-        }
-
-    }
-
-
-*/
-
-
     private CSONElement rootElement;
 
     boolean isJSON5 = false;
@@ -87,14 +55,8 @@ public class JSON5ParserX {
 
         try {
             int v;
-            PREV_LOOP:
             while((v = reader.read()) != -1) {
                 char c = (char)v;
-
-
-                if(c == 0) break;
-
-
 
                 switch (parsingState) {
                     case Open:
@@ -141,12 +103,13 @@ public class JSON5ParserX {
                 }
             }
 
+            // todo : parsingState 가 Close 가 아닌 경우 예외 처리.
             if(parsingState != ParsingState.Close) {
-                throw new CSONParseException("Unexpected end of stream");
+                throw new CSONParseException("Unexpected end of stream", line, index);
             }
 
         } catch (IOException e) {
-            throw new CSONParseException(e.getMessage());
+            throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.STRING_READ_ERROR), line, index, e);
         }
 
         isJSON5 = isJSON5 || hasComment;
@@ -176,7 +139,7 @@ public class JSON5ParserX {
                 csonElementStack.push(rootElement);
                 break;
             default:
-                throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.JSON5_BRACKET_NOT_FOUND, line, index));
+                throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.JSON5_BRACKET_NOT_FOUND), line, index);
         }
     }
 
@@ -220,7 +183,8 @@ public class JSON5ParserX {
                 startParsingCommentMode();
                 break;
             default:
-                throw new CSONParseException("Invalid JSON5 document");
+                throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.UNEXPECTED_TOKEN_LONG, " : / "), line, index);
+
         }
     }
 
@@ -252,7 +216,7 @@ public class JSON5ParserX {
         c = skipSpace(reader, c);
         switch (c) {
             case '\0':
-                throw new CSONParseException("Unexpected end of stream");
+                throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.END_OF_STREAM), line, index);
             case '\'':
                 isJSON5 = true;
             case '"':
@@ -272,7 +236,7 @@ public class JSON5ParserX {
                 startParsingCommentMode();
                 break;
             case ',':
-                throw new CSONParseException("Invalid JSON5 document");
+                throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.UNEXPECTED_TOKEN, c) , line, index);
             default:
                 parsingState = ParsingState.InValueUnquoted;
                 c = skipSpace(reader, c);
@@ -295,7 +259,7 @@ public class JSON5ParserX {
                 startParsingCommentMode();
                 break;
             default:
-                throw new CSONParseException("Invalid JSON5 document");
+                throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.UNEXPECTED_TOKEN_LONG, current, ", } /") , line, index);
         }
     }
 
@@ -312,7 +276,7 @@ public class JSON5ParserX {
                 startParsingCommentMode();
                 break;
             default:
-                throw new CSONParseException("Invalid JSON5 document");
+                throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.UNEXPECTED_TOKEN_LONG, current, ", ] /") , line, index);
         }
 
     }
@@ -367,14 +331,14 @@ public class JSON5ParserX {
                 startParsingCommentMode();
                 break;
             case ',':
-                throw new CSONParseException("Invalid JSON5 document");
+                throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.UNEXPECTED_TOKEN, current) , line, index);
             default:
                 if(allowUnquoted) {
                     isJSON5 = true;
                     parsingState = ParsingState.InKeyUnquoted;
-                    valueBuffer.setOnlyString('\0').append(current);
+                    valueBuffer.append(current);
                 } else {
-                    throw new CSONParseException("Invalid JSON5 document");
+                    throw new CSONParseException("Invalid JSON5 document", line, index);
                 }
                 break;
         }
@@ -383,7 +347,7 @@ public class JSON5ParserX {
     private void inStateComment(Reader reader, char current) {
         if(commentBuffer == null) {
             // 코멘트를 지원하지 않는 예외.
-            throw new CSONParseException("Invalid JSON5 document");
+            throw new CSONParseException("Invalid JSON5 document", line, index);
         }
         CommentBuffer.AppendResult result = commentBuffer.append(current);
         ParsingState lastParsingState = null;
@@ -396,7 +360,7 @@ public class JSON5ParserX {
                     valueBuffer.append(current);
                     return;
                 } else {
-                    throw new CSONParseException("Invalid JSON5 document");
+                    throw new CSONParseException("Invalid JSON5 document", line, index);
                 }
             case InComment:
                 lastParsingState = commentBuffer.lastParsingState();
@@ -483,7 +447,7 @@ public class JSON5ParserX {
     private void startParsingCommentMode() {
         if(commentBuffer == null) {
             if(!allowComment) {
-                throw new CSONParseException("Invalid JSON5 document");
+                throw new CSONParseException("Invalid JSON5 document", line, index);
             }
             hasComment = true;
             commentBuffer = new CommentBuffer();
@@ -510,9 +474,9 @@ public class JSON5ParserX {
     }
 
 
-    private static ParsingState startParsingCommentMode(CommentBuffer commentBuffer, ParsingState currentParsingState) {
+    private ParsingState startParsingCommentMode(CommentBuffer commentBuffer, ParsingState currentParsingState) {
         if(commentBuffer == null) {
-            throw new CSONParseException("Invalid JSON5 document");
+            throw new CSONParseException("Invalid JSON5 document", line, index);
         }
         return commentBuffer.start(currentParsingState);
     }
@@ -597,7 +561,7 @@ public class JSON5ParserX {
                 if(ignoreNonNumeric) {
                     inValue = NullValue.Instance;
                 } else {
-                    throw new CSONParseException("Invalid JSON5 document");
+                    throw new CSONParseException("Invalid JSON5 document", line, index);
                 }
             }
         }
