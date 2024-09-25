@@ -82,6 +82,9 @@ public class PerformanceTest {
 
                 //JSONObject jsonObject = new JSONObject(json);
                 CSONObject csonObject = new CSONObject(json);
+                if(i == 0 && count == 0) {
+                    System.out.println(csonObject.toString());
+                }
 
 
 

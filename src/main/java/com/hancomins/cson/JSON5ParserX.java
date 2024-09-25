@@ -34,7 +34,7 @@ public class JSON5ParserX {
     private final boolean allowComment;
     private final boolean ignoreNonNumeric;
 
-    public JSON5ParserX(JsonParsingOptions jsonOption) {
+    private JSON5ParserX(JsonParsingOptions jsonOption) {
         this.allowUnquoted = jsonOption.isAllowUnquoted();
         this.allowComment = jsonOption.isAllowComment();
         this.ignoreNonNumeric = jsonOption.isIgnoreNonNumeric();
@@ -49,7 +49,15 @@ public class JSON5ParserX {
     boolean isJSON5 = false;
     boolean hasComment = false;
 
-    public CSONElement parse(Reader reader,CSONElement rootElement_) {
+
+    public static CSONElement parse(Reader reader, CSONElement rootElement, JsonParsingOptions jsonOption) {
+        JSON5ParserX parser = new JSON5ParserX(jsonOption);
+        parser.doParse(reader, rootElement);
+        return rootElement;
+    }
+
+
+    private void doParse(Reader reader, CSONElement rootElement_) {
 
         this.rootElement = rootElement_;
 
@@ -98,7 +106,7 @@ public class JSON5ParserX {
                         inStateWaitNextStoreSeparatorInArray(reader,c);
                         break;
                     case Comment:
-                        inStateComment(reader,c);
+                        inStateComment(c);
                         break;
                 }
             }
@@ -115,7 +123,6 @@ public class JSON5ParserX {
         isJSON5 = isJSON5 || hasComment;
         rootElement.setWritingOptions(isJSON5 ?  (hasComment ? JsonWritingOptions.json5() :  JsonWritingOptions.prettyJson5()) : JsonWritingOptions.json());
 
-        return rootElement;
     }
 
     private void inStateOpen(Reader reader, char c) throws IOException {
@@ -338,13 +345,13 @@ public class JSON5ParserX {
                     parsingState = ParsingState.InKeyUnquoted;
                     valueBuffer.append(current);
                 } else {
-                    throw new CSONParseException("Invalid JSON5 document", line, index);
+                    throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.UNEXPECTED_TOKEN, current) , line, index);
                 }
                 break;
         }
     }
 
-    private void inStateComment(Reader reader, char current) {
+    private void inStateComment(char current) {
         if(commentBuffer == null) {
             // 코멘트를 지원하지 않는 예외.
             throw new CSONParseException("Invalid JSON5 document", line, index);
@@ -360,7 +367,7 @@ public class JSON5ParserX {
                     valueBuffer.append(current);
                     return;
                 } else {
-                    throw new CSONParseException("Invalid JSON5 document", line, index);
+                    throw new CSONParseException(ExceptionMessages.formatMessage(ExceptionMessages.UNEXPECTED_TOKEN, current) , line, index);
                 }
             case InComment:
                 lastParsingState = commentBuffer.lastParsingState();
@@ -476,7 +483,7 @@ public class JSON5ParserX {
 
     private ParsingState startParsingCommentMode(CommentBuffer commentBuffer, ParsingState currentParsingState) {
         if(commentBuffer == null) {
-            throw new CSONParseException("Invalid JSON5 document", line, index);
+            throw new CSONParseException("Comment unsupported", line, index);
         }
         return commentBuffer.start(currentParsingState);
     }
@@ -532,17 +539,6 @@ public class JSON5ParserX {
         } else {
             return ParsingState.WaitKey;
         }
-    }
-
-    private static boolean isNotSpace(char c) {
-        switch (c) {
-            case '\n':
-            case '\r':
-            case '\t':
-            case ' ':
-                return false;
-        }
-        return true;
     }
 
     /**

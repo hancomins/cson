@@ -86,7 +86,7 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		} else {*/
 			//new JSONParser(new JSONTokener(stringReader, (JsonParsingOptions)options)).parseArray(this);
 			//new JSON5ParserV((JsonParsingOptions) options).parsePureJSON(stringReader, this);
-			new JSON5ParserX((JsonParsingOptions)options).parse(stringReader, this);
+			 JSON5ParserX.parse(stringReader, this, (JsonParsingOptions) options);
 
 		//}
 	}

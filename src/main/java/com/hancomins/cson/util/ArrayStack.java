@@ -25,16 +25,31 @@ public class ArrayStack<T>  {
         return this;
     }
 
-    @SuppressWarnings("unchecked")
+
     public T pop() {
-        if(top < 0) {
+        T value = poll();
+        if(value == null) {
             throw new EmptyStackException();
+        }
+        return value;
+    }
+
+    @SuppressWarnings("unchecked")
+    public T poll() {
+        if(top < 0) {
+            return null;
         }
         T value = (T)stack[top];
         stack[top] = null;
         --top;
         return value;
     }
+
+
+
+
+
+    // This method is not used in the project
 
     public boolean isEmpty() {
         return top < 0;
@@ -44,6 +59,14 @@ public class ArrayStack<T>  {
     public T peek() {
         if(top < 0) {
             throw new EmptyStackException();
+        }
+        return (T)stack[top];
+    }
+
+    @SuppressWarnings("unchecked")
+    public T top() {
+        if(top < 0) {
+            return null;
         }
         return (T)stack[top];
     }

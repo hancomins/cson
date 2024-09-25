@@ -131,7 +131,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 			//new( (JsonParsingOptions)options).parsePureJSON(stringReader, this);
 
-		new JSON5ParserX((JsonParsingOptions)options).parse(stringReader, this);
+			JSON5ParserX.parse(stringReader, this, (JsonParsingOptions) options);
 
 
 

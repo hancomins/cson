@@ -95,7 +95,7 @@ public class JSONWriter {
 	private String getAfterComment() {
 		if(!isComment) return null;
 		if(currentKeyValueCommentObjects != null &&  !currentKeyValueCommentObjects.isEmpty()) {
-			CommentObject commentObject = currentKeyValueCommentObjects.pop();
+			CommentObject commentObject = currentKeyValueCommentObjects.poll();
 			String afterComment = commentObject.getTrailingComment();
 			if (afterComment == null) {
 				return null;
@@ -115,7 +115,7 @@ public class JSONWriter {
 	private void writeBeforeComment(int type) {
 		if(!isComment) return;
 		if(currentKeyValueCommentObjects != null && !currentKeyValueCommentObjects.isEmpty()) {
-			CommentObject commentObject = currentKeyValueCommentObjects.peek();
+			CommentObject commentObject = currentKeyValueCommentObjects.top();
 			String beforeComment  = commentObject.getLeadingComment();
 			if(beforeComment == null) {
 				return;
@@ -1001,19 +1001,19 @@ public class JSONWriter {
 				if(!skipClose) {
 
 
-					currentElement = elementStack.pop();
+					currentElement = elementStack.poll();
 					writer.closeObject(currentElement instanceof CSONArray);
-					currentIter = iteratorStack.pop();
-					iteratorCount = iteratorCountStack.pop();
+					currentIter = iteratorStack.poll();
+					iteratorCount = iteratorCountStack.poll();
 
 
 					if(writer.isComment) {
 
 						// todo 코드 중복 풀어야함.
 						if(!keyValueCommentObjectStack.isEmpty()) {
-							ArrayStack<CommentObject> commentObjects = keyValueCommentObjectStack.peek();
+							ArrayStack<CommentObject> commentObjects = keyValueCommentObjectStack.top();
 							if(!commentObjects.isEmpty()) {
-								CommentObject commentObject = commentObjects.pop();
+								CommentObject commentObject = commentObjects.poll();
 								String afterComment = commentObject.getTrailingComment();
 								if(afterComment != null && !afterComment.isEmpty()) {
 									writer.writeComment(afterComment, COMMENT_SLASH_STAR);
@@ -1021,8 +1021,8 @@ public class JSONWriter {
 							}
 						}
 
-						keyValueCommentObjectStack.pop();
-						writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.pop();
+						keyValueCommentObjectStack.poll();
+						writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.poll();
 						if (writer.currentKeyValueCommentObjects == null) {
 							writer.currentKeyValueCommentObjects = new ArrayStack<>();
 						}
@@ -1063,7 +1063,7 @@ public class JSONWriter {
 						if(allowComment) {
 							String beforeComment = null;
 							if(writer.currentKeyValueCommentObjects != null) {
-								CommentObject commentObject = writer.currentKeyValueCommentObjects.peek();
+								CommentObject commentObject = writer.currentKeyValueCommentObjects.top();
 								if(commentObject != null) {
 									beforeComment = commentObject.getLeadingComment();
 								}
@@ -1107,15 +1107,15 @@ public class JSONWriter {
 				}
 				if(!skipClose) {
 					writer.closeArray();
-					currentIter = iteratorStack.pop();
-					currentElement = elementStack.pop();
-					iteratorCount = iteratorCountStack.pop();
+					currentIter = iteratorStack.poll();
+					currentElement = elementStack.poll();
+					iteratorCount = iteratorCountStack.poll();
 
 					// todo 코드 중복 풀어야함.
 					if(allowComment && !keyValueCommentObjectStack.isEmpty()) {
-						ArrayStack<CommentObject> commentObjects = keyValueCommentObjectStack.peek();
+						ArrayStack<CommentObject> commentObjects = keyValueCommentObjectStack.top();
 						if(!commentObjects.isEmpty()) {
-							CommentObject commentObject = commentObjects.peek();
+							CommentObject commentObject = commentObjects.top();
 							String afterComment = commentObject.getTrailingComment();
 							if(afterComment != null && !afterComment.isEmpty()) {
 								writer.writeComment(afterComment, COMMENT_SLASH_STAR);
@@ -1123,8 +1123,8 @@ public class JSONWriter {
 						}
 					}
 
-					keyValueCommentObjectStack.pop();
-					writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.pop();
+					keyValueCommentObjectStack.poll();
+					writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.poll();
 					lastClosed = true;
 				}
 				skipClose = false;
