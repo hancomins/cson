@@ -172,6 +172,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 	private void copyHeadTailCommentToValueObject(String key, Object obj) {
 		if(keyValueCommentMap != null && obj instanceof CSONElement && !keyValueCommentMap.isEmpty()) {
 			KeyValueCommentObject keyValueCommentObject = keyValueCommentMap.get(key);
+			if(keyValueCommentObject == null) return;
 			CommentObject valueCommentObject = keyValueCommentObject.getValueCommentObject();
 			if(valueCommentObject != null) {
 				((CSONElement)obj).setTailComment(valueCommentObject.getTrailingComment());

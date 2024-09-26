@@ -81,10 +81,11 @@ public class PerformanceTest {
                 //CSONArray csonArray = new CSONArray(json);
 
                 //JSONObject jsonObject = new JSONObject(json);
+
                 CSONObject csonObject = new CSONObject(json);
-                if(i == 0 && count == 0) {
+                /*if(i == 0 && count == 0) {
                     System.out.println(csonObject.toString());
-                }
+                }*/
 
 
 

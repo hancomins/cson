@@ -35,7 +35,8 @@ public class ExceptionMessages {
 
     public static final String[] END_OF_STREAM = {"Unexpected end of stream", "예상치 못한 스트림의 끝입니다."};
 
-    public static final String[] UNEXPECTED_TOKEN_LONG = {"Unexpected token '%c'. One of \"%s\" is expected.", "예상치 못한 토큰 '%c'. \"%s\" 중에 하나가 와야합니다."};
+    public static final String[] UNEXPECTED_TOKEN_LONG = {"Unexpected token.('%c') One of \"%s\" is expected.", "예상치 못한 토큰. ('%c') 다음 \"%s\" 중에 하나가 와야합니다."};
+
     public static final String[] UNEXPECTED_TOKEN = {"Unexpected token '%c'.", "예상치 못한 토큰 '%c'." };
 
     static String formatMessage(String[] message, Object... args) {
