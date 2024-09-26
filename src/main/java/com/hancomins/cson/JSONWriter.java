@@ -1,7 +1,6 @@
 package com.hancomins.cson;
 
 import com.hancomins.cson.options.JsonWritingOptions;
-import com.hancomins.cson.util.ArrayStack;
 import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.EscapeUtil;
 import com.hancomins.cson.util.NullValue;
@@ -14,20 +13,10 @@ import java.util.*;
 @SuppressWarnings("UnusedReturnValue")
 public class JSONWriter {
 
-	// 자바스크립트 예약어 목록
-	private static final Set<String> JS_RESERVED_WORDS = new HashSet<>(Arrays.asList(
-			"abstract", "arguments", "await", "boolean", "break", "byte", "case", "catch", "char", "class",
-			"const", "continue", "debugger", "default", "delete", "do", "double", "else", "enum", "eval",
-			"export", "extends", "false", "final", "finally", "float", "for", "function", "goto", "if",
-			"implements", "import", "in", "instanceof", "int", "interface", "let", "long", "native", "new",
-			"null", "package", "private", "protected", "public", "return", "short", "static", "super",
-			"switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof",
-			"var", "void", "volatile", "while", "with", "yield", "async", "from", "of", "get", "set", "target", "globalThis","undefined", "NaN", "Infinity"
-	));
 
 	private static final int DEFAULT_BUFFER_SIZE = 512;
 
-	private final JsonWritingOptions jsonParsingOptions;
+	private final JsonWritingOptions JsonWritingOptions;
 
 	private static final int COMMENT_BEFORE_KEY = 1;
 
@@ -59,7 +48,7 @@ public class JSONWriter {
 
 
 	//private final ArrayDeque<CommentObject> keyValueCommentObjects = new ArrayDeque<>();
-	private ArrayStack<CommentObject> currentKeyValueCommentObjects;
+	private ArrayDeque<CommentObject> currentKeyValueCommentObjects;
 
 	private final ArrayDeque<ObjectType> typeStack_ = new ArrayDeque<>();
 	private final CharacterBuffer stringBuilder = new CharacterBuffer(DEFAULT_BUFFER_SIZE);
@@ -95,7 +84,7 @@ public class JSONWriter {
 	private String getAfterComment() {
 		if(!isComment) return null;
 		if(currentKeyValueCommentObjects != null &&  !currentKeyValueCommentObjects.isEmpty()) {
-			CommentObject commentObject = currentKeyValueCommentObjects.poll();
+			CommentObject commentObject = currentKeyValueCommentObjects.removeFirst();
 			String afterComment = commentObject.getTrailingComment();
 			if (afterComment == null) {
 				return null;
@@ -115,7 +104,7 @@ public class JSONWriter {
 	private void writeBeforeComment(int type) {
 		if(!isComment) return;
 		if(currentKeyValueCommentObjects != null && !currentKeyValueCommentObjects.isEmpty()) {
-			CommentObject commentObject = currentKeyValueCommentObjects.top();
+			CommentObject commentObject = currentKeyValueCommentObjects.getFirst();
 			String beforeComment  = commentObject.getLeadingComment();
 			if(beforeComment == null) {
 				return;
@@ -127,27 +116,27 @@ public class JSONWriter {
 
 
 
-	public JSONWriter(JsonWritingOptions jsonWritingOptions) {
-		this.jsonParsingOptions = jsonWritingOptions;
-		if(jsonParsingOptions.isPretty()) {
+	public JSONWriter(JsonWritingOptions JsonWritingOptions) {
+		this.JsonWritingOptions = JsonWritingOptions;
+		if(JsonWritingOptions.isPretty()) {
 			isPretty = true;
 		}
-		if(jsonParsingOptions.isUnprettyArray()) {
+		if(JsonWritingOptions.isUnprettyArray()) {
 			isUnprettyArray = true;
 		}
-		if(jsonParsingOptions.getSpace() > 0) {
-			depthSpace = jsonParsingOptions.getDepthString();
+		if(JsonWritingOptions.getDepthString() != null) {
+			depthSpace = JsonWritingOptions.getDepthString();
 		}
 
 
-		keyQuote = jsonParsingOptions.getKeyQuote();
-		valueQuote = jsonParsingOptions.getValueQuote();
-		if(!jsonParsingOptions.isAllowUnquoted() && keyQuote.isEmpty()) {
+		keyQuote = JsonWritingOptions.getKeyQuote();
+		valueQuote = JsonWritingOptions.getValueQuote();
+		if(!JsonWritingOptions.isAllowUnquoted() && keyQuote.isEmpty()) {
 			keyQuote = "\"";
 		}
-		if(!jsonParsingOptions.isAllowSingleQuotes()) {
+		if(!JsonWritingOptions.isAllowSingleQuotes()) {
 			if(keyQuote.equals("'")) {
-				keyQuote = jsonParsingOptions.isAllowUnquoted() ? "" : "\"";
+				keyQuote = JsonWritingOptions.isAllowUnquoted() ? "" : "\"";
 
 			}
 			if(valueQuote.equals("'")) {
@@ -162,9 +151,9 @@ public class JSONWriter {
 		}
 		keyQuoteChar = keyQuote.isEmpty() ? 0 : keyQuote.charAt(0);
 		valueQuoteChar = valueQuote.charAt(0);
-		isAllowLineBreak = jsonParsingOptions.isAllowLineBreak();
+		isAllowLineBreak = JsonWritingOptions.isAllowLineBreak();
 
-		isComment = !jsonParsingOptions.isSkipComments();
+		isComment =  !JsonWritingOptions.isSkipComments();
 	}
 
 
@@ -242,16 +231,16 @@ public class JSONWriter {
 	void nextCommentObject(CommentObject commentObject) {
 		if(!isComment) return;
 		if(this.currentKeyValueCommentObjects == null) {
-			this.currentKeyValueCommentObjects = new ArrayStack<>();
+			this.currentKeyValueCommentObjects = new ArrayDeque<>();
 		}
 		if(commentObject == null) {
-			this.currentKeyValueCommentObjects.push(new CommentObject());
+			this.currentKeyValueCommentObjects.addLast(new CommentObject());
 			return;
 		}
 
 
 
-		this.currentKeyValueCommentObjects.push(commentObject.copy());
+		this.currentKeyValueCommentObjects.addLast(commentObject.copy());
 	}
 
 
@@ -266,20 +255,6 @@ public class JSONWriter {
 
 
 
-	private boolean availableKeyName(String key) {
-		if(key == null || key.isEmpty()) {
-			return false;
-		}
-		char[] chars = key.toCharArray();
-		for(char c : chars) {
-			if(!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '$')) {
-				return false;
-			}
-		}
-
-		return !JS_RESERVED_WORDS.contains(key);
-	}
-
 
 
 
@@ -291,11 +266,6 @@ public class JSONWriter {
 		}
 		char quoteChar = quote.isEmpty() ? '\0'  : quote.charAt(0);
 		str = EscapeUtil.escapeJSONString(str, isAllowLineBreak, quoteChar);
-		if(quoteChar == '\0' && !availableKeyName(str)) {
-			quote = "\"";
-		}
-
-
 		stringBuilder.append(quote);
 		stringBuilder.append(str);
 		stringBuilder.append(quote);
@@ -501,16 +471,16 @@ public class JSONWriter {
 		return this;
 	}
 
- 	private void writeFloat(float value) {
+	private void writeFloat(float value) {
 		hasValue = true;
-		if(jsonParsingOptions.isAllowInfinity() && Float.isInfinite(value)) {
+		if(JsonWritingOptions.isAllowInfinity() && Float.isInfinite(value)) {
 			if(value > 0) {
 				stringBuilder.append("Infinity");
 			} else {
 				stringBuilder.append("-Infinity");
 			}
 		} else if(Float.isNaN(value)) {
-			if(jsonParsingOptions.isAllowNaN()) {
+			if(JsonWritingOptions.isAllowNaN()) {
 				stringBuilder.append("NaN");
 			} else {
 				stringBuilder.append(valueQuote).append("NaN").append(valueQuote);
@@ -534,14 +504,14 @@ public class JSONWriter {
 
 	private void writeDouble(double value) {
 		hasValue = true;
-		if(jsonParsingOptions.isAllowInfinity() && Double.isInfinite(value)) {
+		if(JsonWritingOptions.isAllowInfinity() && Double.isInfinite(value)) {
 			if(value > 0) {
 				stringBuilder.append("Infinity");
 			} else {
 				stringBuilder.append("-Infinity");
 			}
 		} else if(Double.isNaN(value)) {
-			if(jsonParsingOptions.isAllowNaN()) {
+			if(JsonWritingOptions.isAllowNaN()) {
 				stringBuilder.append("NaN");
 			} else {
 				stringBuilder.append(valueQuote).append("NaN").append(valueQuote);
@@ -881,16 +851,15 @@ public class JSONWriter {
 
 
 	public static void writeJSONElement(CSONElement root,JSONWriter writer) {
-		//JSONWriter writer  = new JSONWriter((JsonParsingOptions) stringFormatOption);
+		//JSONWriter writer  = new JSONWriter((JsonWritingOptions) stringFormatOption);
 
 		boolean allowComment = writer.isComment();
 
 		CSONElement currentElement = root;
-
-		ArrayStack<Iterator<?>> iteratorStack = new ArrayStack<>();
-		ArrayStack<CSONElement> elementStack = new ArrayStack<>();
-		ArrayStack<Count> iteratorCountStack = new ArrayStack<>();
-		ArrayStack<ArrayStack<CommentObject>> keyValueCommentObjectStack = new ArrayStack<>();
+		ArrayDeque<Iterator<?>> iteratorStack = new ArrayDeque<>();
+		ArrayDeque<CSONElement> elementStack = new ArrayDeque<>();
+		ArrayDeque<Count> iteratorCountStack = new ArrayDeque<>();
+		ArrayDeque<ArrayDeque<CommentObject>> keyValueCommentObjectStack = new ArrayDeque<>();
 
 		Iterator<?> currentIter = null;
 		Count iteratorCount = new Count();
@@ -905,7 +874,7 @@ public class JSONWriter {
 
 		writer.writeComment(currentElement.getHeadComment(), false, "", "\n");
 		if(writer.isComment) {
-			writer.currentKeyValueCommentObjects = new ArrayStack<>();
+			writer.currentKeyValueCommentObjects = new ArrayDeque<>();
 		}
 
 
@@ -937,8 +906,8 @@ public class JSONWriter {
 					}
 					if (value == null || value instanceof NullValue) writer.key(key).nullValue();
 					else if (value instanceof CSONElement) {
-						iteratorStack.push(iter);
-						elementStack.push(currentElement);
+						iteratorStack.add(iter);
+						elementStack.add(currentElement);
 						writer.key(key);
 
 						if(allowComment) {
@@ -954,8 +923,8 @@ public class JSONWriter {
 							/*if(writer.currentKeyValueCommentObjects == null) {
 								writer.currentKeyValueCommentObjects = new ArrayDeque<>();
 							}*/
-							keyValueCommentObjectStack.push(writer.currentKeyValueCommentObjects);
-							writer.currentKeyValueCommentObjects = new ArrayStack<>();
+							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
+							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
 							/*if(beforeComment != null) {
 								writer.currentKeyValueCommentObjects.addLast(new CommentObject(beforeComment, null));
 							}*/
@@ -971,7 +940,7 @@ public class JSONWriter {
 								writer.writeComment(beforeComment, COMMENT_SLASH_STAR);
 							}
 						}
-						iteratorCountStack.push(iteratorCount);
+						iteratorCountStack.add(iteratorCount);
 						iteratorCount = new Count();
 						currentElement = (CSONElement) value;
 						skipClose = true;
@@ -1001,19 +970,19 @@ public class JSONWriter {
 				if(!skipClose) {
 
 
-					currentElement = elementStack.poll();
+					currentElement = elementStack.pollLast();
 					writer.closeObject(currentElement instanceof CSONArray);
-					currentIter = iteratorStack.poll();
-					iteratorCount = iteratorCountStack.poll();
+					currentIter = iteratorStack.pollLast();
+					iteratorCount = iteratorCountStack.pollLast();
 
 
 					if(writer.isComment) {
 
 						// todo 코드 중복 풀어야함.
 						if(!keyValueCommentObjectStack.isEmpty()) {
-							ArrayStack<CommentObject> commentObjects = keyValueCommentObjectStack.top();
+							ArrayDeque<CommentObject> commentObjects = keyValueCommentObjectStack.getLast();
 							if(!commentObjects.isEmpty()) {
-								CommentObject commentObject = commentObjects.poll();
+								CommentObject commentObject = commentObjects.getLast();
 								String afterComment = commentObject.getTrailingComment();
 								if(afterComment != null && !afterComment.isEmpty()) {
 									writer.writeComment(afterComment, COMMENT_SLASH_STAR);
@@ -1021,10 +990,10 @@ public class JSONWriter {
 							}
 						}
 
-						keyValueCommentObjectStack.poll();
-						writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.poll();
+						keyValueCommentObjectStack.pollLast();
+						writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.pollLast();
 						if (writer.currentKeyValueCommentObjects == null) {
-							writer.currentKeyValueCommentObjects = new ArrayStack<>();
+							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
 						}
 					}
 					lastClosed = true;
@@ -1057,26 +1026,26 @@ public class JSONWriter {
 
 					if(value == null || value instanceof NullValue) writer.addNull();
 					else if(value instanceof CSONElement)  {
-						iteratorStack.push(iter);
-						elementStack.push(currentElement);
-						iteratorCountStack.push(iteratorCount);
+						iteratorStack.add(iter);
+						elementStack.add(currentElement);
+						iteratorCountStack.add(iteratorCount);
 						if(allowComment) {
 							String beforeComment = null;
 							if(writer.currentKeyValueCommentObjects != null) {
-								CommentObject commentObject = writer.currentKeyValueCommentObjects.top();
+								CommentObject commentObject = writer.currentKeyValueCommentObjects.peekLast();
 								if(commentObject != null) {
 									beforeComment = commentObject.getLeadingComment();
 								}
 							}
 							//String beforeComment = writer.currentKeyValueCommentObjects == null ? null : writer.currentKeyValueCommentObjects.getLast().get
 							if(writer.currentKeyValueCommentObjects == null) {
-								writer.currentKeyValueCommentObjects = new ArrayStack<>();
+								writer.currentKeyValueCommentObjects = new ArrayDeque<>();
 							}
-							keyValueCommentObjectStack.push(writer.currentKeyValueCommentObjects);
+							keyValueCommentObjectStack.add(writer.currentKeyValueCommentObjects);
 
-							writer.currentKeyValueCommentObjects = new ArrayStack<>();
+							writer.currentKeyValueCommentObjects = new ArrayDeque<>();
 							if(beforeComment != null) {
-								writer.currentKeyValueCommentObjects.push(new CommentObject(beforeComment, null));
+								writer.currentKeyValueCommentObjects.addLast(new CommentObject(beforeComment, null));
 							}
 
 						}
@@ -1107,15 +1076,15 @@ public class JSONWriter {
 				}
 				if(!skipClose) {
 					writer.closeArray();
-					currentIter = iteratorStack.poll();
-					currentElement = elementStack.poll();
-					iteratorCount = iteratorCountStack.poll();
+					currentIter = iteratorStack.pollLast();
+					currentElement = elementStack.pollLast();
+					iteratorCount = iteratorCountStack.pollLast();
 
 					// todo 코드 중복 풀어야함.
 					if(allowComment && !keyValueCommentObjectStack.isEmpty()) {
-						ArrayStack<CommentObject> commentObjects = keyValueCommentObjectStack.top();
+						ArrayDeque<CommentObject> commentObjects = keyValueCommentObjectStack.getLast();
 						if(!commentObjects.isEmpty()) {
-							CommentObject commentObject = commentObjects.top();
+							CommentObject commentObject = commentObjects.getLast();
 							String afterComment = commentObject.getTrailingComment();
 							if(afterComment != null && !afterComment.isEmpty()) {
 								writer.writeComment(afterComment, COMMENT_SLASH_STAR);
@@ -1123,15 +1092,15 @@ public class JSONWriter {
 						}
 					}
 
-					keyValueCommentObjectStack.poll();
-					writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.poll();
+					keyValueCommentObjectStack.pollLast();
+					writer.currentKeyValueCommentObjects = keyValueCommentObjectStack.pollLast();
 					lastClosed = true;
 				}
 				skipClose = false;
 			}
 
 		} while (currentElement != null);
-			writer.writeComment(root.getTailComment(), false, "\n", "");
-		}
+		writer.writeComment(root.getTailComment(), false, "\n", "");
+	}
 
 }

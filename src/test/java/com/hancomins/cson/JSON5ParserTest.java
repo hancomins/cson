@@ -4,6 +4,7 @@ import com.hancomins.cson.options.JsonParsingOptions;
 import com.hancomins.cson.options.ParsingOptions;
 import com.hancomins.cson.options.WritingOptions;
 import org.json.JSONObject;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -12,6 +13,7 @@ import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@DisplayName("JSON5ParserTest (성공)")
 public class JSON5ParserTest  {
 
 
@@ -250,9 +252,9 @@ public class JSON5ParserTest  {
 
         System.out.println(csonObject);
 
-        assertEquals("This is a comment before key", csonObject.getCommentBeforeKey("comment"));
-        assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
-        assertEquals("Comment before value", csonObject.getCommentBeforeValue("comment"));
+        assertEquals(" This is a comment before key", csonObject.getCommentBeforeKey("comment"));
+        assertEquals(" This is a comment after key", csonObject.getCommentAfterKey("comment"));
+        assertEquals(" Comment before value ", csonObject.getCommentBeforeValue("comment"));
         assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
 
         complexJson5 = "{\n" +
@@ -269,9 +271,9 @@ public class JSON5ParserTest  {
         System.out.println(csonObject);
 
 
-        assertEquals("This is a comment before key", csonObject.getCommentBeforeKey("comment"));
-        assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
-        assertEquals("Comment before value", csonObject.getCommentBeforeValue("comment"));
+        assertEquals(" This is a comment before key", csonObject.getCommentBeforeKey("comment"));
+        assertEquals(" This is a comment after key", csonObject.getCommentAfterKey("comment"));
+        assertEquals(" Comment before value ", csonObject.getCommentBeforeValue("comment"));
         assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
 
         complexJson5 = "{\n" +
@@ -288,10 +290,10 @@ public class JSON5ParserTest  {
 
         System.out.println(csonObject);
 
-        assertEquals("This is a comment before key", csonObject.getCommentBeforeKey("comment"));
-        assertEquals("This is a comment after key", csonObject.getCommentAfterKey("comment"));
-        assertEquals("Comment before value", csonObject.getCommentBeforeValue("comment"));
-        assertEquals("Comment after value\nComment after value2", csonObject.getCommentAfterValue("comment"));
+        assertEquals(" This is a comment before key", csonObject.getCommentBeforeKey("comment"));
+        assertEquals(" This is a comment after key", csonObject.getCommentAfterKey("comment"));
+        assertEquals(" Comment before value ", csonObject.getCommentBeforeValue("comment"));
+        assertEquals("Comment after value\n Comment after value2", csonObject.getCommentAfterValue("comment"));
 
 
 

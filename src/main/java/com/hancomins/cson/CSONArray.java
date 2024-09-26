@@ -51,6 +51,12 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		parse(stringSource, ParsingOptions.getDefaultParsingOptions());
 	}
 
+	public CSONArray(Reader stringSource, WritingOptions<?> writingOptions) {
+		super(ElementType.Array);
+		parse(stringSource, ParsingOptions.getDefaultParsingOptions());
+		this.setWritingOptions(writingOptions);
+	}
+
 	public CSONArray(Reader source, ParsingOptions<?> options) throws CSONException {
 		super(ElementType.Array);
 		parse(source, options);
