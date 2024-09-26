@@ -56,6 +56,7 @@ public class JsonWritingOptions extends MutableINumberConversionOption<JsonWriti
         jsonWritingOptions.setAllowUnquoted(false);
         jsonWritingOptions.setAllowSingleQuotes(false);
         jsonWritingOptions.setAllowLineBreak(false);
+        jsonWritingOptions.setSkipComments(true);
         return jsonWritingOptions;
     }
 

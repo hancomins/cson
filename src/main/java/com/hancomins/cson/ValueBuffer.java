@@ -461,9 +461,9 @@ public class ValueBuffer {
             }
         }
 
-        /*else if(!allowControlChar && Character.isISOControl(c)) {
+        else if(!allowControlChar && Character.isISOControl(c)) {
             throw new CSONException(ExceptionMessages.getCtrlCharNotAllowed(c));
-        }*/
+        }
         else {
             if(c == quoteChar) {
                 endString = true;

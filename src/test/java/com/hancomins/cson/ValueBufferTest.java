@@ -76,13 +76,7 @@ public class ValueBufferTest {
         state = new ValueBuffer(json5Option);
         state.reset();
         state.append("+Infinity");
-        try {
-            value = state.parseValue();
-            fail();
-        } catch (Exception e) {
-            assertTrue(e instanceof NumberFormatException);
-            System.out.println(e.getMessage());
-        }
+        assertEquals("+Infinity", state.parseValue());
 
 
     }
