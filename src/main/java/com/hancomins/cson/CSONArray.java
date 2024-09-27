@@ -2,6 +2,9 @@ package com.hancomins.cson;
 
 
 
+import com.hancomins.cson.format.ArrayDataContainer;
+import com.hancomins.cson.format.ArrayDataContainerFactory;
+import com.hancomins.cson.format.FormatType;
 import com.hancomins.cson.format.FormatWriter;
 import com.hancomins.cson.format.binarycson.BinaryCSONParser;
 import com.hancomins.cson.format.binarycson.BinaryCSONWriter;
@@ -105,7 +108,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		} else {*/
 			//new JSONParser(new JSONTokener(stringReader, (JsonParsingOptions)options)).parseArray(this);
 			//new JSON5ParserV((JsonParsingOptions) options).parsePureJSON(stringReader, this);
-			 JSON5ParserX.parse(stringReader, this, (JsonParsingOptions) options);
+			 JSON5ParserX.parse(stringReader, (JsonParsingOptions) options, new CSONArrayDataContainer(this), CSONObject.KeyValueDataContainerFactory, CSONArray.ArrayDataContainerFactory);
 
 		//}
 	}
@@ -399,10 +402,6 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 
 
-	public CSONArray addByParser(java.lang.Object value) {
-		list.add(value);
-		return this;
-	}
 
 
 	@Override
@@ -1307,6 +1306,111 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 	public int getInteger(int index) {
 		return getInt(index);
 	}
+
+
+
+	static ArrayDataContainerFactory ArrayDataContainerFactory = new ArrayDataContainerFactory() {
+		@Override
+		public ArrayDataContainer create() {
+			return new CSONArrayDataContainer(new CSONArray());
+		}
+	};
+
+	static class CSONArrayDataContainer implements ArrayDataContainer  {
+		final CSONArray array;
+		private int index = 0;
+
+		private CSONArrayDataContainer(CSONArray array) {
+			this.array = array;
+		}
+
+
+		@Override
+		public void add(Object value) {
+			if(value instanceof CSONObject.CSONKeyValueDataContainer) {
+				array.list.add(((CSONObject.CSONKeyValueDataContainer) value).csonObject);
+				return;
+			} else if(value instanceof ArrayDataContainer) {
+				array.list.add(((CSONArray.CSONArrayDataContainer) value).array);
+				return;
+			}
+			array.list.add(value);
+		}
+
+		@Override
+		public Object get(int index) {
+			return array.list.get(index);
+		}
+
+		@Override
+		public void setComment(int index, String comment, CommentPosition position) {
+			switch (position) {
+				case HEADER:
+					array.setHeadComment(comment);
+					break;
+				case FOOTER:
+					array.setTailComment(comment);
+					break;
+				case DEFAULT:
+				case BEFORE_VALUE:
+				    array.setCommentForValue(index, comment);
+					break;
+				case AFTER_VALUE:
+					array.setCommentAfterValue(index, comment);
+					break;
+			}
+
+		}
+
+		@Override
+		public String getComment(int index, CommentPosition position) {
+			switch (position) {
+				case HEADER:
+					return array.getHeadComment();
+				case FOOTER:
+					return array.getTailComment();
+				case DEFAULT:
+				case BEFORE_VALUE:
+					return array.getCommentForValue(index);
+				case AFTER_VALUE:
+					return array.getCommentAfterValue(index);
+			}
+			return null;
+		}
+
+		@Override
+		public void remove(int index) {
+			array.list.remove(index);
+		}
+
+		@Override
+		public int size() {
+			return array.list.size();
+		}
+
+		@Override
+		public void setSourceFormat(FormatType formatType) {
+			switch (formatType) {
+				case JSON:
+					array.setWritingOptions(WritingOptions.json());
+					break;
+				case JSON5:
+					array.setWritingOptions(WritingOptions.json5());
+					break;
+				case JSON5_PRETTY:
+					array.setWritingOptions(WritingOptions.json5Pretty());
+					break;
+				case JSON_PRETTY:
+					array.setWritingOptions(WritingOptions.jsonPretty());
+					break;
+
+			}
+
+		}
+	}
+
+
+
 
 
 

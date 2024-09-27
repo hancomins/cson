@@ -28,7 +28,7 @@ public class JsonWritingOptions extends MutableINumberConversionOption<JsonWriti
         jsonWritingOptions.setLeadingZeroOmission(true);
         jsonWritingOptions.setAllowPositiveSing(true);
         jsonWritingOptions.setAllowHexadecimal(true);
-        jsonWritingOptions.setPretty(true);
+        jsonWritingOptions.setPretty(false);
         jsonWritingOptions.setUnprettyArray(false);
         jsonWritingOptions.setSpace(4);
         jsonWritingOptions.setKeyQuote("");

@@ -16,6 +16,10 @@ public interface WritingOptions<T> extends IMutableINumberConversionOption<T> {
         return JsonWritingOptions.json5();
     }
 
+    static JsonWritingOptions json5Pretty() {
+        return JsonWritingOptions.prettyJson5();
+    }
+
     static JsonWritingOptions json() {
         return JsonWritingOptions.json();
     }

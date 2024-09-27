@@ -1,9 +1,7 @@
 package com.hancomins.cson;
 
 
-import com.hancomins.cson.format.FormatWriter;
-import com.hancomins.cson.format.ObjectSettable;
-import com.hancomins.cson.format.ObjectSettableFactory;
+import com.hancomins.cson.format.*;
 import com.hancomins.cson.format.binarycson.BinaryCSONParser;
 import com.hancomins.cson.format.binarycson.BinaryCSONWriter;
 import com.hancomins.cson.format.json.JSONWriter;
@@ -155,7 +153,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 			//new( (JsonParsingOptions)options).parsePureJSON(stringReader, this);
 
-			JSON5ParserX.parse(stringReader, this, (JsonParsingOptions) options);
+		JSON5ParserX.parse(stringReader, (JsonParsingOptions) options, new CSONKeyValueDataContainer(this), CSONObject.KeyValueDataContainerFactory, CSONArray.ArrayDataContainerFactory);
 
 
 
@@ -1308,50 +1306,114 @@ public class CSONObject extends CSONElement implements Cloneable {
 	}
 
 
-	public ObjectSettableFactory getObjectSettableFactory() {
-		return () -> new CSONObjectSettable(CSONObject.this);
-	}
 
-	static class CSONObjectSettable implements ObjectSettable {
+	final static KeyValueDataContainerFactory KeyValueDataContainerFactory = () -> new CSONKeyValueDataContainer(new CSONObject());
 
-		private final CSONObject csonObject;
+
+	static class CSONKeyValueDataContainer implements KeyValueDataContainer {
+
+		final CSONObject csonObject;
 		private String lastKey;
 
-		CSONObjectSettable(CSONObject csonObject) {
+		CSONKeyValueDataContainer(CSONObject csonObject) {
 			this.csonObject = csonObject;
 		}
 
 		@Override
-		public void set(String key, Object value) {
+		public void put(String key, Object value) {
+			if(value instanceof CSONKeyValueDataContainer) {
+				csonObject.put(key, ((CSONKeyValueDataContainer) value).csonObject);
+				return;
+			} else if(value instanceof ArrayDataContainer) {
+				csonObject.put(key, ((CSONArray.CSONArrayDataContainer) value).array);
+				return;
+			}
 			lastKey = key;
 			csonObject.dataMap.put(key, value);
 		}
 
 		@Override
-		public void setCommentForKey(String key, String comment) {
-			csonObject.setCommentForKey(key, comment);
+		public Object get(String key) {
+			lastKey = key;
+			return csonObject.dataMap.get(key);
 		}
 
 		@Override
-		public void setCommentForValue(String key, String comment) {
-			csonObject.setCommentForValue(key, comment);
-		}
-
-		@Override
-		public void setCommentAfterValue(String key, String comment) {
-			csonObject.setCommentAfterValue(key, comment);
-		}
-
-		@Override
-		public void setCommentAfterKey(String key, String comment) {
-			csonObject.setCommentAfterKey(key, comment);
-		}
-
-		@Override
-		public String getLastKey() {
+		public String getLastAccessedKey() {
 			return lastKey;
 		}
 
+		@Override
+		public void remove(String key) {
+			lastKey = key;
+			csonObject.dataMap.remove(key);
+		}
+
+		@Override
+		public void setComment(String key, String comment, CommentPosition type) {
+			switch (type) {
+				case DEFAULT:
+				case BEFORE_KEY:
+					csonObject.setCommentForKey(key, comment);
+					break;
+				case BEFORE_VALUE:
+					csonObject.setCommentForValue(key, comment);
+					break;
+				case AFTER_KEY:
+					csonObject.setCommentAfterKey(key, comment);
+					break;
+				case AFTER_VALUE:
+					csonObject.setCommentAfterValue(key, comment);
+					break;
+				case HEADER:
+					csonObject.setHeadComment(comment);
+					break;
+				case FOOTER:
+					csonObject.setTailComment(comment);
+					break;
+
+			}
+
+		}
+
+		@Override
+		public String getComment(String key, CommentPosition type) {
+			switch (type) {
+				case DEFAULT:
+				case BEFORE_KEY:
+					return csonObject.getCommentForKey(key);
+				case BEFORE_VALUE:
+					return csonObject.getCommentForValue(key);
+				case AFTER_KEY:
+					return csonObject.getCommentAfterKey(key);
+				case AFTER_VALUE:
+					return csonObject.getCommentAfterValue(key);
+				case HEADER:
+					return csonObject.getHeadComment();
+				case FOOTER:
+					return csonObject.getTailComment();
+			}
+			return null;
+		}
+
+		@Override
+		public void setSourceFormat(FormatType formatType) {
+			switch (formatType) {
+				case JSON:
+					csonObject.setWritingOptions(WritingOptions.json());
+					break;
+				case JSON5:
+					csonObject.setWritingOptions(WritingOptions.json5());
+					break;
+				case JSON5_PRETTY:
+					csonObject.setWritingOptions(WritingOptions.json5Pretty());
+					break;
+				case JSON_PRETTY:
+					csonObject.setWritingOptions(WritingOptions.jsonPretty());
+					break;
+			}
+
+		}
 	}
 
 }
