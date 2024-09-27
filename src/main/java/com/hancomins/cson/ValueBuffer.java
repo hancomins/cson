@@ -67,6 +67,7 @@ public class ValueBuffer {
      * 제어문자를 허용할 것인지 여부를 설정한다.
      */
     private boolean allowControlChar = false;
+    private boolean ignoreControlChar = false;
 
 
 
@@ -88,10 +89,14 @@ public class ValueBuffer {
         allowPositiveSign = INumberConversionOption.isAllowPositiveSing();
         onlyPrimitiveValue = !INumberConversionOption.isIgnoreNonNumeric();
 
+
     }
 
     public void setAllowControlChar(boolean allowControlChar) {
         this.allowControlChar = allowControlChar;
+    }
+    public void setIgnoreControlChar(boolean ignoreControlChar) {
+        this.ignoreControlChar = ignoreControlChar;
     }
 
 
@@ -462,6 +467,9 @@ public class ValueBuffer {
         }
 
         else if(!allowControlChar && Character.isISOControl(c)) {
+            if(ignoreControlChar) {
+               return;
+            }
             throw new CSONException(ExceptionMessages.getCtrlCharNotAllowed(c));
         }
         else {

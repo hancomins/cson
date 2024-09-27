@@ -57,6 +57,12 @@ public class CommentBuffer {
     void changeLastParsingState(ParsingState lastState) {
         this.lastState = lastState;
         switch (lastState) {
+            case Close:
+                commentParsingState = CommentState.Tail;
+                break;
+            case Open:
+                commentParsingState = CommentState.Header;
+                break;
             case WaitKey:
                 commentParsingState = CommentState.BeforeKey;
                 break;
@@ -76,39 +82,55 @@ public class CommentBuffer {
     AppendResult append(char c) {
         switch (commentType) {
             case Wait:
-                if(c == '/') {
-                    commentType = CommentType.Line;
-                    return AppendResult.InComment;
-                } else if(c == '*') {
-                    commentType = CommentType.Block;
-                    return AppendResult.InComment;
-                } else {
-                    return AppendResult.Fail;
-                }
+                return appendInWaitState(c);
             case Line:
-                if(c == '\n') {
-                    isEnd = true;
-                    return AppendResult.End;
-                } else {
-                    commentBuffer.append(c);
-                }
-                break;
+                return appendInLineState(c);
             case Block:
-                if(c == '/') {
-                    int length = commentBuffer.length();
-                    if(length > 0 && commentBuffer.charAt(length - 1) == '*') {
-                        commentBuffer.setLength(length - 1);
-                        isEnd = true;
-                        return AppendResult.End;
-                    }
-                    break;
-                }
-                commentBuffer.append(c);
-                break;
+                return appendInBlockState(c);
 
         }
         return AppendResult.Continue;
     }
+
+    private AppendResult appendInBlockState(char c) {
+        if (c == '/') {
+            int length = commentBuffer.length();
+            if (length > 0 && commentBuffer.charAt(length - 1) == '*') {
+                commentBuffer.setLength(length - 1);
+                isEnd = true;
+                return AppendResult.End;
+            }
+        }
+        commentBuffer.append(c);
+        return AppendResult.Continue;
+    }
+
+    private AppendResult appendInWaitState(char c) {
+        switch (c) {
+            case '/':
+                commentType = CommentType.Line;
+                return AppendResult.InComment;
+            case '*':
+                commentType = CommentType.Block;
+                return AppendResult.InComment;
+            default:
+                return AppendResult.Fail;
+        }
+    }
+
+    private AppendResult appendInLineState(char c) {
+        switch (c) {
+            case '\n':
+            case '\0':
+                isEnd = true;
+                return AppendResult.End;
+            default:
+                commentBuffer.append(c);
+                return AppendResult.Continue;
+
+        }
+    }
+
 
     public String getComment() {
         return commentBuffer.toString();

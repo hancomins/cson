@@ -77,6 +77,14 @@ public class CSONArray extends CSONElement  implements Collection<Object>, Clone
 		noSynchronizedStringReader.close();
 	}
 
+	public CSONArray(String jsonArray, WritingOptions<?> options) throws CSONException {
+		super(ElementType.Array);
+		NoSynchronizedStringReader noSynchronizedStringReader = new NoSynchronizedStringReader(jsonArray);
+		parse(noSynchronizedStringReader, ParsingOptions.getDefaultParsingOptions());
+		noSynchronizedStringReader.close();
+		this.setWritingOptions(options);
+	}
+
 
 
 	public CSONArray(WritingOptions<?> writingOptions) {

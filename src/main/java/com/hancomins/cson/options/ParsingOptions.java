@@ -23,4 +23,9 @@ public interface ParsingOptions<T> extends IMutableINumberConversionOption<T> {
     }
 
 
+    static JsonParsingOptions json() {
+        return JsonParsingOptions.json();
+    }
+
+
 }

@@ -1,11 +1,12 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.options.JsonParsingOptions;
-import com.hancomins.cson.options.ParsingOptions;
+import com.hancomins.cson.options.WritingOptions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@DisplayName("JSONWriterTest (성공)")
 public class JSONWriterTest {
 
     @Test
@@ -22,16 +23,16 @@ public class JSONWriterTest {
 
         csonObject.put("emptyArray", new CSONArray());
         csonObject.put("emptyObject", new CSONObject());
-        JSONWriter jsonWriter = new JSONWriter((JsonParsingOptions) ParsingOptions.json5().setUnprettyArray(false));
+        JSONWriter jsonWriter = new JSONWriter(WritingOptions.json5().setUnprettyArray(false));
         JSONWriter.writeJSONElement(csonObject, jsonWriter);
 
         System.out.println(jsonWriter.toString());
 
-        CSONObject csonObject2 = new CSONObject(jsonWriter.toString(), ParsingOptions.json5().setPretty(true).setUnprettyArray(false));
+        CSONObject csonObject2 = new CSONObject(jsonWriter.toString(), WritingOptions.json5().setPretty(true).setUnprettyArray(false));
         System.out.println(csonObject2.toString());
 
         assertEquals(csonObject, csonObject2);
-        assertEquals(csonObject.toString(ParsingOptions.json5().setPretty(true).setUnprettyArray(false)), csonObject2.toString());
+        assertEquals(csonObject.toString(WritingOptions.json5().setPretty(true).setUnprettyArray(false)), csonObject2.toString());
     }
 
     @Test
@@ -50,7 +51,7 @@ public class JSONWriterTest {
         csonArray.setCommentForValue(3, "comment before a value at index 3");
         csonArray.setCommentAfterValue(3, "comment after a value at index 3");
 
-        JSONWriter jsonWriter = new JSONWriter((JsonParsingOptions) ParsingOptions.json5().setUnprettyArray(false));
+        JSONWriter jsonWriter = new JSONWriter(WritingOptions.json5().setUnprettyArray(false));
         JSONWriter.writeJSONElement(csonArray, jsonWriter);
         System.out.println(jsonWriter.toString());
 
@@ -65,7 +66,7 @@ public class JSONWriterTest {
         csonObject.setCommentForValue("a", "comment before a");
         csonObject.setCommentAfterValue("a", "comment after a");
 
-        JSONWriter jsonWriter = new JSONWriter((JsonParsingOptions) ParsingOptions.json5().setUnprettyArray(false));
+        JSONWriter jsonWriter = new JSONWriter(WritingOptions.json5().setUnprettyArray(false));
         JSONWriter.writeJSONElement(csonObject, jsonWriter);
         System.out.println(jsonWriter.toString());
 
@@ -78,7 +79,7 @@ public class JSONWriterTest {
         csonObject.setCommentForValue("a", "comment before a value");
         csonObject.setCommentAfterValue("a", "comment after a value");
 
-        jsonWriter = new JSONWriter((JsonParsingOptions) ParsingOptions.json5().setUnprettyArray(false));
+        jsonWriter = new JSONWriter(WritingOptions.json5().setUnprettyArray(false));
         JSONWriter.writeJSONElement(csonObject, jsonWriter);
         System.out.println(jsonWriter.toString());
 

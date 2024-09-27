@@ -39,6 +39,10 @@ public class ExceptionMessages {
 
     public static final String[] UNEXPECTED_TOKEN = {"Unexpected token '%c'.", "예상치 못한 토큰 '%c'." };
 
+    public static final String[] NOT_ALLOWED_COMMENT = {"Comment is not allowed.", "주석은 허용되지 않습니다."};
+
+    public static final String[] NOT_ALLOWED_UNQUOTED_STRING = {"Unquoted string is not allowed.", "\" 또는 ' 없는 문자열은 허용되지 않습니다."};
+
     static String formatMessage(String[] message, Object... args) {
         String localeMessage = message[localeIndex];
         return String.format(localeMessage, args);

@@ -188,7 +188,7 @@ public class JSONWriter {
 					}
 
 					if(i != 0) {
-						writeDepthTab(stringBuilder);
+						//writeDepthTab(stringBuilder);
 					}
 
 					stringBuilder.append(commentLine);

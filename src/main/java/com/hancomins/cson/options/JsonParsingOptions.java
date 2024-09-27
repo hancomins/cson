@@ -7,8 +7,11 @@ public class JsonParsingOptions extends MutableINumberConversionOption<JsonParsi
         private StringFormatType formatType = StringFormatType.JSON5;
 
         private boolean allowUnquoted = true;
-        private boolean allowComment = true;
-
+        private boolean allowComments = true;
+        private boolean ignoreTrailingData = false;
+        private boolean skipComments = false;
+        private boolean allowControlCharacters = false;
+        private boolean ignoreControlCharacters = false;
 
         private JsonParsingOptions() {
         }
@@ -23,10 +26,25 @@ public class JsonParsingOptions extends MutableINumberConversionOption<JsonParsi
             jsonParsingOptions.setAllowHexadecimal(true);
             jsonParsingOptions.setLeadingZeroOmission(true);
             jsonParsingOptions.setAllowUnquoted(true);
-            jsonParsingOptions.setAllowComment(true);
+            jsonParsingOptions.setAllowComments(true);
             jsonParsingOptions.formatType = StringFormatType.JSON5;
             return jsonParsingOptions;
         }
+
+    public static JsonParsingOptions json() {
+        JsonParsingOptions jsonParsingOptions = new JsonParsingOptions();
+        jsonParsingOptions.setIgnoreNonNumeric(false);
+        jsonParsingOptions.setAllowNaN(false);
+        jsonParsingOptions.setAllowPositiveSing(false);
+        jsonParsingOptions.setAllowInfinity(false);
+        jsonParsingOptions.setAllowHexadecimal(true);
+        jsonParsingOptions.setLeadingZeroOmission(false);
+        jsonParsingOptions.setAllowUnquoted(false);
+        jsonParsingOptions.setAllowComments(false);
+        jsonParsingOptions.setAllowControlCharacters(false);
+        jsonParsingOptions.formatType = StringFormatType.JSON5;
+        return jsonParsingOptions;
+    }
 
 
         private boolean allowConsecutiveCommas = false;
@@ -40,8 +58,8 @@ public class JsonParsingOptions extends MutableINumberConversionOption<JsonParsi
             return allowUnquoted;
         }
 
-        public boolean isAllowComment() {
-            return allowComment;
+        public boolean isAllowComments() {
+            return allowComments;
         }
 
         public JsonParsingOptions setAllowUnquoted(boolean allowUnquoted) {
@@ -49,13 +67,50 @@ public class JsonParsingOptions extends MutableINumberConversionOption<JsonParsi
             return this;
         }
 
-        public JsonParsingOptions setAllowComment(boolean allowComment) {
-            this.allowComment = allowComment;
+        public JsonParsingOptions setSkipComments(boolean skipComments) {
+            this.skipComments = skipComments;
+            return this;
+        }
+
+        public boolean isSkipComments() {
+            return skipComments;
+        }
+
+        public boolean isAllowControlCharacters() {
+            return allowControlCharacters;
+        }
+
+        public JsonParsingOptions setAllowControlCharacters(boolean allowControlCharacters) {
+            this.allowControlCharacters = allowControlCharacters;
+            return this;
+        }
+
+        public boolean isIgnoreControlCharacters() {
+            return ignoreControlCharacters;
+        }
+
+        public JsonParsingOptions setIgnoreControlCharacters(boolean ignoreControlCharacters) {
+            this.ignoreControlCharacters = ignoreControlCharacters;
+            return this;
+        }
+
+
+        public JsonParsingOptions setAllowComments(boolean allowComments) {
+            this.allowComments = allowComments;
             return this;
         }
 
         public JsonParsingOptions setAllowConsecutiveCommas(boolean allowConsecutiveCommas) {
             this.allowConsecutiveCommas = allowConsecutiveCommas;
+            return this;
+        }
+
+        public boolean isIgnoreTrailingData() {
+            return ignoreTrailingData;
+        }
+
+        public JsonParsingOptions setIgnoreTrailingData(boolean ignoreTrailingData) {
+            this.ignoreTrailingData = ignoreTrailingData;
             return this;
         }
 

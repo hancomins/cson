@@ -1,6 +1,7 @@
 package com.hancomins.cson;
 
 import com.hancomins.cson.options.JsonParsingOptions;
+import com.hancomins.cson.options.WritingOptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -217,7 +218,7 @@ public class CSONPathTest {
         CSONObject csonObject = new CSONObject();
         CSONPath csonPath =  csonObject.getCsonPath();
         csonPath.put("path1[0].path2[1][2]path3", "100");
-        System.out.println(csonObject.toString(JsonParsingOptions.json().setPretty(true)));
+        System.out.println(csonObject.toString(WritingOptions.json().setPretty(true)));
         assertEquals(100, csonObject.getCSONArray("path1").getCSONObject(0).getCSONArray("path2").getCSONArray(1).getCSONObject(2).getInt("path3"));
     }
 
@@ -226,15 +227,15 @@ public class CSONPathTest {
         CSONObject csonObject = new CSONObject();
         CSONPath csonPath =  csonObject.getCsonPath();
         csonPath.put("path1[0].path2[1][2].path3.path4", "100");
-        System.out.println(csonObject.toString(JsonParsingOptions.json().setPretty(true)));
+        System.out.println(csonObject.toString(WritingOptions.json().setPretty(true)));
         assertEquals(100, csonObject.getCSONArray("path1").getCSONObject(0).getCSONArray("path2").getCSONArray(1).getCSONObject(2).getCSONObject("path3").getInt("path4"));
 
         csonPath.put("path1[0].path2[1][2]path3.path4", 200);
-        System.out.println(csonObject.toString(JsonParsingOptions.json().setPretty(true)));
+        System.out.println(csonObject.toString(WritingOptions.json().setPretty(true)));
         assertEquals(200, csonObject.getCSONArray("path1").getCSONObject(0).getCSONArray("path2").getCSONArray(1).getCSONObject(2).getCSONObject("path3").getInt("path4"));
 
         csonPath.put("path1[0].path2[1][2].path3.path4[20][0]", 400);
-        System.out.println(csonObject.toString(JsonParsingOptions.json().setPretty(true)));
+        System.out.println(csonObject.toString(WritingOptions.json().setPretty(true)));
         assertEquals(400, csonObject.getCSONArray("path1").getCSONObject(0).getCSONArray("path2").getCSONArray(1).getCSONObject(2).getCSONObject("path3").getCSONArray("path4").getCSONArray(20).getInt(0));
     }
 

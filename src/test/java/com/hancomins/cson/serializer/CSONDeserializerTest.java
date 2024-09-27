@@ -2,6 +2,7 @@ package com.hancomins.cson.serializer;
 
 import com.hancomins.cson.options.JsonParsingOptions;
 import com.hancomins.cson.CSONObject;
+import com.hancomins.cson.options.WritingOptions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -302,7 +303,7 @@ public class CSONDeserializerTest {
         home.houseTypeEx2 = new HouseTypeEx();
 
         CSONObject cson = CSONSerializer.toCSONObject(home);
-        System.out.println(cson.toString(JsonParsingOptions.json5()));
+        System.out.println(cson.toString(WritingOptions.json5()));
         Home resultHome = CSONSerializer.fromCSONObject(cson, new Home());
         assertEquals(home.address.city, resultHome.address.city);
         assertEquals(home.address.street, resultHome.address.street);
@@ -317,7 +318,7 @@ public class CSONDeserializerTest {
         assertEquals(home.houseTypeEx2, resultHome.houseTypeEx2);
 
 
-        System.out.println(CSONSerializer.toCSONObject(resultHome).toString(JsonParsingOptions.json5()));
+        System.out.println(CSONSerializer.toCSONObject(resultHome).toString(WritingOptions.json5()));
 
     }
 
@@ -354,11 +355,11 @@ public class CSONDeserializerTest {
             }
         }
         CSONObject cson = CSONSerializer.toCSONObject(simpleObjectInArray);
-        System.out.println(cson.toString(JsonParsingOptions.json5()));
-        System.out.println(CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JsonParsingOptions.json5()));
+        System.out.println(cson.toString(WritingOptions.json5()));
+        System.out.println(CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(WritingOptions.json5()));
 
 
-        assertEquals(cson.toString(JsonParsingOptions.json5()), CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(JsonParsingOptions.json5()));
+        assertEquals(cson.toString(WritingOptions.json5()), CSONSerializer.toCSONObject(CSONSerializer.fromCSONObject(cson, new SimpleObjectInArray())).toString(WritingOptions.json5()));
 
 
     }

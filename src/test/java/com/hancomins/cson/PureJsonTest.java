@@ -2,14 +2,18 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.options.JsonParsingOptions;
 import com.hancomins.cson.options.ParsingOptions;
+import com.hancomins.cson.options.WritingOptions;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+
+@DisplayName("PureJsonTest (성공)")
 public class PureJsonTest {
 
 
@@ -76,8 +80,8 @@ public class PureJsonTest {
                 "  ]";
 
 
-        CSONArray csonArraryOrigin = new CSONArray(testJSON, ParsingOptions.json());
-        CSONArray csonArrary = new CSONArray(testJSON, ParsingOptions.json());
+        CSONArray csonArraryOrigin = new CSONArray(testJSON);
+        CSONArray csonArrary = new CSONArray(testJSON);
 
         assertEquals(csonArraryOrigin.toString(), csonArrary.toString());
 
@@ -88,7 +92,7 @@ public class PureJsonTest {
     @Test
     public void NumberConversion() {
         String testJSON = "[" +Long.MIN_VALUE  + ", -0" + ", 10.11]";
-        CSONArray csonArraryOrigin = new CSONArray(testJSON, ParsingOptions.json());
+        CSONArray csonArraryOrigin = new CSONArray(testJSON);
 
         System.out.println(csonArraryOrigin.toString());
 
@@ -178,21 +182,21 @@ public class PureJsonTest {
 
         testJSON = testJSON.replace(" ", "").replace("\n", "");
 
-        CSONElement csonElement = new CSONObject(testJSON, ParsingOptions.json());
+        CSONElement csonElement = new CSONObject(testJSON);
         CSONObject csonObject = (CSONObject) csonElement;
         System.out.println(csonObject.toString());
         //assertEquals(testJSON.replace("0xff", "255").replace("75.50", "75.5"), csonObject.toString());
 
         NoSynchronizedStringReader stringReader2 = new NoSynchronizedStringReader(testJSON);
-        CSONObject csonObjectPure = new CSONObject(stringReader2, ParsingOptions.json());
+        CSONObject csonObjectPure = new CSONObject(stringReader2);
         stringReader2.close();
 
 
 
-        CSONObject obj = new CSONObject(ParsingOptions.json5());
+        CSONObject obj = new CSONObject();
 
         // You can change the default options. (It will be applied to all CSONObject and CONSArray)
-        // CSONObject.setDefaultJSONOptions(ParsingOptions.json5());
+        // CSONObject.setDefaultJSONOptions(ParsingOptions.json());
         // Even if you change the default options, you can specify the options when creating the object.
 
         obj.put("name", "John");
@@ -229,8 +233,7 @@ public class PureJsonTest {
     public void parsingCommentJson() {
         Exception err = null;
         String json = "{\"key\": \"5\"/*주석입니다*/,\"a\":\"b\",}";
-        CSONObject csonObject = new CSONObject(json, JsonParsingOptions.json()
-                .setAllowTrailingComma(true)
+        CSONObject csonObject = new CSONObject(json, ParsingOptions.json()
                 .setAllowComments(true)
                 .setSkipComments(false));
 
@@ -243,7 +246,7 @@ public class PureJsonTest {
         Exception err = null;
         String json = "{\"key\": \"5\",\"a\":\"b\",,}";
         try {
-            CSONObject csonObject = new CSONObject(json, ParsingOptions.json());
+            CSONObject csonObject = new CSONObject(json);
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -251,6 +254,7 @@ public class PureJsonTest {
         assertNotNull(err);
         err = null;
     }
+    @SuppressWarnings("CallToPrintStackTrace")
     @Test
     public void wrongJsonParsingTest() {
         Exception err = null;
@@ -264,7 +268,7 @@ public class PureJsonTest {
         assertNotNull(err);
         err = null;
         try {
-            CSONObject csonObject = new CSONObject(json, ParsingOptions.json());
+            CSONObject csonObject = new CSONObject(json);
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -282,29 +286,20 @@ public class PureJsonTest {
         }
         assertNotNull(err);
         err = null;
-        try {
-            CSONObject csonObject = new CSONObject(json, ParsingOptions.json());
-        } catch (Exception e) {
-            e.printStackTrace();
-            err = e;
-        }
-        assertNotNull(err);
-        err = null;
-        json = "{'key': \"5\",\"a\":\"b\"}";
-        try {
-            CSONObject csonObject = new CSONObject(json, ParsingOptions.json());
-        } catch (Exception e) {
-            e.printStackTrace();
-            err = e;
-        }
-        assertNotNull(err);
 
+        json = "{\"key\": abdc,\"a\":\"b\"}";
+        try {
+            CSONObject csonObject = new CSONObject(json,  ParsingOptions.json());
+        } catch (Exception e) {
+            e.printStackTrace();
+            err = e;
+        }
 
 
         err = null;
         json = "{\"key\": \"5\",\"a\":\"b\",}";
         try {
-            CSONObject csonObject = new CSONObject(json, ParsingOptions.json());
+            CSONObject csonObject = new CSONObject(json);
         } catch (Exception e) {
             e.printStackTrace();
             err = e;
@@ -347,15 +342,15 @@ public class PureJsonTest {
                 " \n]\n" +
                 "}";
 
-        CSONObject csonObject = new CSONObject(testJSON, ParsingOptions.json());
+        CSONObject csonObject = new CSONObject(testJSON);
         System.out.println(csonObject.toString());
 
-        CSONObject csonObject2 = new CSONObject(testJSON, ParsingOptions.json());
+        CSONObject csonObject2 = new CSONObject(testJSON);
 
-        CSONObject csonObject3 = new CSONObject(testJSON, ParsingOptions.json5());
+        CSONObject csonObject3 = new CSONObject(testJSON, ParsingOptions.json());
 
-        assertEquals(csonObject.toString(ParsingOptions.jsonPretty()), csonObject2.toString(ParsingOptions.jsonPretty()));
-        assertEquals(csonObject.toString(ParsingOptions.jsonPretty()), csonObject3.toString(ParsingOptions.jsonPretty()));
+        assertEquals(csonObject.toString(WritingOptions.jsonPretty()), csonObject2.toString(WritingOptions.jsonPretty()));
+        assertEquals(csonObject.toString(WritingOptions.jsonPretty()), csonObject3.toString(WritingOptions.jsonPretty()));
 
 
     }

@@ -102,6 +102,12 @@ public class CSONObject extends CSONElement implements Cloneable {
 		reader.close();
 	}
 
+	public CSONObject(Reader reader) {
+		super(ElementType.Object);
+		parse(reader, ParsingOptions.getDefaultParsingOptions());
+	}
+
+
 	public CSONObject(WritingOptions<?> writingOptions) {
 		super(ElementType.Object, writingOptions);
 	}
