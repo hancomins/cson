@@ -24,13 +24,14 @@ public class BinaryCSONDataType {
 	protected static final byte TYPE_BYTE = 0x05;
 	protected static final byte TYPE_BOOLEAN = 0x06;
 	protected static final byte TYPE_SHORT = 0x07;
-	protected static final byte TYPE_CHAR = 0x08;
 	protected static final byte TYPE_INT = 0x09;
 	protected static final byte TYPE_FLOAT = 0x0A;
 	protected static final byte TYPE_LONG = 0x0B;
 	protected static final byte TYPE_DOUBLE = 0x0C;
 	protected static final byte TYPE_BIGDECIMAL = 0x0D;
+	protected static final byte TYPE_BIGINTEGER = 0x08;
 	protected static final byte TYPE_NULL = 0x0E;
+	protected static final byte TYPE_COMMENT = 0x0F;
 	
 	protected static final byte TYPE_STRING_SHORT = (byte)0xA0;
 	protected static final byte TYPE_STRING_MIDDLE = (byte)0xB0;
