@@ -1,4 +1,4 @@
-package com.hancomins.cson.format.binarycson;
+package com.hancomins.cson.format.cson;
 
 import com.hancomins.cson.format.json.CSONParseException;
 import com.hancomins.cson.util.DataReader;
@@ -128,7 +128,7 @@ class BinaryCSONBufferReader {
 					continue;
 				case BinaryCSONDataType.TYPE_BYTE:
 				case BinaryCSONDataType.TYPE_BOOLEAN:
-				case BinaryCSONDataType.TYPE_CHAR:
+				//case BinaryCSONDataType.TYPE_CHAR:
 				case BinaryCSONDataType.TYPE_SHORT:
 				case BinaryCSONDataType.TYPE_INT:
 				case BinaryCSONDataType.TYPE_FLOAT:
@@ -200,7 +200,7 @@ class BinaryCSONBufferReader {
 					continue;
 				case BinaryCSONDataType.TYPE_BYTE:
 				case BinaryCSONDataType.TYPE_BOOLEAN:
-				case BinaryCSONDataType.TYPE_CHAR:
+				//case BinaryCSONDataType.TYPE_CHAR:
 				case BinaryCSONDataType.TYPE_SHORT:
 				case BinaryCSONDataType.TYPE_INT:
 				case BinaryCSONDataType.TYPE_FLOAT:
@@ -240,8 +240,8 @@ class BinaryCSONBufferReader {
 				return byteBuffer.get();
 			case BinaryCSONDataType.TYPE_BOOLEAN:
 				return byteBuffer.get() == 1;
-			case BinaryCSONDataType.TYPE_CHAR:
-				return byteBuffer.getChar();
+			//case BinaryCSONDataType.TYPE_CHAR:
+		//		return byteBuffer.getChar();
 			case BinaryCSONDataType.TYPE_SHORT:
 				return byteBuffer.getShort();
 			case BinaryCSONDataType.TYPE_INT:

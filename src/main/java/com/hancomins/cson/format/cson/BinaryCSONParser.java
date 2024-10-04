@@ -1,10 +1,9 @@
-package com.hancomins.cson.format.binarycson;
+package com.hancomins.cson.format.cson;
 
 import com.hancomins.cson.CSONElement;
 import com.hancomins.cson.format.ArrayDataContainerFactory;
 import com.hancomins.cson.format.BaseDataContainer;
 import com.hancomins.cson.format.KeyValueDataContainerFactory;
-import com.sun.org.apache.xml.internal.security.signature.ObjectContainer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,9 +34,14 @@ public class BinaryCSONParser {
 	KeyValueDataContainerFactory keyValueDataContainerFactory;
 	ArrayDataContainerFactory arrayDataContainerFactory;
 
-	public BaseDataContainer parse(InputStream inputStream, KeyValueDataContainerFactory keyValueDataContainerFactory, ArrayDataContainerFactory arrayDataContainerFactory) throws IOException {
-		this.arrayDataContainerFactory = arrayDataContainerFactory;
+	BinaryCSONParser(KeyValueDataContainerFactory keyValueDataContainerFactory, ArrayDataContainerFactory arrayDataContainerFactory) {
 		this.keyValueDataContainerFactory = keyValueDataContainerFactory;
+		this.arrayDataContainerFactory = arrayDataContainerFactory;
+	}
+
+
+
+	public BaseDataContainer parse(InputStream inputStream) throws IOException {
 		int v = -1;
 		while((v = inputStream.read()) != -1) {
 			byte flag = (byte)v;
@@ -45,9 +49,12 @@ public class BinaryCSONParser {
 
 		}
 
+		return null;
+
 
 
 	}
+
 
 
 

@@ -1,4 +1,4 @@
-package com.hancomins.cson.format.binarycson;
+package com.hancomins.cson.format.cson;
 
 import java.nio.ByteBuffer;
 

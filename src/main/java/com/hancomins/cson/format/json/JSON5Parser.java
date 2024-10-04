@@ -14,7 +14,7 @@ import java.io.Reader;
 import static com.hancomins.cson.format.json.ParsingState.Open;
 
 
-public class JSON5ParserX {
+public class JSON5Parser {
 
 
     private ParsingState parsingState = Open;
@@ -41,7 +41,7 @@ public class JSON5ParserX {
     private final boolean skipComments;
     private ReadCountReader readCountReader;
 
-    private JSON5ParserX(JsonParsingOptions jsonOption, KeyValueDataContainerFactory keyValueDataContainerFactory, ArrayDataContainerFactory arrayDataContainerFactory) {
+    private JSON5Parser(JsonParsingOptions jsonOption, KeyValueDataContainerFactory keyValueDataContainerFactory, ArrayDataContainerFactory arrayDataContainerFactory) {
         this.allowUnquoted = jsonOption.isAllowUnquoted();
         this.allowComment = jsonOption.isAllowComments();
         this.ignoreNonNumeric = jsonOption.isIgnoreNonNumeric();
@@ -68,7 +68,7 @@ public class JSON5ParserX {
 
     @SuppressWarnings("UnusedReturnValue")
     public static BaseDataContainer parse(Reader reader, JsonParsingOptions jsonOption, BaseDataContainer rootContainer, KeyValueDataContainerFactory keyValueDataContainerFactory, ArrayDataContainerFactory arrayDataContainerFactory) {
-        JSON5ParserX parser = new JSON5ParserX(jsonOption, keyValueDataContainerFactory, arrayDataContainerFactory);
+        JSON5Parser parser = new JSON5Parser(jsonOption, keyValueDataContainerFactory, arrayDataContainerFactory);
         parser.doParse(reader, rootContainer);
         return rootContainer;
     }

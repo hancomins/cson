@@ -1,4 +1,4 @@
-package com.hancomins.cson.format.binarycson;
+package com.hancomins.cson.format.cson;
 
 import com.hancomins.cson.CSONWriteException;
 import com.hancomins.cson.ObjectType;
@@ -13,17 +13,17 @@ import java.util.ArrayDeque;
 
 
 @SuppressWarnings("UnusedReturnValue")
-public class BinaryCSONWriter {
-	
+public class BinaryCSONWriterOrigin {
+
 	private static final int DEFAULT_BUFFER_SIZE = 4096;
-	
-	
+
+
 	private final ArrayDeque<ObjectType> typeStack = new ArrayDeque<>();
 	private final OutputStream outputStream;
 
 
 
-	public BinaryCSONWriter() {
+	public BinaryCSONWriterOrigin() {
 		outputStream = new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
 		typeStack.addLast(ObjectType.None);
 		try {
@@ -33,7 +33,7 @@ public class BinaryCSONWriter {
 	}
 
 
-	public BinaryCSONWriter(OutputStream outputStream) {
+	public BinaryCSONWriterOrigin(OutputStream outputStream) {
 		this.outputStream = outputStream;
 		typeStack.addLast(ObjectType.None);
 		try {
@@ -160,7 +160,7 @@ public class BinaryCSONWriter {
 	
 
 	@SuppressWarnings("unused")
-	BinaryCSONWriter key(char key) throws IOException {
+    BinaryCSONWriterOrigin key(char key) throws IOException {
 		if(typeStack.getLast() != ObjectType.Object) {
 			throw new CSONWriteException();
 		}
@@ -169,7 +169,7 @@ public class BinaryCSONWriter {
 		return this;
 	 }
 	
-	 public BinaryCSONWriter key(String key) throws IOException {
+	 public BinaryCSONWriterOrigin key(String key) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Object) {
 			 throw new CSONWriteException();
 		 }
@@ -179,7 +179,7 @@ public class BinaryCSONWriter {
 	 }
 	 
 	 @SuppressWarnings("UnusedReturnValue")
-     public BinaryCSONWriter nullValue() throws IOException {
+     public BinaryCSONWriterOrigin nullValue() throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
@@ -188,7 +188,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 
-	public BinaryCSONWriter value(String value) throws IOException {
+	public BinaryCSONWriterOrigin value(String value) throws IOException {
 		 if(value== null) {
 			 nullValue();
 			 return this;
@@ -202,7 +202,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter value(byte[] value) throws IOException {
+	 public BinaryCSONWriterOrigin value(byte[] value) throws IOException {
 		 if(value== null) {
 			 nullValue();
 			 return this;
@@ -215,7 +215,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 
-	public BinaryCSONWriter value(BigDecimal value) throws IOException {
+	public BinaryCSONWriterOrigin value(BigDecimal value) throws IOException {
         //noinspection DuplicatedCode
         if(value== null) {
 			nullValue();
@@ -230,7 +230,7 @@ public class BinaryCSONWriter {
 		return this;
 	}
 
-	public BinaryCSONWriter value(BigInteger value) throws IOException {
+	public BinaryCSONWriterOrigin value(BigInteger value) throws IOException {
 		//noinspection DuplicatedCode
 		if(value== null) {
 			nullValue();
@@ -245,7 +245,7 @@ public class BinaryCSONWriter {
 		return this;
 	}
 	 
-	 public BinaryCSONWriter value(byte value) throws IOException {
+	 public BinaryCSONWriterOrigin value(byte value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
@@ -255,7 +255,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 
-	public BinaryCSONWriter value(int value) throws IOException {
+	public BinaryCSONWriterOrigin value(int value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
@@ -266,7 +266,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter value(long value) throws IOException {
+	 public BinaryCSONWriterOrigin value(long value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
@@ -276,7 +276,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter value(short value) throws IOException {
+	 public BinaryCSONWriterOrigin value(short value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
@@ -286,7 +286,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter value(boolean value) throws IOException {
+	 public BinaryCSONWriterOrigin value(boolean value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
@@ -296,17 +296,17 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter value(char value) throws IOException {
+	 public BinaryCSONWriterOrigin value(char value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
 		 typeStack.removeLast();
-		 outputStream.write(BinaryCSONDataType.TYPE_CHAR);
+		 //outputStream.write(BinaryCSONDataType.TYPE_CHAR);
 		 writeShort((short)value);
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter value(float value) throws IOException {
+	 public BinaryCSONWriterOrigin value(float value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
@@ -316,7 +316,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter value(double value) throws IOException {
+	 public BinaryCSONWriterOrigin value(double value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey) {
 			 throw new CSONWriteException();
 		 }
@@ -328,7 +328,7 @@ public class BinaryCSONWriter {
 
 
 	 @SuppressWarnings("UnusedReturnValue")
-     public BinaryCSONWriter addNull() throws IOException {
+     public BinaryCSONWriterOrigin addNull() throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -336,7 +336,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter add(String value) throws IOException {
+	 public BinaryCSONWriterOrigin add(String value) throws IOException {
 		 if(value== null) {
 			 addNull();
 			 return this;
@@ -348,7 +348,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter add(byte[] value) throws IOException {
+	 public BinaryCSONWriterOrigin add(byte[] value) throws IOException {
 		 if(value== null) {
 			 addNull();
 			 return this;
@@ -361,7 +361,7 @@ public class BinaryCSONWriter {
 	 }
 
 	@SuppressWarnings("unused")
-	public BinaryCSONWriter add(BigDecimal value) throws IOException {
+	public BinaryCSONWriterOrigin add(BigDecimal value) throws IOException {
 		//noinspection DuplicatedCode
 		if(value== null) {
 			addNull();
@@ -376,7 +376,7 @@ public class BinaryCSONWriter {
 	}
 
 	@SuppressWarnings("unused")
-	public BinaryCSONWriter add(BigInteger value) throws IOException {
+	public BinaryCSONWriterOrigin add(BigInteger value) throws IOException {
 		//noinspection DuplicatedCode
 		if(value== null) {
 			addNull();
@@ -391,7 +391,7 @@ public class BinaryCSONWriter {
 	}
 	 
 	 
-	 public BinaryCSONWriter add(byte value) throws IOException {
+	 public BinaryCSONWriterOrigin add(byte value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -400,7 +400,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter add(int value) throws IOException {
+	 public BinaryCSONWriterOrigin add(int value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -409,7 +409,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter add(long value) throws IOException {
+	 public BinaryCSONWriterOrigin add(long value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -418,7 +418,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter add(short value) throws IOException {
+	 public BinaryCSONWriterOrigin add(short value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -427,7 +427,7 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter add(boolean value) throws IOException {
+	 public BinaryCSONWriterOrigin add(boolean value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -437,7 +437,7 @@ public class BinaryCSONWriter {
 	 }
 	 
 	 @SuppressWarnings("unused")
-	 public BinaryCSONWriter add(BinaryCSONWriter writer) throws IOException {
+	 public BinaryCSONWriterOrigin add(BinaryCSONWriterOrigin writer) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array && writer.typeStack.getLast() != ObjectType.None) {
 			 throw new CSONWriteException();
 		 }
@@ -447,17 +447,17 @@ public class BinaryCSONWriter {
 		 return this;
 	 }
 	 
-	 public BinaryCSONWriter add(char value) throws IOException {
+	 public BinaryCSONWriterOrigin add(char value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
-		 outputStream.write(BinaryCSONDataType.TYPE_CHAR);
+		 //outputStream.write(BinaryCSONDataType.TYPE_CHAR);
 		 writeShort((short)value);
 		 return this;
 	 }
 	 
 	 @SuppressWarnings("UnusedReturnValue")
-	 public BinaryCSONWriter add(float value) throws IOException {
+	 public BinaryCSONWriterOrigin add(float value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -467,7 +467,7 @@ public class BinaryCSONWriter {
 	 }
 
 	@SuppressWarnings("UnusedReturnValue")
-	public BinaryCSONWriter add(double value) throws IOException {
+	public BinaryCSONWriterOrigin add(double value) throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -479,7 +479,7 @@ public class BinaryCSONWriter {
 	 
 	 
 	 @SuppressWarnings("UnusedReturnValue")
-     public BinaryCSONWriter openArray() throws IOException {
+     public BinaryCSONWriterOrigin openArray() throws IOException {
 		 if(typeStack.getLast() != ObjectType.ObjectKey && typeStack.getLast() != ObjectType.Array && typeStack.getLast() != ObjectType.None) {
 			 throw new CSONWriteException();
 		 }
@@ -489,7 +489,7 @@ public class BinaryCSONWriter {
 	 }
 	 
 	 @SuppressWarnings("UnusedReturnValue")
-     public BinaryCSONWriter closeArray() throws IOException {
+     public BinaryCSONWriterOrigin closeArray() throws IOException {
 		 if(typeStack.getLast() != ObjectType.Array) {
 			 throw new CSONWriteException();
 		 }
@@ -503,7 +503,7 @@ public class BinaryCSONWriter {
 	 }
 	 
 	 @SuppressWarnings("UnusedReturnValue")
-     public BinaryCSONWriter openObject() throws IOException {
+     public BinaryCSONWriterOrigin openObject() throws IOException {
 		 if(typeStack.getLast() == ObjectType.Object) {
 			 throw new CSONWriteException();
 		 }
@@ -513,7 +513,7 @@ public class BinaryCSONWriter {
 	 }
 	 
 	 @SuppressWarnings("UnusedReturnValue")
-     public BinaryCSONWriter closeObject() throws IOException {
+     public BinaryCSONWriterOrigin closeObject() throws IOException {
 		 if(typeStack.getLast() != ObjectType.Object) {
 			 throw new CSONWriteException();
 		 }

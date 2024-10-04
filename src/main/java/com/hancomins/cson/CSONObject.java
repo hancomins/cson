@@ -2,21 +2,19 @@ package com.hancomins.cson;
 
 
 import com.hancomins.cson.format.*;
-import com.hancomins.cson.format.binarycson.BinaryCSONParser;
-import com.hancomins.cson.format.binarycson.BinaryCSONWriter;
+import com.hancomins.cson.format.cson.BinaryCSONParser;
 import com.hancomins.cson.format.json.JSONWriter;
 import com.hancomins.cson.util.DataConverter;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
 import com.hancomins.cson.util.NullValue;
 import com.hancomins.cson.options.*;
-import com.hancomins.cson.format.json.JSON5ParserX;
+import com.hancomins.cson.format.json.JSON5Parser;
 import com.hancomins.cson.serializer.CSONSerializer;
 
 
 import java.io.*;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -146,14 +144,14 @@ public class CSONObject extends CSONElement implements Cloneable {
 		} else {*/
 			//JSON5Parser.parsePureJSON(stringReader, this, (JsonParsingOptions)options);
 
-			//JSON5ParserX
+			//JSON5Parser
 			//JSON5ParserV parserV = new JSON5ParserV((JsonParsingOptions) options);
 			//parserV.parsePureJSON(stringReader, this);
 			//parserV.reset();
 
 			//new( (JsonParsingOptions)options).parsePureJSON(stringReader, this);
 
-		JSON5ParserX.parse(stringReader, (JsonParsingOptions) options, new CSONKeyValueDataContainer(this), CSONObject.KeyValueDataContainerFactory, CSONArray.ArrayDataContainerFactory);
+		JSON5Parser.parse(stringReader, (JsonParsingOptions) options, new CSONKeyValueDataContainer(this), CSONObject.KeyValueDataContainerFactory, CSONArray.ArrayDataContainerFactory);
 
 
 
@@ -1046,74 +1044,17 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	/**
-	 * @deprecated use toBinary instead of this method @see toBinary
-	 */
-	@SuppressWarnings("DeprecatedIsStillUsed")
-	@Deprecated
-	public byte[] toBytes() {
-		return toBinary();
-	}
-
-	/**
-	 * @deprecated use toBinary instead of this method @see toCSONBinary
-	 */
-	@SuppressWarnings("DeprecatedIsStillUsed")
-	@Deprecated
-	public byte[] toBinary() {
-		return toCSONBinary();
-	}
-
 	@Override
 	public byte[] toCSONBinary() {
-		try {
-			BinaryCSONWriter writer = new BinaryCSONWriter();
-			write(writer);
-			return writer.toByteArray();
-		}
-		// 사실상 발생하지 않는다.
-		catch (IOException e) {
-			throw new CSONException(e);
-		}
+		return null;
 	}
 
 	@Override
 	public void writeCSONBinary(OutputStream outputStream) throws IOException {
-		BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
-		write(writer);
+		//BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
+		//write(writer);
 	}
 
-	void write(BinaryCSONWriter writer) throws IOException {
-		Iterator<Entry<String, java.lang.Object>> iter = dataMap.entrySet().iterator();
-		writer.openObject();
-		while(iter.hasNext()) {
-			Entry<String, java.lang.Object> entry = iter.next();
-			String key = entry.getKey();
-			java.lang.Object obj = entry.getValue();
-			if(obj == null || obj instanceof NullValue) writer.key(key).nullValue();
-			else if(obj instanceof CSONArray)  {
-				writer.key(key);
-				((CSONArray)obj).write(writer);
-			}
-			else if(obj instanceof CSONObject)  {
-				writer.key(key);
-				((CSONObject)obj).write(writer);
-			}
-			else if(obj instanceof Byte)	writer.key(key).value((Byte)obj);
-			else if(obj instanceof Short)	writer.key(key).value((Short)obj);
-			else if(obj instanceof Character) writer.key(key).value((Character)obj);
-			else if(obj instanceof Integer) writer.key(key).value((Integer)obj);
-			else if(obj instanceof Float) writer.key(key).value((Float)obj);
-			else if(obj instanceof Long) writer.key(key).value((Long)obj);
-			else if(obj instanceof Double) writer.key(key).value((Double)obj);
-			else if(obj instanceof String) writer.key(key).value((String)obj);
-			else if(obj instanceof Boolean) writer.key(key).value((Boolean)obj);
-			else if(obj instanceof BigDecimal) writer.key(key).value(((BigDecimal)obj));
-			else if(obj instanceof BigInteger) writer.key(key).value(((BigInteger)obj));
-			else if(obj instanceof byte[]) writer.key(key).value((byte[])obj);
-		}
-		writer.closeObject();
-	}
 
 
 	public Map<String, KeyValueCommentObject> getKeyValueCommentMap() {
@@ -1397,6 +1338,11 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 
 		@Override
+		public int size() {
+			return csonObject.dataMap.size();
+		}
+
+		@Override
 		public void setSourceFormat(FormatType formatType) {
 			switch (formatType) {
 				case JSON:
@@ -1413,6 +1359,32 @@ public class CSONObject extends CSONElement implements Cloneable {
 					break;
 			}
 
+		}
+
+		@Override
+		public DataIterator<?> iterator() {
+			return new EntryDataIterator(csonObject.dataMap.entrySet().iterator(), csonObject.dataMap.size(), true);
+		}
+	}
+
+	private static class EntryDataIterator extends DataIterator<Entry<String, Object>>{
+
+		public EntryDataIterator(Iterator<Entry<String, Object>> iterator, int size, boolean isEntryValue) {
+			super(iterator, size, isEntryValue);
+		}
+
+		@Override
+		public Entry<String, Object> next() {
+			Entry<String, Object> entry = super.next();
+			Object value = entry.getValue();
+			if(value instanceof NullValue) {
+				entry.setValue(null);
+			} else if(value instanceof CSONObject) {
+				entry.setValue(new CSONKeyValueDataContainer((CSONObject)value));
+			} else if(value instanceof CSONArray) {
+				entry.setValue(new CSONArray.CSONArrayDataContainer((CSONArray)value));
+			}
+			return entry;
 		}
 	}
 

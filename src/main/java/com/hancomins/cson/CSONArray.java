@@ -2,14 +2,11 @@ package com.hancomins.cson;
 
 
 
-import com.hancomins.cson.format.ArrayDataContainer;
-import com.hancomins.cson.format.ArrayDataContainerFactory;
-import com.hancomins.cson.format.FormatType;
-import com.hancomins.cson.format.FormatWriter;
-import com.hancomins.cson.format.binarycson.BinaryCSONParser;
-import com.hancomins.cson.format.binarycson.BinaryCSONWriter;
+import com.hancomins.cson.format.*;
+import com.hancomins.cson.format.cson.BinaryCSONParser;
+import com.hancomins.cson.format.cson.BinaryCSONWriter;
 import com.hancomins.cson.format.json.JSONWriter;
-import com.hancomins.cson.format.json.JSON5ParserX;
+import com.hancomins.cson.format.json.JSON5Parser;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.DataConverter;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
@@ -108,7 +105,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		} else {*/
 			//new JSONParser(new JSONTokener(stringReader, (JsonParsingOptions)options)).parseArray(this);
 			//new JSON5ParserV((JsonParsingOptions) options).parsePureJSON(stringReader, this);
-			 JSON5ParserX.parse(stringReader, (JsonParsingOptions) options, new CSONArrayDataContainer(this), CSONObject.KeyValueDataContainerFactory, CSONArray.ArrayDataContainerFactory);
+			 JSON5Parser.parse(stringReader, (JsonParsingOptions) options, new CSONArrayDataContainer(this), CSONObject.KeyValueDataContainerFactory, CSONArray.ArrayDataContainerFactory);
 
 		//}
 	}
@@ -1031,28 +1028,11 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		}
 	}
 
-	/**
-	 * @Deprecated use {@link #toCSONBinary()} instead.
-	 */
-
-	@Deprecated
-	public byte[] toByteArray() {
-		return toCSONBinary();
-	}
-
 
 
 	@Override
 	public byte[] toCSONBinary() {
-		try {
-			BinaryCSONWriter writer = new BinaryCSONWriter();
-			write(writer);
-			return writer.toByteArray();
-		}
-		// 사실상 발생하지 않는다.
-		catch (IOException ignored) {
-			throw new CSONException(ignored);
-		}
+		return null;
 	}
 
 	@Override
@@ -1066,28 +1046,6 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 	@SuppressWarnings("ForLoopReplaceableByForEach")
 	void write(BinaryCSONWriter writer) throws IOException {
-		writer.openArray();
-		for(int i = 0, n = list.size(); i < n; ++i) {
-			Object obj = list.get(i);
-			if(obj == null || obj instanceof NullValue) writer.addNull();
-			else if(obj instanceof CSONArray)  {
-				((CSONArray)obj).write(writer);
-			}
-			else if(obj instanceof CSONObject)  {
-				((CSONObject)obj).write(writer);
-			}
-			else if(obj instanceof Byte)	writer.add((Byte)obj);
-			else if(obj instanceof Short)	writer.add((Short)obj);
-			else if(obj instanceof Character) writer.add((Character)obj);
-			else if(obj instanceof Integer) writer.add((Integer)obj);
-			else if(obj instanceof Float) writer.add((Float)obj);
-			else if(obj instanceof Long) writer.add((Long)obj);
-			else if(obj instanceof Double) writer.add((Double)obj);
-			else if(obj instanceof String) writer.add((String)obj);
-			else if(obj instanceof byte[]) writer.add((byte[])obj);
-			else if(obj instanceof Boolean) writer.add((Boolean)obj);
-		}
-		writer.closeArray();
 
 	}
 
@@ -1320,7 +1278,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		final CSONArray array;
 		private int index = 0;
 
-		private CSONArrayDataContainer(CSONArray array) {
+		protected CSONArrayDataContainer(CSONArray array) {
 			this.array = array;
 		}
 
@@ -1407,6 +1365,32 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 			}
 
 		}
+
+		@Override
+		public DataIterator<Object> iterator() {
+			return new ArrayDataIterator(array.list.iterator(), array.list.size(), false);
+		}
+
+		private static class ArrayDataIterator extends DataIterator<Object> {
+
+			public ArrayDataIterator(Iterator<Object> iterator, int size, boolean isEntryValue) {
+				super(iterator, size, isEntryValue);
+			}
+
+			@Override
+			public Object next() {
+				Object value = super.next();
+				if(value instanceof NullValue) {
+					return null;
+				} else if(value instanceof CSONObject) {
+					return new CSONObject.CSONKeyValueDataContainer((CSONObject)value);
+				} else if(value instanceof CSONArray) {
+					return new CSONArray.CSONArrayDataContainer((CSONArray)value);
+				}
+				return value;
+			}
+		}
+
 	}
 
 

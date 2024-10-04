@@ -2,7 +2,7 @@ package com.hancomins.cson;
 
 
 import com.hancomins.cson.format.FormatWriter;
-import com.hancomins.cson.format.binarycson.BinaryCSONDataType;
+import com.hancomins.cson.format.cson.BinaryCSONDataType;
 import com.hancomins.cson.options.ParsingOptions;
 import com.hancomins.cson.options.WritingOptions;
 import com.hancomins.cson.util.NullValue;
