@@ -159,7 +159,7 @@ public class CSONTest {
         }
 
         numberJsonArray = new JSONArray(numberJsonArray.toString());
-        CSONArray numberCsonArray = new CSONArray(new CSONArray(numberJsonArray.toString()).toByteArray());
+        CSONArray numberCsonArray = new CSONArray(new CSONArray(numberJsonArray.toString()).toBytes());
         assertEquals(numberJsonArray.length(), numberCsonArray.size());
         for(int i = 0, n = numberJsonArray.length(); i < n; ++i) {
             assertEquals(numberJsonArray.optString(i), numberCsonArray.optString(i));
@@ -167,7 +167,7 @@ public class CSONTest {
 
         objectJsonArray = new JSONArray(objectJsonArray.toString());
         System.out.println(objectJsonArray.toString());
-        CSONArray objectCsonArray = new CSONArray(new CSONArray(objectJsonArray.toString()).toByteArray());
+        CSONArray objectCsonArray = new CSONArray(new CSONArray(objectJsonArray.toString()).toBytes());
 
 
         assertEquals(objectJsonArray.length(), objectCsonArray.size());

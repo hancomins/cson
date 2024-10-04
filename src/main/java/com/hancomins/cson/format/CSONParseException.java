@@ -20,7 +20,7 @@ public class CSONParseException  extends RuntimeException {
 
     }
 
-    CSONParseException(String message, int line, int index) {
+    public CSONParseException(String message, int line, int index) {
         super(makeMessage(message, line, index));
         this.index = index;
         this.line = line;

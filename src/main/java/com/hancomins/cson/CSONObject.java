@@ -3,6 +3,7 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.format.*;
 import com.hancomins.cson.format.cson.BinaryCSONParser;
+import com.hancomins.cson.format.cson.BinaryCSONWriter;
 import com.hancomins.cson.format.json.JSONWriter;
 import com.hancomins.cson.util.DataConverter;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
@@ -52,8 +53,13 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	public CSONObject(byte[] binaryCSON) {
 		super(ElementType.Object);
-		CSONObject csonObject = (CSONObject) BinaryCSONParser.parse(binaryCSON);
-		this.dataMap = csonObject.dataMap;
+		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(binaryCSON);
+		BinaryCSONParser parser = new BinaryCSONParser(CSONObject.KeyValueDataContainerFactory, CSONArray.ArrayDataContainerFactory);
+		try {
+			parser.parse(byteArrayInputStream, new CSONObject.CSONKeyValueDataContainer(this));
+		} catch (IOException e) {
+			throw new CSONException(e);
+		}
 	}
 
 
@@ -1044,15 +1050,15 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	@Override
-	public byte[] toCSONBinary() {
-		return null;
-	}
-
-	@Override
-	public void writeCSONBinary(OutputStream outputStream) throws IOException {
-		//BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
-		//write(writer);
+	public byte[] toBytes() {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		try {
+			BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
+			writer.write(new CSONKeyValueDataContainer(this));
+			return outputStream.toByteArray();
+		} catch (IOException e) {
+			throw new CSONException(e);
+		}
 	}
 
 

@@ -99,7 +99,7 @@ public class CSONObjectTest {
         CSONObject csonObject = makeCSOObject();
 
         byte[] buffer = csonObject.getByteArray("byte[]");
-        byte[] cson = csonObject.toCSONBinary();
+        byte[] cson = csonObject.toBytes();
 
 
 

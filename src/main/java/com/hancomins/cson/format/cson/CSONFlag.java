@@ -61,21 +61,21 @@ class CSONFlags {
     static final int ARRAY_UINT32 =  0x95;  // uint32 길이 배열
 
     // 코멘트
-    static final int HEADER_COMMENT =  0xa1;
-    static final int FOOTER_COMMENT =  0xa2;
-    static final int OBJECT_COMMENT_UINT8 =  0xa3;   // ~uint8 길이 오브젝트 코멘트
-    static final int OBJECT_COMMENT_UINT16 =  0xa4;  // ~uint16 길이 오브젝트 코멘트
-    static final int OBJECT_COMMENT_UINT32 =  0xa5;  // uint32 길이 오브젝트 코멘트
-    static final int ARRAY_COMMENT_UINT8 =  0xa6;    // ~uint8 길이 배열 코멘트
-    static final int ARRAY_COMMENT_UINT16 =  0xa7;   // ~uint16 길이 배열 코멘트
-    static final int ARRAY_COMMENT_UINT32 =  0xa8;   // uint32 길이 배열 코멘트
+    static final int HEADER_COMMENT =  0xa0;
+    static final int FOOTER_COMMENT =  0xa1;
+    static final int OBJECT_COMMENT_UINT8 =  0xa2;   // ~uint8 길이 오브젝트 코멘트
+    static final int OBJECT_COMMENT_UINT16 =  0xa3;  // ~uint16 길이 오브젝트 코멘트
+    static final int OBJECT_COMMENT_UINT32 =  0xa4;  // uint32 길이 오브젝트 코멘트
+    static final int ARRAY_COMMENT_UINT8 =  0xa5;    // ~uint8 길이 배열 코멘트
+    static final int ARRAY_COMMENT_UINT16 =  0xa6;   // ~uint16 길이 배열 코멘트
+    static final int ARRAY_COMMENT_UINT32 =  0xa7;   // uint32 길이 배열 코멘트
 
     // 타입 플래그
     static final int TYPE_FIXED_VALUE = 0x1;  // 고정값
     static final int TYPE_INTEGER = 0x2;      // 정수형
     static final int TYPE_FLOAT = 0x3;        // 실수형
     static final int TYPE_STRING_LESS_THAN_16 = 0x4;       // 문자열
-    static final int TYPE_BYTE_BUFFER = 0x5;  // 바이트 버퍼
+    static final int TYPE_STRING_OR_BYTE_BUFFER = 0x5;  // 바이트 버퍼
     static final int TYPE_OBJECT_LESS_THAN_16 = 0x7;       // 오브젝트
     static final int TYPE_ARRAY_LESS_THAN_16 = 0x8;        // 배열
     static final int TYPE_OBJECT =  0x9; // 큰 오브젝트

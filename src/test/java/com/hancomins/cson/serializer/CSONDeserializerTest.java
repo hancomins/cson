@@ -428,7 +428,7 @@ public class CSONDeserializerTest {
     public void testBigDecimalValue() {
         CSONObject csonObjectBigValue  = new CSONObject("{\"bigValue\":68542801231231231231231231231238550}", JsonParsingOptions.json5())  ;
         System.out.println(csonObjectBigValue);
-        csonObjectBigValue = new CSONObject(csonObjectBigValue.toCSONBinary());
+        csonObjectBigValue = new CSONObject(csonObjectBigValue.toBytes());
         Object obj = csonObjectBigValue.get("bigValue");
         System.out.println(obj);
         assertTrue(obj instanceof BigDecimal);

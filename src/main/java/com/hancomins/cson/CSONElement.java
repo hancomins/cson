@@ -190,8 +190,7 @@ public abstract  class CSONElement implements Iterable<java.lang.Object>  {
 	}
 
 	public abstract void clear();
-	public abstract byte[] toCSONBinary();
-	public abstract void writeCSONBinary(OutputStream outputStream) throws IOException;
+
 
 
 	protected static boolean containsNoStrict(Collection<java.lang.Object> valueList, java.lang.Object value) {

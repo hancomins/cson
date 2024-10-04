@@ -1030,24 +1030,18 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 
 
-	@Override
-	public byte[] toCSONBinary() {
-		return null;
+
+	public byte[] toBytes() {
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		try {
+			BinaryCSONWriter writer = new BinaryCSONWriter(byteArrayOutputStream);
+			writer.write(new CSONArrayDataContainer(this));
+		} catch (IOException e) {
+			throw new CSONException(e);
+		}
+		return byteArrayOutputStream.toByteArray();
 	}
 
-	@Override
-	public void writeCSONBinary(OutputStream outputStream) throws IOException {
-		BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
-		write(writer);
-	}
-
-
-
-
-	@SuppressWarnings("ForLoopReplaceableByForEach")
-	void write(BinaryCSONWriter writer) throws IOException {
-
-	}
 
 
 
