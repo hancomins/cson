@@ -1,6 +1,6 @@
 package com.hancomins.cson.format.cson;
 
-import com.hancomins.cson.format.json.CSONParseException;
+import com.hancomins.cson.format.CSONParseException;
 import com.hancomins.cson.util.DataReader;
 
 import java.io.InputStream;

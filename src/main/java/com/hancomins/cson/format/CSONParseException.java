@@ -1,4 +1,4 @@
-package com.hancomins.cson.format.json;
+package com.hancomins.cson.format;
 
 import java.util.Locale;
 

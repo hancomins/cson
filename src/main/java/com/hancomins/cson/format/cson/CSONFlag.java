@@ -74,12 +74,12 @@ class CSONFlags {
     static final int TYPE_FIXED_VALUE = 0x1;  // 고정값
     static final int TYPE_INTEGER = 0x2;      // 정수형
     static final int TYPE_FLOAT = 0x3;        // 실수형
-    static final int TYPE_STRING_SMALL = 0x4;       // 문자열
+    static final int TYPE_STRING_LESS_THAN_16 = 0x4;       // 문자열
     static final int TYPE_BYTE_BUFFER = 0x5;  // 바이트 버퍼
-    static final int TYPE_OBJECT = 0x7;       // 오브젝트
-    static final int TYPE_ARRAY = 0x8;        // 배열
-    static final int TYPE_OBJECT_LARGE =  0x9; // 큰 오브젝트
-    static final int TYPE_ARRAY_LARGE =  0x9;  // 큰 배열
+    static final int TYPE_OBJECT_LESS_THAN_16 = 0x7;       // 오브젝트
+    static final int TYPE_ARRAY_LESS_THAN_16 = 0x8;        // 배열
+    static final int TYPE_OBJECT =  0x9; // 큰 오브젝트
+    static final int TYPE_ARRAY =  0x9;  // 큰 배열
     static final int TYPE_COMMENT =  0xa;      // 코멘트
 
 
