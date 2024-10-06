@@ -36,7 +36,7 @@ public class DataIterator <T> implements Iterator<T> {
         iterator.remove();
     }
 
-    public boolean isEntryValue() {
+    public boolean isKeyValue() {
         return isEntryValue;
     }
 

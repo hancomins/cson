@@ -11,13 +11,22 @@ public class BinaryCSONTest {
     public void testSimpleKeyValue() {
         CSONObject csonObject = new CSONObject();
         csonObject.put("key", "value");
+        csonObject.put("key2", 123L);
         byte[] csonBytes = csonObject.toBytes();
         CSONObject readObject = new CSONObject(csonBytes);
         System.out.println(csonObject);
         assertEquals(csonObject, readObject);
-
-
-
-
     }
+
+    @Test
+    public void testObjectInObject1() {
+        CSONObject csonObject = new CSONObject();
+        CSONObject innerObject = new CSONObject();
+        csonObject.put("inner", innerObject);
+        byte[] csonBytes = csonObject.toBytes();
+        CSONObject readObject = new CSONObject(csonBytes);
+        System.out.println(csonObject);
+        assertEquals(csonObject, readObject);
+    }
+
 }
