@@ -11,6 +11,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.Map;
 
 
@@ -27,6 +28,61 @@ public class BinaryCSONWriter {
 	private DataIterator<?> currentIterator;
 	private BaseDataContainer currentDataContainer;
 
+
+
+	@SuppressWarnings("unchecked")
+	public void write(BaseDataContainer dataContainer) throws IOException {
+		writePrefix();
+		String header = dataContainer.getComment(CommentPosition.HEADER);
+		writeHeaderComment(header);
+		currentDataContainer = dataContainer;
+		this.currentIterator = dataContainer.iterator();
+		dataContainerIteratorStack.push(currentIterator);
+		dataContainerStack.push(currentDataContainer);
+
+		LOOP:
+		while(!dataContainerIteratorStack.isEmpty()) {
+			if(this.currentIterator.isBegin()) {
+				writeContainerPrefix(this.currentIterator);
+			}
+
+			while (this.currentIterator.hasNext()) {
+				if (this.currentIterator.isKeyValue()) {
+					String key = writeObject((DataIterator<Map.Entry<String, Object>>)this.currentIterator);
+					if(key != null) {
+						continue LOOP;
+					}
+				} else {
+					if(writeArray(this.currentIterator)) {
+						break;
+					}
+				}
+			}
+			BaseDataContainer oldDataContainer = currentDataContainer;
+			currentIterator = dataContainerIteratorStack.pop();
+			currentDataContainer = dataContainerStack.pop();
+			if(oldDataContainer instanceof KeyValueDataContainer) {
+				writeObjectSuffix();
+			} else if(oldDataContainer instanceof ArrayDataContainer) {
+				writeArraySuffix();
+			}
+
+		}
+
+		String footerComment = currentDataContainer.getComment(CommentPosition.FOOTER);
+		writeFooterComment(footerComment);
+
+		writeSuffix();
+	}
+
+	@SuppressWarnings("unchecked")
+    private void writeContainerPrefix(DataIterator<?> iterator) throws IOException {
+		if(iterator.isKeyValue()) {
+			writeObjectPrefix((DataIterator<Map.Entry<String, Object>>) iterator);
+		} else {
+			writeArrayPrefix(iterator);
+		}
+	}
 
 
 	public BinaryCSONWriter() {
@@ -117,52 +173,6 @@ public class BinaryCSONWriter {
 		dataOutputStream.close();
 	}
 
-	@SuppressWarnings("unchecked")
-    public void write(BaseDataContainer dataContainer) throws IOException {
-		writePrefix();
-		String header = dataContainer.getComment(CommentPosition.HEADER);
-		writeHeaderComment(header);
-		currentDataContainer = dataContainer;
-		this.currentIterator = dataContainer.iterator();
-		dataContainerIteratorStack.push(currentIterator);
-		dataContainerStack.push(currentDataContainer);
-
-
-		while(!dataContainerIteratorStack.isEmpty()) {
-			while (this.currentIterator.hasNext()) {
-				if (this.currentIterator.isKeyValue()) {
-					String key = writeObject((DataIterator<Map.Entry<String, Object>>)this.currentIterator);
-					if(key != null) {
-						break;
-					}
-				} else {
-					if(writeArray(this.currentIterator)) {
-						break;
-					}
-				}
-			}
-			BaseDataContainer oldDataContainer = currentDataContainer;
-			Object parentKey = currentIterator.getKey();
-			currentIterator = dataContainerIteratorStack.pop();
-			currentDataContainer = dataContainerStack.pop();
-			if(oldDataContainer instanceof KeyValueDataContainer) {
-				writeObjectSuffix();
-			} else if(oldDataContainer instanceof ArrayDataContainer) {
-				writeArraySuffix();
-			}
-			if(parentKey != null) {
-				writeKeyValue((String)parentKey, oldDataContainer);
-			} else {
-				writeValue(oldDataContainer);
-			}
-		}
-
-
-		String footerComment = currentDataContainer.getComment(CommentPosition.FOOTER);
-		writeFooterComment(footerComment);
-
-		writeSuffix();
-	}
 
 	private void intoChildBaseDataContainer(BaseDataContainer value) {
 		currentDataContainer = value;
@@ -282,9 +292,6 @@ public class BinaryCSONWriter {
 	}
 
 	private String writeObject(DataIterator<Map.Entry<String, Object>> iterator) throws IOException {
-		if (iterator.isBegin()) {
-			writeObjectPrefix(iterator);
-		}
 		Map.Entry<String, Object> entry = iterator.next();
 		String key = entry.getKey();
 		Object value = entry.getValue();

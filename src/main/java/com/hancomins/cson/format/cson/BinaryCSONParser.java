@@ -18,13 +18,15 @@ public class BinaryCSONParser {
 
 	private static int BUFFER_SIZE = 4096;
 
-	private ArrayStack<Integer> containerValueCountStack = new ArrayStack<>();
+	private ArrayStack<ValueCounter> containerValueCountStack = new ArrayStack<>();
 	private ArrayStack<BaseDataContainer> containerStack = new ArrayStack<>();
 	private ArrayStack<DataIterator<?>> iteratorStack = new ArrayStack<>();
-	private int currentContainerValueCount = 0;
+	private ValueCounter currentContainerValueCount;
 	private BaseDataContainer currentContainer;
 
 	private byte[] defaultBuffer = new byte[BUFFER_SIZE];
+
+	private String lastKey;
 
 	private String headerComment;
 
@@ -72,10 +74,15 @@ public class BinaryCSONParser {
 		int state = readHeader();
 		String key = null;
 		do {
-		  int childContainerState =	readContainerState(state, key);
+
+		  	int childContainerState =	readContainerState(state, key);
             if (childContainerState == -1) {
                 upParentContainer();
-                state = dataInputStream.read();
+				if(currentContainerValueCount.isContains()) {
+					state = dataInputStream.read();
+				} else if (currentContainer == rootDataContainer) {
+					break;
+				}
             } else {
                 state = childContainerState;
             }
@@ -117,19 +124,19 @@ public class BinaryCSONParser {
 		int containerValueCount = 0;
 		switch (type) {
 			case CSONFlags.TYPE_OBJECT_LESS_THAN_16:
-				newObject(state & 0x0F, null, true);
+				newObject( new ValueCounter(state & 0x0F),  true);
 				return readKeyValueDataContainer();
 			case CSONFlags.TYPE_ARRAY_LESS_THAN_16:
-				newObject(state & 0x0F, null, false);
+				newObject(new ValueCounter(state & 0x0F),  false);
 				return readArray();
 			case CSONFlags.TYPE_OBJECT:
 				containerValueCount = readObjectCount(state);
 				if(containerValueCount < 0) {
 					containerValueCount = -containerValueCount;
-					newObject(containerValueCount, null, false);
+					newObject(new ValueCounter(containerValueCount), false);
 					return readArray();
 				} else {
-					newObject(containerValueCount, null, true);
+					newObject(new ValueCounter(containerValueCount), true);
 					return readKeyValueDataContainer();
 				}
 			case CSONFlags.TYPE_COMMENT:
@@ -166,7 +173,7 @@ public class BinaryCSONParser {
 	}
 
 
-	private void newObject(int valueCount,String key,boolean isObject) {
+	private void newObject(ValueCounter valueCount,boolean isObject) {
 		BaseDataContainer nextContainer;
 		if(currentContainer == null) {
 			if(rootDataContainer == null) {
@@ -175,9 +182,10 @@ public class BinaryCSONParser {
 				nextContainer = rootDataContainer;
 			}
 		}
-		else if(key != null) {
+		else if(lastKey != null) {
 			nextContainer =  isObject ? keyValueDataContainerFactory.create() : arrayDataContainerFactory.create();
-			((KeyValueDataContainer) currentContainer).put(key, nextContainer);
+			((KeyValueDataContainer) currentContainer).put(lastKey, nextContainer);
+			lastKey = null;
 		} else {
 			nextContainer =  isObject ? keyValueDataContainerFactory.create() : arrayDataContainerFactory.create();
 			((ArrayDataContainer) currentContainer).add(nextContainer);
@@ -195,10 +203,12 @@ public class BinaryCSONParser {
 	 * @throws IOException
 	 */
 	private int readKeyValueDataContainer() throws IOException {
-		for(int i = 0; i < currentContainerValueCount; i++) {
+		while (currentContainerValueCount.isContains()) {
+			currentContainerValueCount.decrease();
 			String key = readString();
 			int state = dataInputStream.read();
 			if(CSONFlags.OBJECT_LESS_THAN_16 <= state &&  state < CSONFlags.HEADER_COMMENT) {
+				lastKey = key;
 				return state;
 			}
 			Object value = readValue(state);
@@ -208,7 +218,7 @@ public class BinaryCSONParser {
 	}
 
 	private int readArray() throws IOException {
-		for(int i = 0; i < currentContainerValueCount; i++) {
+		while (currentContainerValueCount.isContains()) {
 			String key = readString();
 			int state = dataInputStream.read();
 			if(CSONFlags.OBJECT_LESS_THAN_16 <= state &&  state < CSONFlags.HEADER_COMMENT) {
@@ -422,6 +432,27 @@ public class BinaryCSONParser {
 	}
 
 
+	private static class ValueCounter {
+		int value;
+
+		ValueCounter(int value) {
+			this.value = value;
+		}
+
+		private boolean isContains() {
+			return value > 0;
+		}
+
+
+		private void decrease() {
+			value--;
+		}
+
+		private boolean isEmpty() {
+			return value < 1;
+		}
+
+	}
 
 
 
