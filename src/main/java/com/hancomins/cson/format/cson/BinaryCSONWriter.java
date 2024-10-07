@@ -32,6 +32,7 @@ public class BinaryCSONWriter {
 
 	@SuppressWarnings("unchecked")
 	public void write(BaseDataContainer dataContainer) throws IOException {
+		BaseDataContainer rootContainer = dataContainer;
 		writePrefix();
 		String header = dataContainer.getComment(CommentPosition.HEADER);
 		writeHeaderComment(header);
@@ -39,6 +40,8 @@ public class BinaryCSONWriter {
 		this.currentIterator = dataContainer.iterator();
 		dataContainerIteratorStack.push(currentIterator);
 		dataContainerStack.push(currentDataContainer);
+
+
 
 		LOOP:
 		while(!dataContainerIteratorStack.isEmpty()) {
@@ -59,8 +62,10 @@ public class BinaryCSONWriter {
 				}
 			}
 			BaseDataContainer oldDataContainer = currentDataContainer;
-			currentIterator = dataContainerIteratorStack.pop();
-			currentDataContainer = dataContainerStack.pop();
+			dataContainerIteratorStack.pop();
+			dataContainerStack.pop();
+			currentIterator =  dataContainerIteratorStack.top();
+			currentDataContainer =  dataContainerStack.top();
 			if(oldDataContainer instanceof KeyValueDataContainer) {
 				writeObjectSuffix();
 			} else if(oldDataContainer instanceof ArrayDataContainer) {
@@ -69,7 +74,7 @@ public class BinaryCSONWriter {
 
 		}
 
-		String footerComment = currentDataContainer.getComment(CommentPosition.FOOTER);
+		String footerComment = rootContainer.getComment(CommentPosition.FOOTER);
 		writeFooterComment(footerComment);
 
 		writeSuffix();

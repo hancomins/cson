@@ -33,6 +33,7 @@ public class DataIterator <T> implements Iterator<T> {
 
     @Override
     public void remove() {
+
         iterator.remove();
     }
 
@@ -48,9 +49,9 @@ public class DataIterator <T> implements Iterator<T> {
         return position;
     }
 
-    public Object getKey() {
-        return key;
-    }
+    //public Object getKey() {
+   //    return key;
+    //}
 
     public void setKey(Object key) {
         this.key = key;

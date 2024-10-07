@@ -1381,7 +1381,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 		@Override
 		public Entry<String, Object> next() {
-			Entry<String, Object> entry = super.next();
+			Entry<String, Object> originEntry = super.next();
+			Entry<String, Object> entry = new AbstractMap.SimpleEntry<>(originEntry.getKey(), originEntry.getValue());
 			Object value = entry.getValue();
 			if(value instanceof NullValue) {
 				entry.setValue(null);
@@ -1389,6 +1390,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 				entry.setValue(new CSONKeyValueDataContainer((CSONObject)value));
 			} else if(value instanceof CSONArray) {
 				entry.setValue(new CSONArray.CSONArrayDataContainer((CSONArray)value));
+			} else {
+				entry.setValue(value);
 			}
 			return entry;
 		}
