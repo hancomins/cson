@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -175,18 +176,41 @@ public class BinaryCSONParser {
 		return -1;
 	}
 
-
-	private void newObject(ValueCounter valueCount,boolean isObject) {
+	private void newArray(ValueCounter valueCount) {
 		BaseDataContainer nextContainer;
 		if(currentContainer == null) {
 			if(rootDataContainer == null) {
-				nextContainer =  isObject ? keyValueDataContainerFactory.create() : arrayDataContainerFactory.create();
+				nextContainer =  arrayDataContainerFactory.create();
 			} else {
 				nextContainer = rootDataContainer;
 			}
 		}
 		else if(lastKey != null) {
 			nextContainer =  isObject ? keyValueDataContainerFactory.create() : arrayDataContainerFactory.create();
+			((KeyValueDataContainer) currentContainer).put(lastKey, nextContainer);
+			lastKey = null;
+		} else {
+			nextContainer =  isObject ? keyValueDataContainerFactory.create() : arrayDataContainerFactory.create();
+			((ArrayDataContainer) currentContainer).add(nextContainer);
+		}
+		containerStack.push(nextContainer);
+		containerValueCountStack.push(valueCount);
+		currentContainer = nextContainer;
+		currentContainerValueCount = valueCount;
+	}
+
+
+	private void newObject(ValueCounter valueCount) {
+		BaseDataContainer nextContainer;
+		if(currentContainer == null) {
+			if(rootDataContainer == null) {
+				nextContainer =  keyValueDataContainerFactory.create();
+			} else {
+				nextContainer = rootDataContainer;
+			}
+		}
+		else if(lastKey != null) {
+			nextContainer =  keyValueDataContainerFactory.create();
 			((KeyValueDataContainer) currentContainer).put(lastKey, nextContainer);
 			lastKey = null;
 		} else {
@@ -223,13 +247,12 @@ public class BinaryCSONParser {
 
 	private int readArray() throws IOException {
 		while (currentContainerValueCount.isContains()) {
-			String key = readString();
 			int state = dataInputStream.read();
 			if(CSONFlags.OBJECT_LESS_THAN_16 <= state &&  state < CSONFlags.HEADER_COMMENT) {
 				return state;
 			}
 			Object value = readValue(state);
-			((KeyValueDataContainer)currentContainer).put(key, value);
+			((ArrayDataContainer)currentContainer).add(value);
 		}
 		return -1;
 	}
@@ -266,7 +289,7 @@ public class BinaryCSONParser {
 		return isObject ? currentContainerValueCount : -currentContainerValueCount;
 	}
 
-	private Number readInteger(int state) throws IOException {
+	private Object readInteger(int state) throws IOException {
 		switch (state) {
 			case CSONFlags.BIG_INT:
 				String bigIntValue = readString();
@@ -279,6 +302,8 @@ public class BinaryCSONParser {
 				return dataInputStream.readInt();
 			case CSONFlags.INT64:
 				return dataInputStream.readLong();
+			case CSONFlags.INT_CHAR:
+				return (char)dataInputStream.readShort();
 			default:
 				throw new CSONParseException("Invalid Integer Type");
 		}

@@ -121,10 +121,16 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		list.addAll(objects);
 	}
 
-	public CSONArray(byte[] binaryJson) {
+	public CSONArray(byte[] cson) {
 		super(ElementType.Array);
-		this.list = ((CSONArray) BinaryCSONParser.parse(binaryJson)).list;
-	}
+		BinaryCSONParser parser = new BinaryCSONParser(CSONObject.KeyValueDataContainerFactory, CSONArray.ArrayDataContainerFactory);
+        try {
+            parser.parse(new ByteArrayInputStream(cson), new CSONArrayDataContainer(this));
+        } catch (IOException e) {
+			// todo 메시지 추가해야한다.
+			throw new CSONException(e);
+        }
+    }
 
 
 	public CSONArray(byte[] binary,int offset, int len) {

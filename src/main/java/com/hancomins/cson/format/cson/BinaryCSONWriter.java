@@ -11,6 +11,8 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -57,7 +59,7 @@ public class BinaryCSONWriter {
 					}
 				} else {
 					if(writeArray(this.currentIterator)) {
-						break;
+						continue LOOP;
 					}
 				}
 			}
@@ -230,6 +232,8 @@ public class BinaryCSONWriter {
 		writeString(key);
 	}
 
+
+
 	private void writeValue(Object value) throws IOException {
 		if(value instanceof String) {
 			writeString((String)value);
@@ -258,7 +262,7 @@ public class BinaryCSONWriter {
 			dataOutputStream.writeByte(CSONFlags.INT8);
 			dataOutputStream.writeByte((Byte)value);
 		} else if(value instanceof Character) {
-			dataOutputStream.writeByte(CSONFlags.INT16);
+			dataOutputStream.writeByte(CSONFlags.INT_CHAR);
 			dataOutputStream.writeChar((Character)value);
 		} else if(value instanceof BigInteger) {
 			dataOutputStream.writeByte(CSONFlags.BIG_INT);

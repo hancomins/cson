@@ -29,6 +29,7 @@ class CSONFlags {
     static final int INT16 = 0x22;
     static final int INT32 = 0x23;
     static final int INT64 = 0x24;
+    static final int INT_CHAR = 0x25;
 
     // 실수형
     static final int BIG_DEC = 0x30;
