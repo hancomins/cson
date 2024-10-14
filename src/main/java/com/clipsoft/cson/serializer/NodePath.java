@@ -51,10 +51,8 @@ public class NodePath {
         List<SchemaValueAbs> results = new ArrayList<>();
         findSchemaByAncestors(typeSchema, results, clazz);
         Class<?>[] interfaces = clazz.getInterfaces();
-        if(interfaces != null) {
-            for(Class<?> interfaceClass : interfaces) {
-                findSchemaByAncestors(typeSchema, results, interfaceClass);
-            }
+        for (Class<?> interfaceClass : interfaces) {
+            findSchemaByAncestors(typeSchema, results, interfaceClass);
         }
         return results;
     }

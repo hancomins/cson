@@ -3,7 +3,6 @@ package com.clipsoft.cson.serializer;
 import com.clipsoft.cson.util.DataConverter;
 
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 
 public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeValueInvokerGetter {
 
@@ -29,13 +28,23 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(fieldName);
 
 
+        // 0.9.28 ////
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
-        String comment = csonValue.comment();
-        String afterComment = csonValue.commentAfterKey();
-        this.comment = comment.isEmpty() ? null : comment;
-        this.afterComment = afterComment.isEmpty() ? null : afterComment;
+        if(csonValue != null) {
+            String comment = csonValue.comment();
+            String afterComment = csonValue.commentAfterKey();
+            this.comment = comment.isEmpty() ? null : comment;
+            this.afterComment = afterComment.isEmpty() ? null : afterComment;
+            ISchemaValue.assertValueType(field.getType(), this.getType(), field.getDeclaringClass().getName() + "." + field.getName() );
+        } else {
+            this.comment = null;
+            this.afterComment = null;
+        }
+        //////////////
 
-        ISchemaValue.assertValueType(field.getType(), this.getType(), field.getDeclaringClass().getName() + "." + field.getName() );
+
+
+
     }
 
 

@@ -416,7 +416,10 @@ public class CSONDeserializerTest {
         @CSONValue("bigValue")
         public byte byteValueBi;
 
+        // 0.9.28
+        @CSONValue(ignore = true)
         byte bigValueByte;
+
         @CSONValueSetter
         public void setBigValue(byte bigValue) {
             bigValueByte = bigValue;
@@ -444,11 +447,31 @@ public class CSONDeserializerTest {
         assertEquals(bigDecimalValue.bigValueBi.longValue(), bigDecimalValue.longValueBi);
         assertEquals(bigDecimalValue.bigValueBi.byteValue(), bigDecimalValue.bigValueByte);
 
+    }
 
 
 
 
+    public static class Data {
+        //@CSONValue
+        public String name;
+        //@CSONValue("size.size")
+        public int size;
 
+        public Date date;
+
+    }
+
+    @Test
+    public void testCSONObject() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("name", "test");
+        csonObject.put("size",10);
+
+
+        Data data = CSONSerializer.fromCSONObject(csonObject, new Data());
+        assertEquals("test", data.name);
+        assertEquals(10, data.size);
     }
 
 

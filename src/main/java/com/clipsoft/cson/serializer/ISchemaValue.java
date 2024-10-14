@@ -17,6 +17,18 @@ public interface ISchemaValue extends ISchemaNode {
         assertValueType(valueType, Types.of(valueType), parentPath);
     }
 
+    // 0.9.28
+    static boolean serializable(Class<?> valueType) {
+        if(CSONElement.class.isAssignableFrom(valueType)) {
+            return true;
+        }
+        Types type = Types.of(valueType);
+        if(valueType.isArray() && type != Types.ByteArray) {
+            return false;
+        }
+        return type != Types.Object || valueType.getAnnotation(CSON.class) != null;
+    }
+
     static void assertValueType(Class<?> valueType,Types type, String parentPath) {
         if(CSONElement.class.isAssignableFrom(valueType)) {
             return;
@@ -29,6 +41,8 @@ public interface ISchemaValue extends ISchemaNode {
                 throw new CSONObjectException("Array type '" + valueType.getName() + "' of field '" + parentPath + "' is not supported");
             }
         }
+
+
         if(type == Types.Object && valueType.getAnnotation(CSON.class) == null)  {
             if(parentPath != null) {
                 throw new CSONObjectException("Object type '" + valueType.getName() + "' is not annotated with @CSON");

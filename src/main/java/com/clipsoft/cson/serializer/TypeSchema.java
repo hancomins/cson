@@ -34,6 +34,8 @@ class TypeSchema {
         }
     }
 
+
+    private final boolean explicit;
     private final Class<?> type;
     private final Constructor<?> constructor;
     private final ConcurrentHashMap<String, ObtainTypeValueInvoker> fieldValueObtaiorMap = new ConcurrentHashMap<>();
@@ -64,6 +66,7 @@ class TypeSchema {
         if(interfaces != null && interfaces.length > 0) {
             Class<?> foundCsonInterface = null;
             for(Class<?> interfaceClass : interfaces) {
+
                 if(interfaceClass.getAnnotation(CSON.class) != null) {
                     if(foundCsonInterface != null) {
                         String allInterfaceNames = Arrays.stream(interfaces).map(Class::getName).reduce((a, b) -> a + ", " + b).orElse("");
@@ -90,7 +93,8 @@ class TypeSchema {
         if(CSONArray.class.isAssignableFrom(type)) {
             return CSON_ARRAY;
         }
-        checkCSONAnnotation(type);
+        //
+        //checkCSONAnnotation(type);
         Constructor<?> constructor = null;
         try {
             constructor = type.getDeclaredConstructor();
@@ -123,13 +127,17 @@ class TypeSchema {
         this.type = type;
         this.constructor = constructor;
         CSON cson = type.getAnnotation(CSON.class);
+
+        // 0.9.28
         if(cson != null) {
+            explicit = cson.explicit();
             String commentBefore = cson.comment();
             String commentAfter = cson.commentAfter();
 
             this.comment = commentBefore.isEmpty() ? null : commentBefore;
             this.commentAfter = commentAfter.isEmpty() ? null : commentAfter;
         } else {
+            explicit = false;
             this.comment = null;
             this.commentAfter = null;
         }
@@ -137,6 +145,10 @@ class TypeSchema {
         searchTypeParameters();
         searchMethodOfAnnotatedWithObtainTypeValue();
 
+    }
+
+    boolean isExplicit() {
+        return explicit;
     }
 
     private void searchTypeParameters() {
@@ -217,18 +229,7 @@ class TypeSchema {
     }
 
 
-    private static void checkCSONAnnotation(Class<?> type) {
-         Annotation a = type.getAnnotation(CSON.class);
-         if(a == null) {
-             if(isCSONAnnotated(type) || isCSONAnnotatedOfInterface(type)) {
-                 return;
-             }
-             if(type.isAnonymousClass()) {
-                throw new CSONSerializerException("Anonymous class " + type.getName() + " is not annotated with @CSON");
-             }
-             throw new CSONSerializerException("Type " + type.getName() + " is not annotated with @CSON");
-         }
-    }
+
 
     private static void checkConstructor(Class<?> type) {
         Constructor<?> constructor = null;

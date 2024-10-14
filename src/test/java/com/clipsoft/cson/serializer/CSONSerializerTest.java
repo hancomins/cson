@@ -606,7 +606,7 @@ public class CSONSerializerTest {
 
     }
 
-   @CSON
+   @CSON(explicit = true)
    public static class SetterGetterTestClass {
 
         Map<String, String> nameAgeMap = null;
@@ -880,7 +880,7 @@ public class CSONSerializerTest {
        @CSONValue("ok[2]")
        private CSONObject csonObjectInArray = new CSONObject();
 
-
+       @CSONValue(ignore = true)
        private CSONArray consObjectBySetterGetter = new CSONArray();
 
        @CSONValueSetter("consObjectBySetterGetter")
@@ -892,6 +892,7 @@ public class CSONSerializerTest {
        public CSONArray getConsObjectBySetterGetter() {
             return new CSONArray().put(1).put(2);
        }
+
 
 
        List<CSONObject> csonObjectInArrayBySetter = null;
@@ -991,7 +992,7 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+    @CSON(explicit = true)
     public static class ObjGenericClassTest<TV , IV> {
 
         @CSONValue
@@ -1264,10 +1265,12 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+    // 0.9.28 explicit = true 추가.
+    @CSON(explicit = true)
     public static class A2 extends A1 {
         @CSONValue
         private String name = "name2";
+
 
         private String value = "value";
         @CSONValueSetter("name")
@@ -1366,8 +1369,11 @@ public class CSONSerializerTest {
         @CSONValue
         private Map<String, I1> i1iMap = new HashMap<>();
 
+        @CSONValue(ignore = true)
         private I1 i1iInSetter = new I1Impl();
+        @CSONValue(ignore = true)
         private List<I1> i1iListInSetter = new ArrayList<>();
+        @CSONValue(ignore = true)
         private Map<String, I1> i1iMapInSetter = new HashMap<>();
 
 
