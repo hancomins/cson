@@ -41,7 +41,8 @@ public @interface CSONValidation {
 
     /**
      * 정규식 패턴<br>
-     * 기본값은 "" 이며, 정규식 패턴을 체크하지 않음.
+     * 기본값은 "" 이며, 정규식 패턴을 체크하지 않음.<br>
+     * 문자열이 아닌 경우 toString() 으로 문자열로 변환하여 체크한다.
      * @return 정규식 패턴
      */
     String pattern() default "";
