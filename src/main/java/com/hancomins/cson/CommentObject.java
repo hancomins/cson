@@ -1,34 +1,59 @@
 package com.hancomins.cson;
 
+import javax.xml.stream.events.Comment;
+import java.util.EnumMap;
+
 public class CommentObject {
-    private String leadingComment;
-    private String trailingComment;
 
-    public CommentObject() {
+
+    private final EnumMap<CommentPosition, String> commentPositionMap = new EnumMap<>(CommentPosition.class);
+    private final CommentPosition defaultCommentPosition;
+
+
+
+    static CommentObject forKeyValueContainer() {
+        return new CommentObject(CommentPosition.BEFORE_KEY);
     }
 
-    public CommentObject(String leadingComment, String trailingComment) {
-        this.leadingComment = leadingComment;
-        this.trailingComment = trailingComment;
+    static CommentObject forArrayContainer() {
+        return new CommentObject(CommentPosition.BEFORE_VALUE);
     }
 
-    public String getLeadingComment() {
-        return leadingComment;
-    }
-
-    public void setLeadingComment(String leadingComment) {
-        this.leadingComment = leadingComment;
-    }
-
-    public String getTrailingComment() {
-        return trailingComment;
+    CommentObject(CommentPosition defaultCommentPosition) {
+        this.defaultCommentPosition = defaultCommentPosition;
     }
 
 
 
-    public void setTrailingComment(String trailingComment) {
-        this.trailingComment = trailingComment;
+    public CommentObject setComment(CommentPosition commentPosition, String value) {
+        if(commentPosition == CommentPosition.DEFAULT || commentPosition == null) {
+            commentPosition = defaultCommentPosition;
+        }
+        commentPositionMap.put(commentPosition, value);
+        return this;
     }
+
+    public String getComment(CommentPosition commentPosition) {
+        if(commentPosition == CommentPosition.DEFAULT || commentPosition == null) {
+            commentPosition = defaultCommentPosition;
+        }
+        return commentPositionMap.get(commentPosition);
+    }
+
+    public CommentObject appendComment(CommentPosition commentPosition, String value) {
+        if(commentPosition == CommentPosition.DEFAULT || commentPosition == null) {
+            commentPosition = defaultCommentPosition;
+        }
+        String comment = commentPositionMap.get(commentPosition);
+        if(comment == null) {
+            comment = value;
+        } else {
+            comment += "\n" + value;
+        }
+        commentPositionMap.put(commentPosition, comment);
+        return this;
+    }
+
 
     void appendLeadingComment(String comment) {
         if(leadingComment == null) {
