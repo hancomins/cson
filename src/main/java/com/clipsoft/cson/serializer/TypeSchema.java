@@ -128,7 +128,7 @@ class TypeSchema {
         this.constructor = constructor;
         CSON cson = type.getAnnotation(CSON.class);
 
-        // 0.9.28
+        // 0.9.29
         if(cson != null) {
             explicit = cson.explicit();
             String commentBefore = cson.comment();

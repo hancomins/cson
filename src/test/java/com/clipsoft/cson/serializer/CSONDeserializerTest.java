@@ -416,7 +416,7 @@ public class CSONDeserializerTest {
         @CSONValue("bigValue")
         public byte byteValueBi;
 
-        // 0.9.28
+        // 0.9.29
         @CSONValue(ignore = true)
         byte bigValueByte;
 

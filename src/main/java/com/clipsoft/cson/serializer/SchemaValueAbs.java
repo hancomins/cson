@@ -29,21 +29,21 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     final Class<?> valueTypeClass;
 
     private final ArrayList<SchemaValueAbs> allSchemaValueAbsList = new ArrayList<>();
-    // 0.9.28 /////////
+    // 0.9.29 /////////
     private ValidationAttribute validationAttribute;
 
 
     static SchemaValueAbs of(TypeSchema typeSchema, Field field) {
         int modifiers = field.getModifiers();
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
-        // 0.9.28 /////////
+        // 0.9.29 /////////
         if(Modifier.isFinal(modifiers)) {
             if(csonValue == null) {
                 return null;
             }
             throw new CSONSerializerException("@CSONValue field cannot be final. (path: " + typeSchema.getType().getName() + "." + field.getName() + ")");
         }
-        // 0.9.28 /////////
+        // 0.9.29 /////////
         String key = field.getName();
         if(csonValue != null) {
             if(csonValue.ignore()) return null;
@@ -72,7 +72,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         CSONValueSetter setter = method.getAnnotation(CSONValueSetter.class);
         if(setter == null && getter == null) return null;
 
-        // 0.9.28 /////////
+        // 0.9.29 /////////
         SchemaValueAbs schemaValue;
         if(SchemaMethodForArrayType.isCollectionTypeParameterOrReturns(method)) {
             schemaValue = new SchemaMethodForArrayType(typeSchema, method);

@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.regex.Pattern;
 
-// 0.9.28
+// 0.9.29
 public class ValidationAttribute {
 
     private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];

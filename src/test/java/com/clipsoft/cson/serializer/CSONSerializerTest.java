@@ -1265,7 +1265,7 @@ public class CSONSerializerTest {
 
 
 
-    // 0.9.28 explicit = true 추가.
+    // 0.9.29 explicit = true 추가.
     @CSON(explicit = true)
     public static class A2 extends A1 {
         @CSONValue

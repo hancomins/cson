@@ -28,7 +28,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(fieldName);
 
 
-        // 0.9.28 ////
+        // 0.9.29 ////
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
         if(csonValue != null) {
             String comment = csonValue.comment();

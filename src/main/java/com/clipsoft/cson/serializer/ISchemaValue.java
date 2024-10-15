@@ -17,7 +17,7 @@ public interface ISchemaValue extends ISchemaNode {
         assertValueType(valueType, Types.of(valueType), parentPath);
     }
 
-    // 0.9.28
+    // 0.9.29
     static boolean serializable(Class<?> valueType) {
         if(CSONElement.class.isAssignableFrom(valueType)) {
             return true;
