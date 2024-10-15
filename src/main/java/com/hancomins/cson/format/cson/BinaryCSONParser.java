@@ -1,6 +1,7 @@
 package com.hancomins.cson.format.cson;
 
 import com.hancomins.cson.CSONElement;
+import com.hancomins.cson.CSONObject;
 import com.hancomins.cson.format.*;
 import com.hancomins.cson.format.json.ParsingState;
 import com.hancomins.cson.util.ArrayStack;
@@ -10,19 +11,21 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class BinaryCSONParser {
 
+	private static final ValueCounter EMPTY_VALUE_COUNTER = new ValueCounter(0, false);
+
 	private static int BUFFER_SIZE = 4096;
 
 	private ArrayStack<ValueCounter> containerValueCountStack = new ArrayStack<>();
 	private ArrayStack<BaseDataContainer> containerStack = new ArrayStack<>();
 	private ArrayStack<DataIterator<?>> iteratorStack = new ArrayStack<>();
-	private ValueCounter currentContainerValueCount;
+	private ValueCounter currentContainerValueCount = EMPTY_VALUE_COUNTER;
 	private BaseDataContainer currentContainer;
 
 	private byte[] defaultBuffer = new byte[BUFFER_SIZE];
@@ -74,33 +77,37 @@ public class BinaryCSONParser {
 		}
 		dataInputStream = new DataInputStream(inputStream);
 		currentReadState = readHeader();
-		String key = null;
+		newContainer();
+		int childContainerState;
 		do {
-			int childContainerState;
-			if(currentContainerValueCount != null && !currentContainerValueCount.isBegin()) {
-				childContainerState = readKeyValueDataContainer();
-			} else {
-				childContainerState = readContainerState(key);
-			}
-            if (childContainerState == -1) {
-                upParentContainer();
-				if (currentContainer == null) {
-					break;
+			if(currentContainerValueCount.isContains()) {
+                if (currentContainer instanceof KeyValueDataContainer) {
+                    readKeyValueDataContainer();
+                } else {
+                    readArray();
+                }
+                if(currentReadState != -1) {
+					newContainer();
 				}
-            } else {
-                currentReadState = childContainerState;
-            }
+			} else {
+				upParentContainer();
+			}
 		} while (!containerStack.isEmpty());
 
 		return null;
 	}
 
 	private void upParentContainer() {
-		containerStack.pop();
-		containerValueCountStack.pop();
-		currentContainer = containerStack.top();
-		if(currentContainer != null) {
-			currentContainerValueCount = containerValueCountStack.top();
+		try {
+			containerStack.pop();
+			containerValueCountStack.pop();
+			currentContainer = containerStack.top();
+			if (currentContainer != null) {
+				currentContainerValueCount = containerValueCountStack.top();
+			}
+		} catch (Exception e) {
+			// todo : 메시지 수정
+			throw new CSONParseException("End of Container");
 		}
 	}
 
@@ -122,26 +129,51 @@ public class BinaryCSONParser {
 		return state;
 	}
 
-	private int readContainerState(String key) throws IOException {
+	private void newContainer() throws IOException {
+		int type = currentReadState >> 4;
+		switch (type) {
+			case CSONFlags.TYPE_OBJECT_LESS_THAN_16:
+				newKeyValueContainer(new ValueCounter(currentReadState & 0x0F, true));
+				break;
+			case CSONFlags.TYPE_ARRAY_LESS_THAN_16:
+				newArrayContainer(new ValueCounter(currentReadState & 0x0F, false));
+				break;
+			case CSONFlags.TYPE_OBJECT:
+				int containerValueCount = readObjectCount(currentReadState);
+				if (currentReadState > CSONFlags.OBJECT_UINT32) {
+					newArrayContainer(new ValueCounter(containerValueCount, true));
+				} else {
+					newKeyValueContainer(new ValueCounter(containerValueCount, false));
+				}
+				break;
+		}
+
+
+	}
+
+	private int readContainerState() throws IOException {
 
 		int type = currentReadState >> 4;
 		int containerValueCount = 0;
 		switch (type) {
 			case CSONFlags.TYPE_OBJECT_LESS_THAN_16:
-				newObject( new ValueCounter(currentReadState & 0x0F),  true);
-				return readKeyValueDataContainer();
+				newKeyValueContainer( new ValueCounter(currentReadState & 0x0F,true));
+				readKeyValueDataContainer();
+				break;
 			case CSONFlags.TYPE_ARRAY_LESS_THAN_16:
-				newObject(new ValueCounter(currentReadState & 0x0F),  false);
-				return readArray();
+				newArrayContainer(new ValueCounter(currentReadState & 0x0F, false));
+				readArray();
+				break;
 			case CSONFlags.TYPE_OBJECT:
 				containerValueCount = readObjectCount(currentReadState);
-				if(containerValueCount < 0) {
-					containerValueCount = -containerValueCount;
-					newObject(new ValueCounter(containerValueCount), false);
-					return readArray();
+				if(currentReadState > CSONFlags.OBJECT_UINT32) {
+					newArrayContainer(new ValueCounter(containerValueCount, true));
+					readArray();
+					break;
 				} else {
-					newObject(new ValueCounter(containerValueCount), true);
-					return readKeyValueDataContainer();
+					newKeyValueContainer(new ValueCounter(containerValueCount, false));
+					readKeyValueDataContainer();
+					break;
 				}
 			case CSONFlags.TYPE_COMMENT:
 				boolean isObjectComment = false;
@@ -173,55 +205,63 @@ public class BinaryCSONParser {
 				}
 				break;
 		}
+		upParentContainer();
 		return -1;
 	}
 
-	private void newArray(ValueCounter valueCount) {
+	@SuppressWarnings("DuplicatedCode")
+	private void newArrayContainer(ValueCounter valueCount) {
 		BaseDataContainer nextContainer;
 		if(currentContainer == null) {
-			if(rootDataContainer == null) {
-				nextContainer =  arrayDataContainerFactory.create();
-			} else {
-				nextContainer = rootDataContainer;
-			}
+			nextContainer = initRootContainer();
 		}
 		else if(lastKey != null) {
-			nextContainer =  isObject ? keyValueDataContainerFactory.create() : arrayDataContainerFactory.create();
+			nextContainer =  arrayDataContainerFactory.create();
 			((KeyValueDataContainer) currentContainer).put(lastKey, nextContainer);
 			lastKey = null;
 		} else {
-			nextContainer =  isObject ? keyValueDataContainerFactory.create() : arrayDataContainerFactory.create();
+			nextContainer =  arrayDataContainerFactory.create();
 			((ArrayDataContainer) currentContainer).add(nextContainer);
 		}
-		containerStack.push(nextContainer);
-		containerValueCountStack.push(valueCount);
-		currentContainer = nextContainer;
-		currentContainerValueCount = valueCount;
+		pushContainer(nextContainer, valueCount);
 	}
 
-
-	private void newObject(ValueCounter valueCount) {
+	@SuppressWarnings("DuplicatedCode")
+    private void newKeyValueContainer(ValueCounter valueCount) {
 		BaseDataContainer nextContainer;
 		if(currentContainer == null) {
-			if(rootDataContainer == null) {
-				nextContainer =  keyValueDataContainerFactory.create();
-			} else {
-				nextContainer = rootDataContainer;
-			}
+			nextContainer = initRootContainer();
 		}
 		else if(lastKey != null) {
 			nextContainer =  keyValueDataContainerFactory.create();
 			((KeyValueDataContainer) currentContainer).put(lastKey, nextContainer);
 			lastKey = null;
 		} else {
-			nextContainer =  isObject ? keyValueDataContainerFactory.create() : arrayDataContainerFactory.create();
+			nextContainer =  keyValueDataContainerFactory.create();
 			((ArrayDataContainer) currentContainer).add(nextContainer);
 		}
-		containerStack.push(nextContainer);
+		pushContainer(nextContainer, valueCount);
+	}
+
+	private void pushContainer(BaseDataContainer container, ValueCounter valueCount) {
+		containerStack.push(container);
 		containerValueCountStack.push(valueCount);
-		currentContainer = nextContainer;
+		currentContainer = container;
 		currentContainerValueCount = valueCount;
 	}
+
+	private BaseDataContainer initRootContainer() {
+		BaseDataContainer nextContainer;
+		if(rootDataContainer == null) {
+			nextContainer =  keyValueDataContainerFactory.create();
+		} else {
+			nextContainer = rootDataContainer;
+		}
+		return nextContainer;
+	}
+
+
+
 
 
 	/**
@@ -229,64 +269,57 @@ public class BinaryCSONParser {
 	 * @return 자식 Container 가 더 이상 없다면 -1을 반환하고, 아니라면 중간에 끊고 자식 Container 의 상태를 반환한다.
 	 * @throws IOException
 	 */
-	private int readKeyValueDataContainer() throws IOException {
+	private void readKeyValueDataContainer() throws IOException {
 		while (currentContainerValueCount.isContains()) {
 			currentContainerValueCount.decrease();
 			String key = readString();
 			int state = dataInputStream.read();
 			if(CSONFlags.OBJECT_LESS_THAN_16 <= state &&  state < CSONFlags.HEADER_COMMENT) {
 				lastKey = key;
-				currentContainerValueCount = null;
-				return state;
+				currentReadState = state;
+				return;
 			}
 			Object value = readValue(state);
 			((KeyValueDataContainer)currentContainer).put(key, value);
 		}
-		return -1;
+		upParentContainer();
+		currentReadState = -1;
 	}
 
-	private int readArray() throws IOException {
+	private void readArray() throws IOException {
 		while (currentContainerValueCount.isContains()) {
+			currentContainerValueCount.decrease();
 			int state = dataInputStream.read();
 			if(CSONFlags.OBJECT_LESS_THAN_16 <= state &&  state < CSONFlags.HEADER_COMMENT) {
-				return state;
+				currentReadState = state;
+				return;
 			}
 			Object value = readValue(state);
 			((ArrayDataContainer)currentContainer).add(value);
 		}
-		return -1;
+		upParentContainer();
+		currentReadState = -1;
 	}
 
 	private int readObjectCount(int state) throws IOException {
-		boolean isObject = false;
 		int currentContainerValueCount;
 		switch (state) {
 			case CSONFlags.OBJECT_UINT8:
-				currentContainerValueCount = dataInputStream.read() & 0xFF;
-				isObject = true;
+            case CSONFlags.ARRAY_UINT8:
+                currentContainerValueCount = dataInputStream.read() & 0xFF;
 				break;
 			case CSONFlags.OBJECT_UINT16:
-				currentContainerValueCount = dataInputStream.readShort() & 0xFFFF;
-				isObject = true;
+            case CSONFlags.ARRAY_UINT16:
+                currentContainerValueCount = dataInputStream.readShort() & 0xFFFF;
 				break;
 			case CSONFlags.OBJECT_UINT32:
-				currentContainerValueCount = dataInputStream.readInt();
-				isObject = true;
+            case CSONFlags.ARRAY_UINT32:
+                currentContainerValueCount = dataInputStream.readInt();
 				break;
-			case CSONFlags.ARRAY_UINT8:
-				currentContainerValueCount = dataInputStream.read() & 0xFF;
-				break;
-			case CSONFlags.ARRAY_UINT16:
-				currentContainerValueCount = dataInputStream.readShort() & 0xFFFF;
-				break;
-			case CSONFlags.ARRAY_UINT32:
-				currentContainerValueCount = dataInputStream.readInt();
-				break;
-			default:
+            default:
 				throw new CSONParseException("Invalid Container length type");
 		}
-		// 만약 Object type 이라면 양수로 반환하지만, Array type 이라면 음수로 반환한다.
-		return isObject ? currentContainerValueCount : -currentContainerValueCount;
+		return currentContainerValueCount;
 	}
 
 	private Object readInteger(int state) throws IOException {
@@ -313,7 +346,7 @@ public class BinaryCSONParser {
 		switch (state) {
 			case CSONFlags.BIG_DEC:
 				String bigDecValue = readString();
-				return new BigInteger(bigDecValue);
+				return new BigDecimal(bigDecValue);
 			case CSONFlags.DEC32:
 				return dataInputStream.readFloat();
 			case CSONFlags.DEC64:
@@ -464,14 +497,16 @@ public class BinaryCSONParser {
 	private static class ValueCounter {
 		int value;
 		int size;
+		boolean isKeyValueContainer;
 
-		ValueCounter(int value) {
+		ValueCounter(int value, boolean isKeyValueContainer) {
 			this.value = value;
 			this.size = value;
+			this.isKeyValueContainer = isKeyValueContainer;
 		}
 
 		boolean isBegin() {
-			return size == value;
+			return size == value && size > 0;
 		}
 
 		private boolean isContains() {

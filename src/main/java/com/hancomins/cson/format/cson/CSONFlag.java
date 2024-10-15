@@ -20,8 +20,9 @@ class CSONFlags {
     static final int NAN = 0x14;
     static final int INFINITY = 0x15;
     static final int NEGATIVE_INFINITY = 0x16;
-    static final int COMMENT = 0x17;
-    static final int STRING_MAP = 0x1a;
+    static final int STRING_MAP = 0x17;
+    static final int CSON_FOOTER = 0x18;
+
 
     // 정수형
     static final int BIG_INT = 0x20;

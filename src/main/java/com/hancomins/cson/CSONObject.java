@@ -879,9 +879,11 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	@SuppressWarnings("unused")
 	public String getCommentAfterValue(String key) {
-		KeyValueCommentObject keyValueCommentObject = getKeyCommentObject(key);
+		KeyValueCommentObject keyValueCommentObject =keyValueCommentMap.get(key);
 		if(keyValueCommentObject == null) return null;
-		return keyValueCommentObject.isNullOrEmptyValueCommentObject() ? null : keyValueCommentObject.getValueCommentObject().getTrailingComment();
+		CommentObject commentObject = keyValueCommentObject.getValueCommentObject();
+		if(commentObject == null) return null;
+		return commentObject.getTrailingComment();
 	}
 
 
@@ -1124,16 +1126,14 @@ public class CSONObject extends CSONElement implements Cloneable {
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	@Override
 	public CSONObject clone() {
-
-		CSONObject csonObject = new CSONObject();
-
+        CSONObject csonObject = new CSONObject();
 		for (Entry<String, java.lang.Object> entry : dataMap.entrySet()) {
 			String key = entry.getKey();
 			java.lang.Object obj = entry.getValue();
 			if (obj instanceof CSONArray) csonObject.put(key, ((CSONArray) obj).clone());
 			else if (obj instanceof CSONObject) csonObject.put(key, ((CSONObject) obj).clone());
 			else if (obj instanceof CharSequence) csonObject.put(key, ((CharSequence) obj).toString());
-			else if (obj == NullValue.Instance) csonObject.put(key,null);
+			else if (obj == NullValue.Instance) csonObject.put(key,NullValue.Instance);
 			else if (obj instanceof byte[]) {
 				byte[] bytes = (byte[]) obj;
 				byte[] newBytes = new byte[bytes.length];

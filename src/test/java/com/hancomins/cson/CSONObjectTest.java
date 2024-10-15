@@ -98,8 +98,10 @@ public class CSONObjectTest {
 
         CSONObject csonObject = makeCSOObject();
 
+        System.out.println(csonObject.toString());
         byte[] buffer = csonObject.getByteArray("byte[]");
         byte[] cson = csonObject.toBytes();
+
 
 
 

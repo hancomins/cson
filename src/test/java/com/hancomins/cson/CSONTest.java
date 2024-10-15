@@ -91,6 +91,7 @@ public class CSONTest {
 
 
         jsonObject = new JSONObject(jsonObject.toString());
+        System.out.println(jsonObject);
 
         CSONObject csonObject = new CSONObject(new CSONObject(jsonObject.toString()).toBytes());
         Set<String> originalKeySet = jsonObject.keySet();

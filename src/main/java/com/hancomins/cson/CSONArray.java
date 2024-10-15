@@ -1200,7 +1200,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 			}
 			else if(value instanceof byte[] && (!(compareValue instanceof byte[]) || !Arrays.equals((byte[])value, (byte[])compareValue))) {
 				return false;
-			} else if(value != compareValue) {
+			} else if(!value.equals(compareValue)) {
 				return false;
 			}
 		}

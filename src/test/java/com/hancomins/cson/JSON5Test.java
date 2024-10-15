@@ -203,7 +203,7 @@ public class JSON5Test {
         CSONObject csonObject = new CSONObject(json5Str);
         assertEquals(" 코멘트입니다. \n222 ",csonObject.getCommentBeforeKey("key"));
         assertEquals("array코멘트", csonObject.getCommentBeforeKey("array"));
-        assertEquals("array코멘트 값 뒤",csonObject.getCommentObjectOfValue("array").getTrailingComment());
+        assertEquals("array코멘트 값 뒤",csonObject.getCommentAfterValue("array"));
 
         System.out.println(csonObject.toString());
         // csonObject.getCommentOfKey("key");

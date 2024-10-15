@@ -1,6 +1,6 @@
 package com.hancomins.cson.util;
 
-public class NullValue {
+public class NullValue implements Cloneable {
     public static final NullValue Instance = new NullValue();
 
 
@@ -13,4 +13,8 @@ public class NullValue {
         return "null";
     }
 
+    @Override
+    public NullValue clone() {
+        return Instance;
+    }
 }

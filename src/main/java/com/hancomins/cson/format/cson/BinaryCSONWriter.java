@@ -53,12 +53,11 @@ public class BinaryCSONWriter {
 
 			while (this.currentIterator.hasNext()) {
 				if (this.currentIterator.isKeyValue()) {
-					String key = writeObject((DataIterator<Map.Entry<String, Object>>)this.currentIterator);
-					if(key != null) {
+					if(!writeObject((DataIterator<Map.Entry<String, Object>>)this.currentIterator)) {
 						continue LOOP;
 					}
 				} else {
-					if(writeArray(this.currentIterator)) {
+					if(!writeArray(this.currentIterator)) {
 						continue LOOP;
 					}
 				}
@@ -176,6 +175,7 @@ public class BinaryCSONWriter {
 	}
 
 	protected void writeSuffix() throws IOException {
+		dataOutputStream.write(CSONFlags.CSON_FOOTER);
 		dataOutputStream.flush();
 		dataOutputStream.close();
 	}
@@ -283,15 +283,14 @@ public class BinaryCSONWriter {
 		}
 		else if(value instanceof byte[]) {
 			writeBuffer((byte[])value);
+		} else {
+			dataOutputStream.write(CSONFlags.NULL);
 		}
 	}
 
 
 	private boolean writeArray(DataIterator<?> iterator) throws IOException {
-		if (this.currentIterator.isBegin()) {
-			writeArrayPrefix(this.currentIterator);
-		}
-		Object value = this.currentIterator.next();
+		Object value = iterator.next();
 		if (value instanceof BaseDataContainer) {
 			intoChildBaseDataContainer((BaseDataContainer)value);
 			return false;
@@ -300,18 +299,17 @@ public class BinaryCSONWriter {
 		return true;
 	}
 
-	private String writeObject(DataIterator<Map.Entry<String, Object>> iterator) throws IOException {
+	private boolean writeObject(DataIterator<Map.Entry<String, Object>> iterator) throws IOException {
 		Map.Entry<String, Object> entry = iterator.next();
 		String key = entry.getKey();
 		Object value = entry.getValue();
 		writeString(key);
 		if (value instanceof BaseDataContainer) {
 			intoChildBaseDataContainer((BaseDataContainer)value);
-			iterator.setKey(key);
-			return key;
+			return false;
 		}
 		writeValue(value);
-		return null;
+		return true;
 	}
 
 
