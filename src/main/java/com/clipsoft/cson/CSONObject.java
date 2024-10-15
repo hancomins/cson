@@ -937,6 +937,11 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
+	// 0.9.29
+	public <T> T toObject(Class<T> clazz) {
+		return CSONSerializer.fromCSONObject(this, clazz);
+	}
+
 
 	@Override
 	public boolean equals(Object obj) {

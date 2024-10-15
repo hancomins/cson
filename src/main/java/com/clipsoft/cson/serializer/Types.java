@@ -23,6 +23,38 @@ enum Types {
     GenericType;
 
 
+    private boolean isPrimitive;
+    private boolean isNumber;
+    private boolean isCsonType;
+
+
+    static {
+        Byte.isNumber = Byte.isPrimitive = true;
+        Short.isNumber = Short.isPrimitive = true;
+        Integer.isNumber = Integer.isPrimitive = true;
+        Long.isNumber = Long.isPrimitive = true;
+        Float.isNumber = Float.isPrimitive = true;
+        Double.isNumber = Double.isPrimitive = true;
+        Boolean.isPrimitive = true;
+        Character.isNumber = Character.isPrimitive = true;
+        CSONElement.isCsonType = true;
+        CSONObject.isCsonType = true;
+        CSONArray.isCsonType = true;
+    }
+
+    boolean isPrimitive() {
+        return isPrimitive;
+    }
+
+    boolean isNumber() {
+        return isNumber;
+    }
+
+    boolean isCsonType() {
+        return isCsonType;
+    }
+
+
 
     static boolean isPrimitivableType(Types type) {
         return type == Byte || type == Short || type == Integer || type == Long || type == Float || type == Double || type == Boolean || type == Character;
