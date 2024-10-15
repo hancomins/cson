@@ -29,6 +29,8 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     final Class<?> valueTypeClass;
 
     private final ArrayList<SchemaValueAbs> allSchemaValueAbsList = new ArrayList<>();
+    // 0.9.28 /////////
+    private ValidationAttribute validationAttribute;
 
 
     static SchemaValueAbs of(TypeSchema typeSchema, Field field) {
@@ -51,29 +53,37 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         } else if(typeSchema.isExplicit() || !ISchemaValue.serializable(field.getType())) {
             return null;
         }
-        ///////
 
+        SchemaValueAbs schemaValue;
         if(Collection.class.isAssignableFrom(field.getType())) {
-            return new SchemaFieldArray(typeSchema, field, key);
+            schemaValue = new SchemaFieldArray(typeSchema, field, key);
         } else if(Map.class.isAssignableFrom(field.getType())) {
-            return new SchemaFieldMap(typeSchema, field, key);
+            schemaValue = new SchemaFieldMap(typeSchema, field, key);
         }
         else {
-            return new SchemaFieldNormal(typeSchema, field, key);
+            schemaValue = new SchemaFieldNormal(typeSchema, field, key);
         }
+        schemaValue.validationAttribute =  ValidationAttribute.of(field.getAnnotation(CSONValidation.class));
+        return schemaValue;
     }
 
     static SchemaValueAbs of(TypeSchema typeSchema, Method method) {
         CSONValueGetter getter = method.getAnnotation(CSONValueGetter.class);
         CSONValueSetter setter = method.getAnnotation(CSONValueSetter.class);
         if(setter == null && getter == null) return null;
+
+        // 0.9.28 /////////
+        SchemaValueAbs schemaValue;
         if(SchemaMethodForArrayType.isCollectionTypeParameterOrReturns(method)) {
-            return new SchemaMethodForArrayType(typeSchema, method);
+            schemaValue = new SchemaMethodForArrayType(typeSchema, method);
         }
         else if(SchemaMethodForMapType.isMapTypeParameterOrReturns(method)) {
-            return new SchemaMethodForMapType(typeSchema, method);
+            schemaValue = new SchemaMethodForMapType(typeSchema, method);
+        } else {
+            schemaValue = new SchemaMethod(typeSchema, method);
         }
-        return new SchemaMethod(typeSchema, method);
+        schemaValue.validationAttribute =  ValidationAttribute.of(method.getAnnotation(CSONValidation.class));
+        return schemaValue;
     }
 
 
@@ -314,6 +324,13 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
     @Override
     public void setValue(Object parent, Object value) {
+
+        if(!ValidationAttribute.isValid(validationAttribute, value, type)) {
+            throw new IllegalArgumentException(validationAttribute.getInvalidMessage());
+        }
+
+
+
         onSetValue(parent, value);
     }
 
