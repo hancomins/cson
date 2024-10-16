@@ -4,9 +4,9 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.format.*;
 import com.hancomins.cson.format.cson.BinaryCSONParser;
-import com.hancomins.cson.format.cson.BinaryCSONWriter;
-import com.hancomins.cson.format.json.JSONWriter;
+import com.hancomins.cson.format.cson.BinaryCSONWriter;;
 import com.hancomins.cson.format.json.JSON5Parser;
+import com.hancomins.cson.format.json.JSON5Writer;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.DataConverter;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
@@ -1040,8 +1040,8 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 
 	@Override
-	protected void write(FormatWriter writer, boolean root) {
-		JSONWriter.writeJSONElement(this, (JSONWriter) writer);
+	protected void write(FormatWriter writer) {
+		writer.write(new CSONArrayDataContainer(this));
 	}
 
 
@@ -1052,8 +1052,8 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 	public String toString(WritingOptions<?> writingOptions) {
 		if(writingOptions instanceof JsonWritingOptions) {
-			JSONWriter jsonWriter  = new JSONWriter((JsonWritingOptions)writingOptions);
-			write(jsonWriter, true);
+			JSON5Writer jsonWriter  = new JSON5Writer((JsonWritingOptions)writingOptions);
+			write(jsonWriter);
 			return jsonWriter.toString();
 		}
 		return this.toString();

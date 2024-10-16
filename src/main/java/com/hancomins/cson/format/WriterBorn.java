@@ -7,7 +7,7 @@ import java.util.Map;
 
 
 @SuppressWarnings("UnusedReturnValue")
-public abstract class WriterBorn {
+public abstract class WriterBorn implements FormatWriter {
 
 
 	private final ArrayStack<DataIterator<?>> dataContainerIteratorStack = new ArrayStack<>();
@@ -19,6 +19,8 @@ public abstract class WriterBorn {
 	protected boolean isArrayRootContainer() {
 		return rootContainerIsArray;
 	}
+
+
 
 
 	@SuppressWarnings("unchecked")

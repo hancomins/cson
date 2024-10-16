@@ -131,7 +131,7 @@ public abstract  class CSONElement implements Iterable<java.lang.Object>  {
 
 
 
-	protected abstract void write(FormatWriter writer, boolean root);
+	protected abstract void write(FormatWriter writer);
 
 
 	public abstract String toString(WritingOptions<?> option);

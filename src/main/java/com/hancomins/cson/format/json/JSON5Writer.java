@@ -1,15 +1,13 @@
 package com.hancomins.cson.format.json;
 
-import com.hancomins.cson.format.BaseDataContainer;
-import com.hancomins.cson.format.DataIterator;
-import com.hancomins.cson.format.KeyValueDataContainer;
-import com.hancomins.cson.format.WriterBorn;
+import com.hancomins.cson.format.*;
 import com.hancomins.cson.options.JsonWritingOptions;
 import com.hancomins.cson.util.CharacterBuffer;
+import com.hancomins.cson.util.NullValue;
 
 import java.util.Map;
 
-public class JSON5Writer extends WriterBorn {
+public class JSON5Writer extends WriterBorn  {
 
     private static final int DEFAULT_BUFFER_SIZE = 512;
     private final CharacterBuffer stringBuilder = new CharacterBuffer(DEFAULT_BUFFER_SIZE);
@@ -96,39 +94,74 @@ public class JSON5Writer extends WriterBorn {
 
     @Override
     protected void writeArrayPrefix(BaseDataContainer parents,DataIterator<?> iterator) {
-        if (pretty && parents instanceof KeyValueDataContainer) {
-            stringBuilder.append("\n");
+        if(!prettyArray && parents instanceof ArrayDataContainer) {
+            stringBuilder.append("[");
+        } else if(pretty) {
             stringBuilder.repeat(space, depth);
-
-        }
-        if(prettyArray) {
+            stringBuilder.append("[");
             stringBuilder.append("\n");
             depth++;
+        } else {
+            stringBuilder.append("[");
         }
     }
 
     @Override
     protected void writeObjectPrefix(BaseDataContainer parents, DataIterator<Map.Entry<String, Object>> iterator) {
-
+        if(pretty) {
+            stringBuilder.repeat(space, depth);
+            stringBuilder.append("{");
+            stringBuilder.append("\n");
+            depth++;
+        } else {
+            stringBuilder.append("{");
+        }
     }
 
     @Override
     protected void writeObjectSuffix() {
-
+        if(pretty) {
+            stringBuilder.append("\n");
+            depth--;
+            stringBuilder.repeat(space, depth);
+        }
+        stringBuilder.append("}");
     }
 
     @Override
     protected void writeArraySuffix() {
+        if(prettyArray) {
+            stringBuilder.append("\n");
+            depth--;
+            stringBuilder.repeat(space, depth);
+        }
+        stringBuilder.append("]");
 
     }
 
     @Override
     protected void writeKey(String key) {
-
+        if(pretty) {
+            stringBuilder.repeat(space, depth);
+        }
+        stringBuilder.append(keyQuote);
+        stringBuilder.append(key);
+        stringBuilder.append(keyQuote);
+        stringBuilder.append(":");
     }
 
     @Override
     protected void writeValue(Object value) {
-
+        if(value instanceof String) {
+            stringBuilder.append(keyQuote);
+            stringBuilder.append(value.toString());
+            stringBuilder.append(keyQuote);
+        } else if(value == NullValue.Instance) {
+            stringBuilder.append("null");
+        }
+        else {
+            stringBuilder.append(String.valueOf(value));
+        }
+        stringBuilder.append(',');
     }
 }
