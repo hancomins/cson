@@ -211,8 +211,8 @@ public class PureJsonTest {
         obj.setCommentForKey("friends", "Lists only people's names.");
         obj.setCommentAfterValue("friends", "A total of 4 friends");
 
-        obj.setHeadComment("This is a comment for this object.");
-        obj.setTailComment("This is a comment after this object.");
+        obj.setHeaderComment("This is a comment for this object.");
+        obj.setFooterComment("This is a comment after this object.");
 
         String yourInfo = obj.toString();
         System.out.println(yourInfo);

@@ -121,6 +121,15 @@ public class CharacterBuffer implements CharSequence {
         return this;
     }
 
+    public CharacterBuffer repeat(String s, int count) {
+        ensureCapacity(s.length() + count);
+        for(int i = 0; i < count; i++) {
+            s.getChars(0, s.length(), chars, length);
+            length += s.length();
+        }
+        return this;
+    }
+
     public CharacterBuffer append(char[] c) {
         ensureCapacity(length + c.length);
         System.arraycopy(c, 0, chars, length, c.length);

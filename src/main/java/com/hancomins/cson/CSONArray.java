@@ -199,40 +199,46 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 	}
 
 
+	public String getComment(CommentPosition commentPosition, int index) {
+		CommentObject commentObject = getCommentObject(index);
+		if(commentObject == null) return null;
+		return commentObject.getComment(commentPosition);
+	}
+
+	public CSONArray setComment(CommentPosition commentPosition, int index, String comment) {
+		CommentObject commentObject = getOrCreateCommentObject(index);
+		commentObject.setComment(commentPosition, comment);
+		return this;
+	}
+
 
 	@SuppressWarnings("unused")
 	public String getCommentForValue(int index) {
-		CommentObject commentObject = getCommentObject(index);
-		if(commentObject == null) return null;
-		return commentObject.getLeadingComment();
+		return getComment(CommentPosition.BEFORE_VALUE, index);
 	}
 
 	@SuppressWarnings("unused")
 	public String getCommentAfterValue(int index) {
-		CommentObject commentObject = getCommentObject(index);
-		if(commentObject == null) return null;
-		return commentObject.getTrailingComment();
+		return getComment(CommentPosition.AFTER_VALUE, index);
 	}
 
 	@SuppressWarnings({"unused", "UnusedReturnValue"})
 	public CSONArray setCommentForValue(int index, String comment) {
-		CommentObject commentObject = getCommentObject(index, true);
-		commentObject.setLeadingComment(comment);
+		setComment(CommentPosition.BEFORE_VALUE, index, comment);
 		return this;
 	}
 
 	@SuppressWarnings({"unused", "UnusedReturnValue"})
 	public CSONArray setCommentAfterValue(int index, String comment) {
-		CommentObject commentObject = getCommentObject(index, true);
-		commentObject.setTrailingComment(comment);
+		setComment(CommentPosition.AFTER_VALUE, index, comment);
 		return this;
 	}
 
 
-	protected CommentObject getOrCreateCommentObject(int index) {
+	private CommentObject getOrCreateCommentObject(int index) {
 		CommentObject commentObject = getCommentObject(index);
 		if(commentObject == null) {
-			commentObject = new CommentObject();
+			commentObject = CommentObject.forArrayContainer();
 			setCommentObject(index, commentObject);
 		}
 		return commentObject;
@@ -245,24 +251,6 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		return commentObjectList.get(index);
 	}
 
-	public CommentObject getCommentObject(int index, boolean createIfNotExists) {
-		if(commentObjectList == null) {
-			if(!createIfNotExists) return null;
-			commentObjectList = new ArrayList<CommentObject>();
-		}
-		if(index >= commentObjectList.size()) {
-			if(!createIfNotExists) return null;
-			ensureCapacityOfCommentObjects(index);
-		}
-		CommentObject commentObject = commentObjectList.get(index);
-		if(commentObject == null && createIfNotExists) {
-			commentObject = new CommentObject();
-			commentObjectList.set(index, commentObject);
-		}
-
-
-		return commentObject;
-	}
 
 
 	@SuppressWarnings("unused")
@@ -474,12 +462,12 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		return obj;
 	}
 
-	private void copyHeadTailCommentToValueObject(int key, java.lang.Object obj) {
+	private void copyHeadTailCommentToValueObject(int index, java.lang.Object obj) {
 		if(commentObjectList != null && obj instanceof CSONElement && !commentObjectList.isEmpty()) {
-			CommentObject valueCommentObject = commentObjectList.get(key);
+			CommentObject valueCommentObject = commentObjectList.get(index);
 			if(valueCommentObject != null) {
-				((CSONElement)obj).setTailComment(valueCommentObject.getTrailingComment());
-				((CSONElement)obj).setHeadComment(valueCommentObject.getLeadingComment());
+				((CSONElement)obj).setHeaderComment(valueCommentObject.getComment(CommentPosition.BEFORE_VALUE));
+				((CSONElement)obj).setFooterComment(valueCommentObject.getComment(CommentPosition.AFTER_VALUE));
 			}
 		}
 	}
@@ -1304,10 +1292,10 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		public void setComment(int index, String comment, CommentPosition position) {
 			switch (position) {
 				case HEADER:
-					array.setHeadComment(comment);
+					array.setHeaderComment(comment);
 					break;
 				case FOOTER:
-					array.setTailComment(comment);
+					array.setFooterComment(comment);
 					break;
 				case DEFAULT:
 				case BEFORE_VALUE:
@@ -1324,9 +1312,9 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		public String getComment(int index, CommentPosition position) {
 			switch (position) {
 				case HEADER:
-					return array.getHeadComment();
+					return array.getHeaderComment();
 				case FOOTER:
-					return array.getTailComment();
+					return array.getFooterComment();
 				case DEFAULT:
 				case BEFORE_VALUE:
 					return array.getCommentForValue(index);

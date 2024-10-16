@@ -7,8 +7,6 @@ import com.hancomins.cson.options.ParsingOptions;
 import com.hancomins.cson.options.WritingOptions;
 import com.hancomins.cson.util.NullValue;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.Collection;
@@ -17,8 +15,6 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public abstract  class CSONElement implements Iterable<java.lang.Object>  {
-
-
 
 	private ParsingOptions<?> parsingOptions = ParsingOptions.getDefaultParsingOptions();
 	private WritingOptions<?> writingOptions = WritingOptions.getDefaultWritingOptions();
@@ -98,31 +94,31 @@ public abstract  class CSONElement implements Iterable<java.lang.Object>  {
 
 
 	@SuppressWarnings({"unchecked", "UnusedReturnValue"})
-	public <T extends CSONElement> T setHeadComment(String comment) {
+	public <T extends CSONElement> T setHeaderComment(String comment) {
 		if(headTailCommentObject == null) {
-			headTailCommentObject = new CommentObject();
+			headTailCommentObject = CommentObject.forRootElement();
 		}
-		headTailCommentObject.setLeadingComment(comment);
+		headTailCommentObject.setComment(CommentPosition.HEADER, comment);
 		return (T) this;
 	}
 
 	@SuppressWarnings("unchecked")
-	public  <T extends CSONElement> T setTailComment(String comment) {
+	public  <T extends CSONElement> T setFooterComment(String comment) {
 		if(headTailCommentObject == null) {
-			headTailCommentObject = new CommentObject();
+			headTailCommentObject = CommentObject.forRootElement();
 		}
-		headTailCommentObject.setTrailingComment(comment);
+		headTailCommentObject.setComment(CommentPosition.FOOTER, comment);
 		return (T) this;
 	}
 
 
 
-	public String getTailComment() {
-		return headTailCommentObject == null ? null : headTailCommentObject.getTrailingComment();
+	public String getHeaderComment() {
+		return  headTailCommentObject == null ? null : headTailCommentObject.getComment(CommentPosition.HEADER);
 	}
 
-	public String getHeadComment() {
-		return  headTailCommentObject == null ? null : headTailCommentObject.getLeadingComment();
+	public String getFooterComment() {
+		return headTailCommentObject == null ? null : headTailCommentObject.getComment(CommentPosition.FOOTER);
 	}
 
 

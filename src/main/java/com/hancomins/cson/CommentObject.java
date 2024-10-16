@@ -1,6 +1,5 @@
 package com.hancomins.cson;
 
-import javax.xml.stream.events.Comment;
 import java.util.EnumMap;
 
 public class CommentObject {
@@ -10,6 +9,9 @@ public class CommentObject {
     private final CommentPosition defaultCommentPosition;
 
 
+    static CommentObject forRootElement() {
+        return new CommentObject(CommentPosition.HEADER);
+    }
 
     static CommentObject forKeyValueContainer() {
         return new CommentObject(CommentPosition.BEFORE_KEY);
@@ -29,6 +31,10 @@ public class CommentObject {
         if(commentPosition == CommentPosition.DEFAULT || commentPosition == null) {
             commentPosition = defaultCommentPosition;
         }
+        if(value == null) {
+            commentPositionMap.remove(commentPosition);
+            return this;
+        }
         commentPositionMap.put(commentPosition, value);
         return this;
     }
@@ -41,6 +47,9 @@ public class CommentObject {
     }
 
     public CommentObject appendComment(CommentPosition commentPosition, String value) {
+        if(value == null) {
+            return this;
+        }
         if(commentPosition == CommentPosition.DEFAULT || commentPosition == null) {
             commentPosition = defaultCommentPosition;
         }
@@ -55,32 +64,15 @@ public class CommentObject {
     }
 
 
-    void appendLeadingComment(String comment) {
-        if(leadingComment == null) {
-            leadingComment = comment;
-        } else {
-            leadingComment += "\n" + comment;
-        }
-    }
-
-    void appendTrailingComment(String comment) {
-        if(trailingComment == null) {
-            trailingComment = comment;
-        } else {
-            trailingComment += "\n" + comment;
-        }
-    }
-
 
     public String getComment() {
-        if(leadingComment == null && trailingComment == null) {
-            return null;
-        } else if(leadingComment == null) {
-            return trailingComment;
-        } else if(trailingComment == null) {
-            return leadingComment;
+        StringBuilder comment = new StringBuilder();
+        for (String value : commentPositionMap.values()) {
+            if(value != null) {
+                comment.append(value).append("\n");
+            }
         }
-        return leadingComment + "\n" + trailingComment;
+        return comment.toString();
     }
 
     public String toString() {
@@ -89,15 +81,29 @@ public class CommentObject {
 
 
     public boolean isCommented() {
-        return leadingComment != null || trailingComment != null;
+        return !commentPositionMap.isEmpty();
     }
 
 
     public CommentObject copy() {
-        CommentObject commentObject = new CommentObject();
-        commentObject.leadingComment = leadingComment;
-        commentObject.trailingComment = trailingComment;
+        CommentObject commentObject = new CommentObject(defaultCommentPosition);
+        commentObject.commentPositionMap.putAll(commentPositionMap);
         return commentObject;
+    }
+
+    /**
+     * todo: 임시
+     * @return
+     */
+    public String getLeadingComment() {
+        return commentPositionMap.get(CommentPosition.HEADER);
+    }
+
+    /**
+     * todo: 임시
+     */
+    public String getTrailingComment() {
+        return commentPositionMap.get(CommentPosition.FOOTER);
     }
 
 }

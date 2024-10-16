@@ -874,7 +874,7 @@ public class JSONWriter implements FormatWriter {
 
 
 
-		writer.writeComment(currentElement.getHeadComment(), false, "", "\n");
+		writer.writeComment(currentElement.getHeaderComment(), false, "", "\n");
 		if(writer.isComment) {
 			writer.currentKeyValueCommentObjects = new ArrayDeque<>();
 		}
@@ -1102,7 +1102,7 @@ public class JSONWriter implements FormatWriter {
 			}
 
 		} while (currentElement != null);
-		writer.writeComment(root.getTailComment(), false, "\n", "");
+		writer.writeComment(root.getFooterComment(), false, "\n", "");
 	}
 
 }

@@ -391,8 +391,8 @@ public class CSONSerializerTest {
                 "{}" +
                 "/* root comment end */";
         CSONObject csonObject = new CSONObject(json, WritingOptions.json5());
-        assertEquals(" root comment ", csonObject.getHeadComment());
-        assertEquals(" root comment end ", csonObject.getTailComment());
+        assertEquals(" root comment ", csonObject.getHeaderComment());
+        assertEquals(" root comment end ", csonObject.getFooterComment());
     }
 
 
@@ -411,8 +411,8 @@ public class CSONSerializerTest {
         // 출력
         System.out.println("객체의 레퍼런스 번호: " + referenceNumber);
 
-        assertEquals("루트 코멘트", csonObject.getHeadComment());
-        assertEquals("루트 코멘트 끝.", csonObject.getTailComment());
+        assertEquals("루트 코멘트", csonObject.getHeaderComment());
+        assertEquals("루트 코멘트 끝.", csonObject.getFooterComment());
 
 
 
