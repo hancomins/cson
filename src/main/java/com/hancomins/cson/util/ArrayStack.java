@@ -25,6 +25,19 @@ public class ArrayStack<T>  {
         return this;
     }
 
+    /**
+     * 스택이 비어있으면 push, 아니면 replace
+     * @param value 값
+     * @return this
+     */
+    public ArrayStack<T> pushOrReplace(T value) {
+        if(top < 0) {
+            return push(value);
+        }
+        stack[top] = value;
+        return this;
+    }
+
 
     public T pop() {
         T value = poll();

@@ -7,6 +7,23 @@ public class CommentObject {
 
     private final EnumMap<CommentPosition, String> commentPositionMap = new EnumMap<>(CommentPosition.class);
     private final CommentPosition defaultCommentPosition;
+    public static final CommentObject EMPTY_COMMENT_OBJECT = new CommentObject(CommentPosition.DEFAULT) {
+
+        @Override
+        public CommentObject setComment(CommentPosition commentPosition, String value) {
+            return this;
+        }
+
+        public CommentObject appendComment(CommentPosition commentPosition, String value) {
+            return this;
+        }
+
+        @Override
+        public CommentObject copy() {
+            return this;
+        }
+    };
+
 
 
     static CommentObject forRootElement() {
@@ -25,6 +42,13 @@ public class CommentObject {
         this.defaultCommentPosition = defaultCommentPosition;
     }
 
+
+    public boolean hasComment(CommentPosition commentPosition) {
+        if(commentPosition == CommentPosition.DEFAULT || commentPosition == null) {
+            commentPosition = defaultCommentPosition;
+        }
+        return commentPositionMap.containsKey(commentPosition);
+    }
 
 
     public CommentObject setComment(CommentPosition commentPosition, String value) {
@@ -105,5 +129,8 @@ public class CommentObject {
     public String getTrailingComment() {
         return commentPositionMap.get(CommentPosition.FOOTER);
     }
+
+
+
 
 }

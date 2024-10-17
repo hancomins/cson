@@ -905,8 +905,8 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	@Override
 	public String toString(WritingOptions<?> writingOptions) {
-		if(writingOptions instanceof JsonWritingOptions) {
-			JSON5Writer jsonWriter = new JSON5Writer((JsonWritingOptions)writingOptions);
+		if(writingOptions instanceof JSON5WriterOption) {
+			JSON5Writer jsonWriter = new JSON5Writer((JSON5WriterOption)writingOptions);
 			write(jsonWriter);
 			return jsonWriter.toString();
 		}
@@ -1220,6 +1220,14 @@ public class CSONObject extends CSONElement implements Cloneable {
 					return csonObject.getFooterComment();
 			}
 			return null;
+		}
+
+		@Override
+		public CommentObject getCommentObject(String key) {
+			if(csonObject.keyValueCommentMap == null) {
+				return null;
+			}
+			return csonObject.keyValueCommentMap.get(key);
 		}
 
 		@Override

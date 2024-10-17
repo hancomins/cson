@@ -1,7 +1,9 @@
 package com.hancomins.cson.format.json;
 
+import com.hancomins.cson.CommentObject;
+import com.hancomins.cson.CommentPosition;
 import com.hancomins.cson.format.*;
-import com.hancomins.cson.options.JsonWritingOptions;
+import com.hancomins.cson.options.JSON5WriterOption;
 import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.NullValue;
 
@@ -19,14 +21,14 @@ public class JSON5Writer extends WriterBorn  {
     private boolean pretty = false;
     private boolean skipComments = false;
 
-    public JSON5Writer(JsonWritingOptions JsonWritingOptions) {
-        super();
-        keyQuote = JsonWritingOptions.getKeyQuote();
+    public JSON5Writer(JSON5WriterOption JSON5WriterOption) {
+        super(JSON5WriterOption.isSkipComments());
+        keyQuote = JSON5WriterOption.getKeyQuote();
 
-        space =  JsonWritingOptions.isPretty() ? JsonWritingOptions.getDepthString() : "";
-        pretty = JsonWritingOptions.isPretty();
-        prettyArray = pretty & !JsonWritingOptions.isUnprettyArray();
-        skipComments = JsonWritingOptions.isSkipComments();
+        space =  JSON5WriterOption.isPretty() ? JSON5WriterOption.getDepthString() : "";
+        pretty = JSON5WriterOption.isPretty();
+        prettyArray = pretty & !JSON5WriterOption.isUnprettyArray();
+        skipComments = JSON5WriterOption.isSkipComments();
     }
 
 
@@ -105,7 +107,7 @@ public class JSON5Writer extends WriterBorn  {
 
     @Override
     protected void writeObjectPrefix(BaseDataContainer parents, DataIterator<Map.Entry<String, Object>> iterator) {
-
+        writeCommentForKeyValueContainer(CommentPosition.BEFORE_VALUE);
         stringBuilder.append("{");
         depth++;
     }
@@ -120,8 +122,9 @@ public class JSON5Writer extends WriterBorn  {
             stringBuilder.append("\n");
             stringBuilder.repeat(space, depth);
         }
-        stringBuilder.append("},");
-
+        stringBuilder.append("}");
+        writeCommentForKeyValueContainer(CommentPosition.AFTER_VALUE);
+        stringBuilder.append(",");
     }
 
     @Override
@@ -140,6 +143,7 @@ public class JSON5Writer extends WriterBorn  {
 
     @Override
     protected void writeKey(String key) {
+        writeCommentForKeyValueContainer(CommentPosition.BEFORE_KEY);
         if(pretty) {
             stringBuilder.append("\n");
             stringBuilder.repeat(space, depth);
@@ -147,7 +151,30 @@ public class JSON5Writer extends WriterBorn  {
         stringBuilder.append(keyQuote);
         stringBuilder.append(key);
         stringBuilder.append(keyQuote);
+        writeCommentForKeyValueContainer(CommentPosition.AFTER_KEY);
         stringBuilder.append(":");
+    }
+
+    private void writeCommentForKeyValueContainer(CommentPosition commentPosition) {
+        CommentObject commentObject = getCurrentCommentObject();
+        if(commentObject == null) return;
+        String comment = commentObject.getComment(commentPosition);
+        if(comment == null || comment.isEmpty()) return;
+        if(pretty && commentPosition == CommentPosition.BEFORE_KEY) {
+            String[] comments = comment.split("\n");
+            for(String c : comments) {
+                if(c.isEmpty()) continue;
+                stringBuilder.append("\n");
+                stringBuilder.repeat(space, depth);
+                stringBuilder.append("//");
+                stringBuilder.append(c);
+            }
+        }
+        else {
+            stringBuilder.append("/*");
+            stringBuilder.append(comment);
+            stringBuilder.append("*/");
+        }
     }
 
     @Override
@@ -166,6 +193,7 @@ public class JSON5Writer extends WriterBorn  {
 
 
     protected void writeValue(Object value) {
+        writeCommentForKeyValueContainer(CommentPosition.BEFORE_VALUE);
         if(value instanceof String) {
             stringBuilder.append("\"");
             stringBuilder.append(value.toString());
@@ -176,6 +204,7 @@ public class JSON5Writer extends WriterBorn  {
         else {
             stringBuilder.append(String.valueOf(value));
         }
+        writeCommentForKeyValueContainer(CommentPosition.AFTER_VALUE);
         stringBuilder.append(',');
     }
 

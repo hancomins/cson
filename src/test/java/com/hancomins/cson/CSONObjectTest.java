@@ -1,7 +1,7 @@
 package com.hancomins.cson;
 
 
-import com.hancomins.cson.options.JsonWritingOptions;
+import com.hancomins.cson.options.JSON5WriterOption;
 import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,8 +72,8 @@ public class CSONObjectTest {
 
         CSONObject csonObjectA = new CSONObject("{\"key\": \"va \\\" \\n \\r lue\"}");
         System.out.println(csonObjectA.toString());
-        JSONObject jsonObjectA = new JSONObject(csonObjectA.toString(JsonWritingOptions.json()));
-        new CSONObject(csonObjectA.toString(), JsonWritingOptions.json());
+        JSONObject jsonObjectA = new JSONObject(csonObjectA.toString(JSON5WriterOption.json()));
+        new CSONObject(csonObjectA.toString(), JSON5WriterOption.json());
 
         System.out.println("--------------------------------------------------");
 
@@ -83,13 +83,13 @@ public class CSONObjectTest {
         assertEquals(csonObject.toString(), csonObject2.toString());
 
         System.out.println(csonObject.toString());
-        JSONObject jsonObject1 = new JSONObject(csonObject.toString(JsonWritingOptions.json()));
-        assertEquals(csonObject2,new CSONObject(csonObject.toString(JsonWritingOptions.json())));
+        JSONObject jsonObject1 = new JSONObject(csonObject.toString(JSON5WriterOption.json()));
+        assertEquals(csonObject2,new CSONObject(csonObject.toString(JSON5WriterOption.json())));
 
-        JsonWritingOptions JsonWritingOptions = com.hancomins.cson.options.JsonWritingOptions.json().setPretty(true);
+        JSON5WriterOption json5WriterOption = JSON5WriterOption.json().setPretty(true);
 
 
-        assertEquals(csonObject2.toString(JsonWritingOptions),new CSONObject(csonObject.toString(JsonWritingOptions)).toString(JsonWritingOptions));
+        assertEquals(csonObject2.toString(json5WriterOption),new CSONObject(csonObject.toString(json5WriterOption)).toString(json5WriterOption));
         assertEquals(csonObject2,new CSONObject(csonObject.toBytes()));
     }
 
@@ -149,8 +149,8 @@ public class CSONObjectTest {
     @DisplayName("비어있는 CSONObject 와 CSONArray 파싱 테스트")
     public void emptyCSONObjectAndArrayTest() {
 
-        CSONObject csonObject = new CSONObject("{}", JsonWritingOptions.json());
-        CSONArray csonArray = new CSONArray("[]", JsonWritingOptions.json());
+        CSONObject csonObject = new CSONObject("{}", JSON5WriterOption.json());
+        CSONArray csonArray = new CSONArray("[]", JSON5WriterOption.json());
 
         assertEquals(0, csonObject.size());
         assertEquals(0, csonArray.size());
@@ -180,7 +180,7 @@ public class CSONObjectTest {
 
         byte[] buffer = csonObject.getByteArray("byte[]");
         byte[] bufferOrigin = buffer;
-        String jsonString = csonObject.toString(JsonWritingOptions.json());
+        String jsonString = csonObject.toString(JSON5WriterOption.json());
 
 
 
@@ -189,7 +189,7 @@ public class CSONObjectTest {
 
         System.out.println(jsonString);
         String bufferBase64 = "base64," + Base64.getEncoder().encodeToString(buffer);
-        CSONObject compareCSONObject = new CSONObject(jsonString, JsonWritingOptions.json());
+        CSONObject compareCSONObject = new CSONObject(jsonString, JSON5WriterOption.json());
 
 
         assertEquals(1, compareCSONObject.getInt("1"));

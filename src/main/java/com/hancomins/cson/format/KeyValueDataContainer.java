@@ -1,5 +1,6 @@
 package com.hancomins.cson.format;
 
+import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
 
 
@@ -10,6 +11,7 @@ public interface KeyValueDataContainer extends BaseDataContainer {
     void remove(String key);
     void setComment(String key, String comment, CommentPosition type);
     String getComment(String key, CommentPosition type);
+    CommentObject getCommentObject(String key);
     String getLastAccessedKey();
 
     default void setComment(String comment, CommentPosition commentPosition) {

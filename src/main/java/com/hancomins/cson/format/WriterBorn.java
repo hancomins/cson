@@ -1,8 +1,11 @@
 package com.hancomins.cson.format;
 
+import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
 import com.hancomins.cson.util.ArrayStack;
 
+import javax.xml.stream.events.Comment;
+import java.util.EmptyStackException;
 import java.util.Map;
 
 
@@ -12,12 +15,28 @@ public abstract class WriterBorn implements FormatWriter {
 
 	private final ArrayStack<DataIterator<?>> dataContainerIteratorStack = new ArrayStack<>();
 	private final ArrayStack<BaseDataContainer> dataContainerStack = new ArrayStack<>();
+	private final ArrayStack<CommentObject> commentStack;
+
 	private DataIterator<?> currentIterator;
+
 	private BaseDataContainer currentDataContainer;
 	private boolean rootContainerIsArray = false;
 
+	private final boolean skipComments;
+
 	protected boolean isArrayRootContainer() {
 		return rootContainerIsArray;
+	}
+
+
+
+	protected WriterBorn(boolean skipComments) {
+		this.skipComments = skipComments;
+		if(!skipComments) {
+			commentStack = new ArrayStack<>();
+		} else {
+			commentStack = null;
+		}
 	}
 
 
@@ -34,8 +53,6 @@ public abstract class WriterBorn implements FormatWriter {
 		this.currentIterator = dataContainer.iterator();
 		dataContainerIteratorStack.push(currentIterator);
 		dataContainerStack.push(currentDataContainer);
-
-
 
 		LOOP:
 		while(!dataContainerIteratorStack.isEmpty()) {
@@ -55,18 +72,23 @@ public abstract class WriterBorn implements FormatWriter {
 				}
 			}
 			BaseDataContainer oldDataContainer = currentDataContainer;
+			DataIterator<?> lastIterator = currentIterator;
 
-			if(oldDataContainer instanceof KeyValueDataContainer) {
-				writeObjectSuffix((DataIterator<Map.Entry<String, Object>>) currentIterator);
-			} else if(oldDataContainer instanceof ArrayDataContainer) {
-				writeArraySuffix((DataIterator<Object>)currentIterator);
-			}
+
 			dataContainerIteratorStack.pop();
 			dataContainerStack.pop();
 			currentIterator =  dataContainerIteratorStack.top();
 			currentDataContainer =  dataContainerStack.top();
 
-
+			if(oldDataContainer instanceof KeyValueDataContainer) {
+				writeObjectSuffix((DataIterator<Map.Entry<String, Object>>) lastIterator);
+			} else if(oldDataContainer instanceof ArrayDataContainer) {
+				writeArraySuffix((DataIterator<Object>)lastIterator);
+			}
+			if(!skipComments) {
+				//noinspection DataFlowIssue
+				commentStack.poll();
+			}
 		}
 
 		String footerComment = rootContainer.getComment(CommentPosition.FOOTER);
@@ -98,8 +120,16 @@ public abstract class WriterBorn implements FormatWriter {
 		dataContainerStack.push(currentDataContainer);
 		currentIterator = currentDataContainer.iterator();
 		dataContainerIteratorStack.push(currentIterator);
+
 	}
 
+	protected final CommentObject getCurrentCommentObject() {
+		if(skipComments) {
+			return null;
+		}
+        //noinspection DataFlowIssue
+        return commentStack.top();
+	}
 
 
 	abstract protected void writeArrayPrefix(BaseDataContainer parents, DataIterator<?> iterator);
@@ -112,12 +142,19 @@ public abstract class WriterBorn implements FormatWriter {
 
 
 	private boolean writeArray(DataIterator<?> iterator) {
+		if(!skipComments) {
+			//noinspection DataFlowIssue
+			commentStack.push(((ArrayDataContainer)currentDataContainer).getCommentObject(iterator.getPosition()));
+		}
 		Object value = iterator.next();
 		if (value instanceof BaseDataContainer) {
 			intoChildBaseDataContainer((BaseDataContainer)value);
 			return false;
 		}
 		writeArrayValue(value);
+		if(!skipComments) {
+			commentStack.poll();
+		}
 		return true;
 	}
 
@@ -125,21 +162,21 @@ public abstract class WriterBorn implements FormatWriter {
 		Map.Entry<String, Object> entry = iterator.next();
 		String key = entry.getKey();
 		Object value = entry.getValue();
+		if(!skipComments) {
+            //noinspection DataFlowIssue
+            commentStack.push(((KeyValueDataContainer)currentDataContainer).getCommentObject(key));
+		}
 		writeKey(key);
 		if (value instanceof BaseDataContainer) {
 			intoChildBaseDataContainer((BaseDataContainer)value);
 			return false;
 		}
 		writeObjectValue(value);
+		if(!skipComments) {
+			commentStack.poll();
+		}
 		return true;
 	}
-
-
-
-
-
-
-
 
  
 }

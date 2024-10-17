@@ -1051,8 +1051,8 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 	}
 
 	public String toString(WritingOptions<?> writingOptions) {
-		if(writingOptions instanceof JsonWritingOptions) {
-			JSON5Writer jsonWriter  = new JSON5Writer((JsonWritingOptions)writingOptions);
+		if(writingOptions instanceof JSON5WriterOption) {
+			JSON5Writer jsonWriter  = new JSON5Writer((JSON5WriterOption)writingOptions);
 			write(jsonWriter);
 			return jsonWriter.toString();
 		}
@@ -1332,6 +1332,11 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		@Override
 		public int size() {
 			return array.list.size();
+		}
+
+		@Override
+		public CommentObject getCommentObject(int index) {
+			return array.getCommentObject(index);
 		}
 
 		@Override

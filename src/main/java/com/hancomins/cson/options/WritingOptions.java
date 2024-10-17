@@ -12,20 +12,20 @@ public interface WritingOptions<T> extends IMutableINumberConversionOption<T> {
     }
 
 
-    static JsonWritingOptions json5() {
-        return JsonWritingOptions.json5();
+    static JSON5WriterOption json5() {
+        return JSON5WriterOption.json5();
     }
 
-    static JsonWritingOptions json5Pretty() {
-        return JsonWritingOptions.prettyJson5();
+    static JSON5WriterOption json5Pretty() {
+        return JSON5WriterOption.prettyJson5();
     }
 
-    static JsonWritingOptions json() {
-        return JsonWritingOptions.json();
+    static JSON5WriterOption json() {
+        return JSON5WriterOption.json();
     }
 
-    static JsonWritingOptions jsonPretty() {
-        return JsonWritingOptions.prettyJson();
+    static JSON5WriterOption jsonPretty() {
+        return JSON5WriterOption.prettyJson();
     }
 
 }
