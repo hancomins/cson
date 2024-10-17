@@ -55,15 +55,17 @@ public abstract class WriterBorn implements FormatWriter {
 				}
 			}
 			BaseDataContainer oldDataContainer = currentDataContainer;
+
+			if(oldDataContainer instanceof KeyValueDataContainer) {
+				writeObjectSuffix((DataIterator<Map.Entry<String, Object>>) currentIterator);
+			} else if(oldDataContainer instanceof ArrayDataContainer) {
+				writeArraySuffix((DataIterator<Object>)currentIterator);
+			}
 			dataContainerIteratorStack.pop();
 			dataContainerStack.pop();
 			currentIterator =  dataContainerIteratorStack.top();
 			currentDataContainer =  dataContainerStack.top();
-			if(oldDataContainer instanceof KeyValueDataContainer) {
-				writeObjectSuffix();
-			} else if(oldDataContainer instanceof ArrayDataContainer) {
-				writeArraySuffix();
-			}
+
 
 		}
 
@@ -98,12 +100,15 @@ public abstract class WriterBorn implements FormatWriter {
 		dataContainerIteratorStack.push(currentIterator);
 	}
 
+
+
 	abstract protected void writeArrayPrefix(BaseDataContainer parents, DataIterator<?> iterator);
 	abstract protected void writeObjectPrefix(BaseDataContainer parents, DataIterator<Map.Entry<String, Object>> iterator);
-	abstract protected void writeObjectSuffix();
-	abstract protected void writeArraySuffix();
+	abstract protected void writeObjectSuffix(DataIterator<Map.Entry<String, Object>> iterator);
+	abstract protected void writeArraySuffix(DataIterator<Object> iterator);
 	abstract protected void writeKey(String key);
-	abstract protected void writeValue(Object value);
+	abstract protected void writeObjectValue(Object value);
+	abstract protected void writeArrayValue(Object value);
 
 
 	private boolean writeArray(DataIterator<?> iterator) {
@@ -112,7 +117,7 @@ public abstract class WriterBorn implements FormatWriter {
 			intoChildBaseDataContainer((BaseDataContainer)value);
 			return false;
 		}
-		writeValue(value);
+		writeArrayValue(value);
 		return true;
 	}
 
@@ -125,7 +130,7 @@ public abstract class WriterBorn implements FormatWriter {
 			intoChildBaseDataContainer((BaseDataContainer)value);
 			return false;
 		}
-		writeValue(value);
+		writeObjectValue(value);
 		return true;
 	}
 

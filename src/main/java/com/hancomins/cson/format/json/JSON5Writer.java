@@ -11,7 +11,8 @@ public class JSON5Writer extends WriterBorn  {
 
     private static final int DEFAULT_BUFFER_SIZE = 512;
     private final CharacterBuffer stringBuilder = new CharacterBuffer(DEFAULT_BUFFER_SIZE);
-    private String keyQuote = "\"";
+    private final String keyQuote;
+
     private String space = " ";
     private int depth = 0;
     private boolean prettyArray = true;
@@ -21,6 +22,7 @@ public class JSON5Writer extends WriterBorn  {
     public JSON5Writer(JsonWritingOptions JsonWritingOptions) {
         super();
         keyQuote = JsonWritingOptions.getKeyQuote();
+
         space =  JsonWritingOptions.isPretty() ? JsonWritingOptions.getDepthString() : "";
         pretty = JsonWritingOptions.isPretty();
         prettyArray = pretty & !JsonWritingOptions.isUnprettyArray();
@@ -56,7 +58,7 @@ public class JSON5Writer extends WriterBorn  {
 
     @Override
     protected void writePrefix() {
-        if(isArrayRootContainer()) {
+        /*if(isArrayRootContainer()) {
             stringBuilder.append("[");
             if(prettyArray) {
                 stringBuilder.append("\n");
@@ -68,13 +70,16 @@ public class JSON5Writer extends WriterBorn  {
                 stringBuilder.append("\n");
                 depth++;
             }
-        }
+        }*/
 
     }
 
     @Override
     protected void writeSuffix() {
-        if(isArrayRootContainer()) {
+        if(stringBuilder.last() == ',') {
+            stringBuilder.prev();
+        }
+        /*if(isArrayRootContainer()) {
             if(prettyArray) {
                 stringBuilder.append("\n");
                 depth--;
@@ -88,60 +93,55 @@ public class JSON5Writer extends WriterBorn  {
                 depth--;
             }
             stringBuilder.append("}");
-        }
+        }*/
 
     }
 
     @Override
     protected void writeArrayPrefix(BaseDataContainer parents,DataIterator<?> iterator) {
-        if(!prettyArray && parents instanceof ArrayDataContainer) {
-            stringBuilder.append("[");
-        } else if(pretty) {
-            stringBuilder.repeat(space, depth);
-            stringBuilder.append("[");
-            stringBuilder.append("\n");
-            depth++;
-        } else {
-            stringBuilder.append("[");
-        }
+        stringBuilder.append("[");
+        depth++;
     }
 
     @Override
     protected void writeObjectPrefix(BaseDataContainer parents, DataIterator<Map.Entry<String, Object>> iterator) {
-        if(pretty) {
-            stringBuilder.repeat(space, depth);
-            stringBuilder.append("{");
-            stringBuilder.append("\n");
-            depth++;
-        } else {
-            stringBuilder.append("{");
-        }
+
+        stringBuilder.append("{");
+        depth++;
     }
 
     @Override
-    protected void writeObjectSuffix() {
-        if(pretty) {
+    protected void writeObjectSuffix(DataIterator<Map.Entry<String, Object>> iterator) {
+        if(stringBuilder.last() == ',') {
+            stringBuilder.prev();
+        }
+        depth--;
+        if(pretty && iterator.size() != 0) {
             stringBuilder.append("\n");
-            depth--;
             stringBuilder.repeat(space, depth);
         }
-        stringBuilder.append("}");
+        stringBuilder.append("},");
+
     }
 
     @Override
-    protected void writeArraySuffix() {
-        if(prettyArray) {
+    protected void writeArraySuffix(DataIterator<Object> iterator) {
+        if(stringBuilder.last() == ',') {
+            stringBuilder.prev();
+        }
+        depth--;
+        if(prettyArray && iterator.size() != 0) {
             stringBuilder.append("\n");
-            depth--;
             stringBuilder.repeat(space, depth);
         }
-        stringBuilder.append("]");
+        stringBuilder.append("],");
 
     }
 
     @Override
     protected void writeKey(String key) {
         if(pretty) {
+            stringBuilder.append("\n");
             stringBuilder.repeat(space, depth);
         }
         stringBuilder.append(keyQuote);
@@ -151,11 +151,25 @@ public class JSON5Writer extends WriterBorn  {
     }
 
     @Override
+    protected void writeObjectValue(Object value) {
+        writeValue(value);
+    }
+
+    @Override
+    protected void writeArrayValue(Object value) {
+        if(prettyArray) {
+            stringBuilder.append("\n");
+            stringBuilder.repeat(space, depth);
+        }
+        writeValue(value);
+    }
+
+
     protected void writeValue(Object value) {
         if(value instanceof String) {
-            stringBuilder.append(keyQuote);
+            stringBuilder.append("\"");
             stringBuilder.append(value.toString());
-            stringBuilder.append(keyQuote);
+            stringBuilder.append("\"");
         } else if(value == NullValue.Instance) {
             stringBuilder.append("null");
         }
@@ -163,5 +177,10 @@ public class JSON5Writer extends WriterBorn  {
             stringBuilder.append(String.valueOf(value));
         }
         stringBuilder.append(',');
+    }
+
+    @Override
+    public String toString() {
+        return stringBuilder.toString();
     }
 }

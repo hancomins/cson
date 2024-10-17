@@ -237,7 +237,7 @@ public class PureJsonTest {
                 .setAllowComments(true)
                 .setSkipComments(false));
 
-        assertEquals("주석입니다", csonObject.getCommentObjectOfValue ("key").getTrailingComment());
+        assertEquals("주석입니다",csonObject.getCommentAfterValue("key"));
 
     }
 

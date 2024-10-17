@@ -252,9 +252,9 @@ public class JSON5ParserTest  {
 
         System.out.println(csonObject);
 
-        assertEquals(" This is a comment before key", csonObject.getCommentBeforeKey("comment"));
+        assertEquals(" This is a comment before key", csonObject.getCommentForKey("comment"));
         assertEquals(" This is a comment after key", csonObject.getCommentAfterKey("comment"));
-        assertEquals(" Comment before value ", csonObject.getCommentBeforeValue("comment"));
+        assertEquals(" Comment before value ", csonObject.getCommentForValue("comment"));
         assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
 
         complexJson5 = "{\n" +
@@ -271,9 +271,9 @@ public class JSON5ParserTest  {
         System.out.println(csonObject);
 
 
-        assertEquals(" This is a comment before key", csonObject.getCommentBeforeKey("comment"));
+        assertEquals(" This is a comment before key", csonObject.getCommentForKey("comment"));
         assertEquals(" This is a comment after key", csonObject.getCommentAfterKey("comment"));
-        assertEquals(" Comment before value ", csonObject.getCommentBeforeValue("comment"));
+        assertEquals(" Comment before value ", csonObject.getCommentForValue("comment"));
         assertEquals("Comment after value", csonObject.getCommentAfterValue("comment"));
 
         complexJson5 = "{\n" +
@@ -290,9 +290,9 @@ public class JSON5ParserTest  {
 
         System.out.println(csonObject);
 
-        assertEquals(" This is a comment before key", csonObject.getCommentBeforeKey("comment"));
+        assertEquals(" This is a comment before key", csonObject.getCommentForKey("comment"));
         assertEquals(" This is a comment after key", csonObject.getCommentAfterKey("comment"));
-        assertEquals(" Comment before value ", csonObject.getCommentBeforeValue("comment"));
+        assertEquals(" Comment before value ", csonObject.getCommentForValue("comment"));
         assertEquals("Comment after value\n Comment after value2", csonObject.getCommentAfterValue("comment"));
 
 

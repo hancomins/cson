@@ -114,6 +114,10 @@ public class CharacterBuffer implements CharSequence {
         length--;
     }
 
+    public char last() {
+        return chars[length - 1];
+    }
+
     public CharacterBuffer append(String s) {
         ensureCapacity(length + s.length());
         s.getChars(0, s.length(), chars, length);
