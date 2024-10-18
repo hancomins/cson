@@ -9,7 +9,7 @@ import com.hancomins.cson.util.NullValue;
 
 import java.util.Map;
 
-public class JSON5Writer extends WriterBorn  {
+public class JSON5Writer extends WriterBorn {
 
     private static final int DEFAULT_BUFFER_SIZE = 512;
     private final CharacterBuffer stringBuilder = new CharacterBuffer(DEFAULT_BUFFER_SIZE);
@@ -25,22 +25,20 @@ public class JSON5Writer extends WriterBorn  {
         super(JSON5WriterOption.isSkipComments());
         keyQuote = JSON5WriterOption.getKeyQuote();
 
-        space =  JSON5WriterOption.isPretty() ? JSON5WriterOption.getDepthString() : "";
+        space = JSON5WriterOption.isPretty() ? JSON5WriterOption.getDepthString() : "";
         pretty = JSON5WriterOption.isPretty();
         prettyArray = pretty & !JSON5WriterOption.isUnprettyArray();
         skipComments = JSON5WriterOption.isSkipComments();
     }
 
 
-
-
     @Override
     protected void writeHeaderComment(String comment) {
-        if(!skipComments && comment != null && !comment.isEmpty()) {
+        if (!skipComments && comment != null && !comment.isEmpty()) {
             stringBuilder.append("/*");
             stringBuilder.append(comment);
             stringBuilder.append("*/");
-            if(pretty) {
+            if (pretty) {
                 stringBuilder.append("\n");
             }
         }
@@ -48,8 +46,8 @@ public class JSON5Writer extends WriterBorn  {
 
     @Override
     protected void writeFooterComment(String comment) {
-        if(!skipComments && comment != null && !comment.isEmpty()) {
-            if(pretty) {
+        if (!skipComments && comment != null && !comment.isEmpty()) {
+            if (pretty) {
                 stringBuilder.append("\n");
             }
             stringBuilder.append("/*");
@@ -78,7 +76,7 @@ public class JSON5Writer extends WriterBorn  {
 
     @Override
     protected void writeSuffix() {
-        if(stringBuilder.last() == ',') {
+        if (stringBuilder.last() == ',') {
             stringBuilder.prev();
         }
         /*if(isArrayRootContainer()) {
@@ -100,74 +98,89 @@ public class JSON5Writer extends WriterBorn  {
     }
 
     @Override
-    protected void writeArrayPrefix(BaseDataContainer parents,DataIterator<?> iterator) {
+    protected void writeArrayPrefix(BaseDataContainer parents, DataIterator<?> iterator) {
+        writeComment(CommentPosition.BEFORE_VALUE, pretty, true);
         stringBuilder.append("[");
         depth++;
     }
 
     @Override
     protected void writeObjectPrefix(BaseDataContainer parents, DataIterator<Map.Entry<String, Object>> iterator) {
-        writeCommentForKeyValueContainer(CommentPosition.BEFORE_VALUE);
+        writeComment(CommentPosition.BEFORE_VALUE, pretty, true);
         stringBuilder.append("{");
         depth++;
     }
 
     @Override
     protected void writeObjectSuffix(DataIterator<Map.Entry<String, Object>> iterator) {
-        if(stringBuilder.last() == ',') {
+        if (stringBuilder.last() == ',') {
             stringBuilder.prev();
         }
         depth--;
-        if(pretty && iterator.size() != 0) {
+        if (pretty && iterator.size() != 0) {
             stringBuilder.append("\n");
             stringBuilder.repeat(space, depth);
         }
         stringBuilder.append("}");
-        writeCommentForKeyValueContainer(CommentPosition.AFTER_VALUE);
+        writeComment(CommentPosition.AFTER_VALUE, pretty, true);
         stringBuilder.append(",");
     }
 
     @Override
     protected void writeArraySuffix(DataIterator<Object> iterator) {
-        if(stringBuilder.last() == ',') {
+        if (stringBuilder.last() == ',') {
             stringBuilder.prev();
         }
         depth--;
-        if(prettyArray && iterator.size() != 0) {
+        if (prettyArray && iterator.size() != 0) {
             stringBuilder.append("\n");
             stringBuilder.repeat(space, depth);
         }
-        stringBuilder.append("],");
+        stringBuilder.append("]");
+        writeComment(CommentPosition.AFTER_VALUE, pretty, true);
+        stringBuilder.append(",");
 
     }
 
     @Override
     protected void writeKey(String key) {
-        writeCommentForKeyValueContainer(CommentPosition.BEFORE_KEY);
-        if(pretty) {
+        writeComment(CommentPosition.BEFORE_KEY, pretty);
+        if (pretty) {
             stringBuilder.append("\n");
             stringBuilder.repeat(space, depth);
         }
         stringBuilder.append(keyQuote);
         stringBuilder.append(key);
         stringBuilder.append(keyQuote);
-        writeCommentForKeyValueContainer(CommentPosition.AFTER_KEY);
+        writeComment(CommentPosition.AFTER_KEY, false);
         stringBuilder.append(":");
     }
 
-    private void writeCommentForKeyValueContainer(CommentPosition commentPosition) {
+    private void writeComment(CommentPosition commentPosition, boolean pretty) {
+        writeComment(commentPosition, pretty, false);
+    }
+
+    private void writeComment(CommentPosition commentPosition, boolean pretty, boolean breakLineIfPretty) {
         CommentObject commentObject = getCurrentCommentObject();
         if(commentObject == null) return;
         String comment = commentObject.getComment(commentPosition);
         if(comment == null || comment.isEmpty()) return;
-        if(pretty && commentPosition == CommentPosition.BEFORE_KEY) {
+        if(pretty) {
             String[] comments = comment.split("\n");
             for(String c : comments) {
                 if(c.isEmpty()) continue;
-                stringBuilder.append("\n");
-                stringBuilder.repeat(space, depth);
+                if(stringBuilder.last() != ' ') {
+                    stringBuilder.append("\n");
+                    stringBuilder.repeat(space, depth);
+                }
+
                 stringBuilder.append("//");
                 stringBuilder.append(c);
+                if(breakLineIfPretty) {
+                    stringBuilder.append("\n");
+                    stringBuilder.repeat(space, depth);
+                }
+
             }
         }
         else {
@@ -193,7 +206,7 @@ public class JSON5Writer extends WriterBorn  {
 
 
     protected void writeValue(Object value) {
-        writeCommentForKeyValueContainer(CommentPosition.BEFORE_VALUE);
+        writeComment(CommentPosition.BEFORE_VALUE, prettyArray, true);
         if(value instanceof String) {
             stringBuilder.append("\"");
             stringBuilder.append(value.toString());
@@ -204,7 +217,7 @@ public class JSON5Writer extends WriterBorn  {
         else {
             stringBuilder.append(String.valueOf(value));
         }
-        writeCommentForKeyValueContainer(CommentPosition.AFTER_VALUE);
+        writeComment(CommentPosition.AFTER_VALUE, prettyArray, true);
         stringBuilder.append(',');
     }
 

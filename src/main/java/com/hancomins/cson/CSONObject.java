@@ -1147,6 +1147,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 		@Override
 		public void put(String key, Object value) {
+			lastKey = key;
 			if(value instanceof CSONKeyValueDataContainer) {
 				csonObject.put(key, ((CSONKeyValueDataContainer) value).csonObject);
 				return;
@@ -1154,7 +1155,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 				csonObject.put(key, ((CSONArray.CSONArrayDataContainer) value).array);
 				return;
 			}
-			lastKey = key;
 			csonObject.dataMap.put(key, value);
 		}
 

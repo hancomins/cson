@@ -115,6 +115,9 @@ public class CharacterBuffer implements CharSequence {
     }
 
     public char last() {
+        if(length == 0) {
+            return '\0';
+        }
         return chars[length - 1];
     }
 
@@ -126,7 +129,7 @@ public class CharacterBuffer implements CharSequence {
     }
 
     public CharacterBuffer repeat(String s, int count) {
-        ensureCapacity(s.length() + count);
+        ensureCapacity(length + s.length() * count);
         for(int i = 0; i < count; i++) {
             s.getChars(0, s.length(), chars, length);
             length += s.length();

@@ -115,21 +115,6 @@ public class CommentObject {
         return commentObject;
     }
 
-    /**
-     * todo: 임시
-     * @return
-     */
-    public String getLeadingComment() {
-        return commentPositionMap.get(CommentPosition.HEADER);
-    }
-
-    /**
-     * todo: 임시
-     */
-    public String getTrailingComment() {
-        return commentPositionMap.get(CommentPosition.FOOTER);
-    }
-
 
 
 

@@ -104,7 +104,7 @@ public class JSON5Test {
 
         CSONArray csonArray = null;
         csonArray = new CSONArray("[//index1\n1,2,3,4,5,6,7,8,9,10,Infinity,NaN,] // 코멘트 \n // 코멘트2" , WritingOptions.json5());
-        assertEquals("index1",csonArray.getCommentObject(0).getLeadingComment());
+        assertEquals("index1",csonArray.getCommentForValue(0));
 
 
         csonArray = new CSONArray("/*테*///스\n" +
@@ -117,17 +117,17 @@ public class JSON5Test {
                 ",[{},{}],[,/*index22*/],[,/*index23*/]/*index23after*/,24,[,]//index25after\n," +
                 "{1:2,//코멘트\n}//코멘트\n,] // 코멘트 \n // 코멘트2",  ParsingOptions.json5().setAllowConsecutiveCommas(true));
         System.out.println(csonArray);
-        assertEquals("index1",csonArray.getCommentObject(0).getLeadingComment());
+        assertEquals("index1",csonArray.getCommentForValue(0));
         assertEquals("테\n스\n트",csonArray.getHeaderComment());
-        assertEquals("index1After",csonArray.getCommentObject(0).getTrailingComment());
+        assertEquals("index1After",csonArray.getCommentAfterValue(0));
         assertEquals(1, csonArray.getInt(0));
 
         assertNull(csonArray.get(1));
         assertNull(csonArray.get(2));
-        assertEquals(" 이 곳에 주석 가능 ",csonArray.getCommentObject(2).getLeadingComment());
+        assertEquals(" 이 곳에 주석 가능 ",csonArray.getCommentForValue(2));
         assertEquals("3 ",csonArray.get(3));
         assertEquals(3, csonArray.getInt(3));
-        assertEquals("index 3",csonArray.getCommentObject(3).getTrailingComment());
+        assertEquals("index 3",csonArray.getCommentAfterValue(3));
 
         assertEquals("오브젝트 시작", csonArray.getCommentForValue(12));
         assertEquals("오브젝트끝",csonArray.getCommentAfterValue(12));
@@ -135,16 +135,16 @@ public class JSON5Test {
         //assertEquals("알수없는 영역", csonArray.getCSONObject(12).getCommentAfterElement().getBeforeComment());
         assertEquals("오브젝트끝", csonArray.getCSONObject(12).getFooterComment());
 
-        assertEquals("오브젝트끝",csonArray.getCommentObject(12).getTrailingComment());
+        assertEquals("오브젝트끝",csonArray.getCommentAfterValue(12));
 
         assertEquals(Double.NEGATIVE_INFINITY,csonArray.get(18));
         assertEquals(Double.NaN,csonArray.get(19));
 
 
         CSONArray idx15Array = csonArray.getCSONArray(15);
-        assertEquals("15배열로그",csonArray.getCommentObject(15).getLeadingComment());
+        assertEquals("15배열로그",csonArray.getCommentForValue(15));
         assertEquals("15배열로그",idx15Array.getHeaderComment());
-        assertEquals("15after",csonArray.getCommentObject(15).getTrailingComment());
+        assertEquals("15after",csonArray.getCommentAfterValue(15));
         assertNull(idx15Array.get(0));
         assertNull(idx15Array.get(1));
 
