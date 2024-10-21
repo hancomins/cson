@@ -68,9 +68,7 @@ class CSONFlags {
     static final int OBJECT_COMMENT_UINT8 =  0xa2;   // ~uint8 길이 오브젝트 코멘트
     static final int OBJECT_COMMENT_UINT16 =  0xa3;  // ~uint16 길이 오브젝트 코멘트
     static final int OBJECT_COMMENT_UINT32 =  0xa4;  // uint32 길이 오브젝트 코멘트
-    static final int ARRAY_COMMENT_UINT8 =  0xa5;    // ~uint8 길이 배열 코멘트
-    static final int ARRAY_COMMENT_UINT16 =  0xa6;   // ~uint16 길이 배열 코멘트
-    static final int ARRAY_COMMENT_UINT32 =  0xa7;   // uint32 길이 배열 코멘트
+
 
     // 타입 플래그
     static final int TYPE_FIXED_VALUE = 0x1;  // 고정값
@@ -83,6 +81,14 @@ class CSONFlags {
     static final int TYPE_OBJECT =  0x9; // 큰 오브젝트
     static final int TYPE_ARRAY =  0x9;  // 큰 배열
     static final int TYPE_COMMENT =  0xa;      // 코멘트
+
+
+    static final byte COMMENT_TYPE_BEFORE_KEY = 1;  // 키 앞에 코멘트
+    static final byte COMMENT_TYPE_AFTER_KEY = 2;   //
+    static final byte COMMENT_TYPE_BEFORE_VALUE = 4;   //
+    static final byte COMMENT_TYPE_AFTER_VALUE = 8;   //
+
+
 
 
     // private 생성자

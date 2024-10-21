@@ -191,15 +191,6 @@ public class BinaryCSONParser {
 						isObjectComment = true;
 						commentLengthCount = dataInputStream.readInt();
 						break;
-					case CSONFlags.ARRAY_COMMENT_UINT8:
-						commentLengthCount = dataInputStream.read() & 0xFF;
-						break;
-					case CSONFlags.ARRAY_COMMENT_UINT16:
-						commentLengthCount = dataInputStream.readShort() & 0xFFFF;
-						break;
-					case CSONFlags.ARRAY_COMMENT_UINT32:
-						commentLengthCount = dataInputStream.readInt();
-						break;
 					default:
 						throw new CSONParseException("Invalid Comment length type");
 				}

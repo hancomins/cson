@@ -1027,12 +1027,8 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 	public byte[] toBytes() {
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		try {
-			BinaryCSONWriter writer = new BinaryCSONWriter(byteArrayOutputStream);
-			writer.write(new CSONArrayDataContainer(this));
-		} catch (IOException e) {
-			throw new CSONException(e);
-		}
+		BinaryCSONWriter writer = new BinaryCSONWriter(byteArrayOutputStream);
+		writer.write(new CSONArrayDataContainer(this));
 		return byteArrayOutputStream.toByteArray();
 	}
 

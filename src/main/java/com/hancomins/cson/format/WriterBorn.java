@@ -4,8 +4,6 @@ import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
 import com.hancomins.cson.util.ArrayStack;
 
-import javax.xml.stream.events.Comment;
-import java.util.EmptyStackException;
 import java.util.Map;
 
 
@@ -44,8 +42,7 @@ public abstract class WriterBorn implements FormatWriter {
 
 	@SuppressWarnings("unchecked")
 	public void write(BaseDataContainer dataContainer) {
-		BaseDataContainer rootContainer = dataContainer;
-		rootContainerIsArray = rootContainer instanceof ArrayDataContainer;
+        rootContainerIsArray = dataContainer instanceof ArrayDataContainer;
 		writePrefix();
 		String header = dataContainer.getComment(CommentPosition.HEADER);
 		writeHeaderComment(header);
@@ -91,7 +88,7 @@ public abstract class WriterBorn implements FormatWriter {
 			}
 		}
 
-		String footerComment = rootContainer.getComment(CommentPosition.FOOTER);
+		String footerComment = dataContainer.getComment(CommentPosition.FOOTER);
 		writeFooterComment(footerComment);
 
 		writeSuffix();
@@ -121,6 +118,10 @@ public abstract class WriterBorn implements FormatWriter {
 		currentIterator = currentDataContainer.iterator();
 		dataContainerIteratorStack.push(currentIterator);
 
+	}
+
+	protected boolean isSkipComments() {
+		return skipComments;
 	}
 
 	protected final CommentObject getCurrentCommentObject() {

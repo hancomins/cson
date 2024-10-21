@@ -67,8 +67,10 @@ public class PerformanceTest {
 
 
                 JSONObject jsonObject = new JSONObject(json);
+                jsonObject.toString();
 
-                //CSONObject csonObject = new CSONObject(json, ParsingOptions.json5().setAllowControlCharacters(true));
+                //CSONObject csonObject = new CSONObject(json);
+                //csonObject.toString();
                 /*if(i == 0 && count == 0) {
                     System.out.println(csonObject.toString());
                 }*/

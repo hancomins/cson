@@ -938,13 +938,10 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	public byte[] toBytes() {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		try {
-			BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
-			writer.write(new CSONKeyValueDataContainer(this));
-			return outputStream.toByteArray();
-		} catch (IOException e) {
-			throw new CSONException(e);
-		}
+		BinaryCSONWriter writer = new BinaryCSONWriter(outputStream);
+		writer.write(new CSONKeyValueDataContainer(this));
+		return outputStream.toByteArray();
+
 	}
 
 
