@@ -22,10 +22,10 @@ public class BinaryCSONWriter extends WriterBorn {
 	private static final int DEFAULT_BUFFER_SIZE = 4096;
 
 
-	private List<CommentObject> currentCommentList = null;
+	private List<CommentObject<?>> currentCommentList = null;
 	private final OutputStream outputStream;
 	private final DataOutputStream dataOutputStream;
-	private final ArrayStack<List<CommentObject>> commentStack = new ArrayStack<>();
+	private final ArrayStack<List<CommentObject<?>>> commentStack = new ArrayStack<>();
 
 
 
@@ -33,6 +33,7 @@ public class BinaryCSONWriter extends WriterBorn {
 		super(false);
 		this.outputStream = new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
 		this.dataOutputStream = new DataOutputStream(outputStream);
+
 	}
 
 
@@ -152,7 +153,6 @@ public class BinaryCSONWriter extends WriterBorn {
 			return;
 		}
 		try {
-			currentCommentList = commentStack.poll();
 			if (currentCommentList != null && !currentCommentList.isEmpty()) {
 				writeSizeBuffer(currentCommentList.size(), -1, CSONFlag.COMMENT_UINT8, CSONFlag.COMMENT_UINT16, CSONFlag.COMMENT_UINT32);
 				for (CommentObject<?> commentObject : currentCommentList) {
@@ -161,10 +161,14 @@ public class BinaryCSONWriter extends WriterBorn {
 			} else {
 				dataOutputStream.write(CSONFlag.COMMENT_ZERO);
 			}
+			commentStack.poll();
+			currentCommentList = commentStack.top();
 		} catch (IOException e) {
 			throw new CSONException(e);
 		}
 	}
+
+
 
 
 
@@ -225,6 +229,8 @@ public class BinaryCSONWriter extends WriterBorn {
 	@Override
 	protected void writeArraySuffix(DataIterator<Object> iterator) {
 		writeComments(false);
+
+
 	}
 
 	@Override
