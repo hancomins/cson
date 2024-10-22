@@ -11,7 +11,7 @@ public class JsonParsingOptions extends MutableINumberConversionOption<JsonParsi
         private boolean ignoreTrailingData = false;
         private boolean skipComments = false;
         private boolean allowControlCharacters = false;
-        private boolean ignoreControlCharacters = false;
+        private boolean ignoreControlCharacters = true;
 
         private JsonParsingOptions() {
         }

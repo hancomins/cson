@@ -37,6 +37,10 @@ public class BinaryCSONParser {
 	private byte[] defaultBuffer = new byte[BUFFER_SIZE];
 
 	private boolean hasComment = false;
+	private boolean hasStringTable = false;
+	private String[] stringTable;
+
+
 	private String lastKey;
 
 	private String headerComment;
@@ -121,33 +125,36 @@ public class BinaryCSONParser {
 	}
 
 
-	private void readComments() throws IOException {
-		int commentFlag = dataInputStream.read();
-		int commentCount;
+	private int readCommentCount(int commentFlag) throws IOException {
 		switch (commentFlag) {
 			case CSONFlag.COMMENT_ZERO:
-				return;
+				return 0;
 			case CSONFlag.COMMENT_UINT8:
-				commentCount = dataInputStream.read() & 0xFF;
-				break;
+				return dataInputStream.read() & 0xFF;
 			case CSONFlag.COMMENT_UINT16:
-				commentCount = dataInputStream.read() & 0xFFFF;
-				break;
+				return dataInputStream.read() & 0xFFFF;
 			case CSONFlag.COMMENT_UINT32:
-				commentCount = dataInputStream.readInt();
-				break;
+				return dataInputStream.readInt();
 			default:
 				throw new CSONParseException("Invalid Comment Type");
 		}
+	}
+
+
+	private void readComments() throws IOException {
+		boolean arrayComments = currentContainer instanceof ArrayDataContainer;
+		int commentFlag = dataInputStream.read();
+		int commentCount = readCommentCount(commentFlag);
 		for (int i = 0; i < commentCount; i++) {
 			byte keyType = (byte)dataInputStream.read();
 			CommentObject<?> commentObject;
-			if(keyType == CSONFlag.INT32) {
+			if(arrayComments) {
 				int commentIndex = (int)readInteger(keyType);
-				commentObject = CommentObject.forArrayContainer(commentIndex);
+				 commentObject = CommentObject.forArrayContainer(commentIndex);
 			} else {
-				String commentIndex = readString(keyType);
+				String commentIndex = readKey(keyType);
 				commentObject = CommentObject.forKeyValueContainer(commentIndex);
+
 			}
 			byte commentType = dataInputStream.readByte();
 			boolean beforeKey = (commentType & CSONFlag.COMMENT_TYPE_BEFORE_KEY) == CSONFlag.COMMENT_TYPE_BEFORE_KEY;
@@ -189,12 +196,49 @@ public class BinaryCSONParser {
 			hasComment = true;
 			commentStack = new ArrayStack<>();
 		}
+		if((options & CSONFlag.ENABLE_STRING_TABLE) == CSONFlag.ENABLE_STRING_TABLE) {
+			hasStringTable = true;
+		}
 		int state = dataInputStream.read();
+		if(hasStringTable) {
+			readStringTable(state);
+			state = dataInputStream.read();
+		}
+
+
 		if(hasComment) {
 			state = readHeaderComment(state);
 		}
 		return state;
 	}
+
+	private void readStringTable(int state) throws IOException {
+		int tableSize;
+		int type = state >> 4;
+		if(type == CSONFlag.TYPE_ARRAY_LESS_THAN_16) {
+			tableSize = state & 0x0F;
+		} else {
+
+			switch (state) {
+				case CSONFlag.ARRAY_UINT8:
+					tableSize = dataInputStream.read() & 0xFF;
+					break;
+				case CSONFlag.ARRAY_UINT16:
+					tableSize = dataInputStream.readShort() & 0xFFFF;
+					break;
+				case CSONFlag.ARRAY_UINT32:
+					tableSize = dataInputStream.readInt();
+					break;
+				default:
+					throw new CSONParseException("Invalid String Table Type");
+			}
+		}
+		stringTable = new String[tableSize];
+		for (int i = 0; i < tableSize; i++) {
+			stringTable[i] = readString();
+		}
+	}
+
 
 	private int readHeaderComment(int state) throws IOException {
 		if (state == CSONFlag.HEADER_COMMENT) {
@@ -294,7 +338,7 @@ public class BinaryCSONParser {
 	private void readKeyValueDataContainer() throws IOException {
 		while (currentContainerValueCount.isContains()) {
 			currentContainerValueCount.decrease();
-			String key = readString();
+			String key = readKey();
 			int state = dataInputStream.read();
 			if(CSONFlag.OBJECT_LESS_THAN_16 <= state &&  state < CSONFlag.HEADER_COMMENT) {
 				lastKey = key;
@@ -306,6 +350,33 @@ public class BinaryCSONParser {
 		}
 		upParentContainer();
 		currentReadState = -1;
+	}
+
+	private String readKey() throws IOException {
+		int keyType = dataInputStream.read();
+		return readKey(keyType);
+	}
+
+	private String readKey(int keyType) throws IOException {
+		if(hasStringTable) {
+			int index;
+			switch (keyType) {
+				case CSONFlag.INT8:
+					index = dataInputStream.readByte() & 0xFF;
+					break;
+				case CSONFlag.INT16:
+					index = dataInputStream.readShort() & 0xFFFF;
+					break;
+				case CSONFlag.INT32:
+					index = dataInputStream.readInt();
+					break;
+				default:
+					throw new CSONParseException("Invalid String Table Index Type");
+			}
+			return stringTable[index];
+		} else {
+			return readString(keyType);
+		}
 	}
 
 	private void readArray() throws IOException {

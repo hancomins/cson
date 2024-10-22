@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.PrimitiveIterator;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -414,8 +416,50 @@ public class BinaryCSONTest {
         assertEquals(" comment for key3 value ", parsedObject.getCommentForValue("key3"));
         assertEquals(" comment after key3 value ", parsedObject.getCommentAfterValue("key3"));
 
+
+
+
     }
 
+    @Test
+    public void sizeCompare() {
+        InputStream inputStream = PerformanceTest.class.getClassLoader().getResourceAsStream("large-file.json");
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int length;
+        try {
+            while ((length = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, length);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String json = byteArrayOutputStream.toString();
+        CSONObject csonObject = new CSONObject(json);
+        byte[] csonBytes = csonObject.toBytes();
+        System.out.println("json: " + json.getBytes().length);
+        System.out.println("cson: " + csonBytes.length);
+        System.out.println( 100 - ((float)csonBytes.length / json.getBytes().length) * 100 + "%");
+
+        long start = System.currentTimeMillis();
+        for(int i = 0 ; i < 10; i++) {
+            CSONObject csonObject1 =  new CSONObject(json);
+            csonObject1.toString();
+        }
+        System.out.println("json: " + (System.currentTimeMillis() - start) + "ms");
+
+
+        start = System.currentTimeMillis();
+        for(int i = 0 ; i < 10; i++) {
+            CSONObject csonObject1 =  new CSONObject(csonBytes);
+            csonObject1.toBytes();
+        }
+        System.out.println("cson: " + (System.currentTimeMillis() - start) + "ms");
+
+
+
+
+    }
 
 
 }

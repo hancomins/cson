@@ -14,7 +14,7 @@ class CSONFlag {
 
     // 바이트 플래그
     static short ENABLE_COMMENT = 1;  // 코멘트 활성화
-    static short ENABLE_STRING_MAP = 2;  // 문자열 맵 활성화
+    static short ENABLE_STRING_TABLE = 2;  // 문자열 맵 활성화
 
     // 고정값
     static final int NULL = 0x10;

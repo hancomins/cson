@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,26 +22,43 @@ public class BinaryCSONWriter extends WriterBorn {
 
 	private static final int DEFAULT_BUFFER_SIZE = 4096;
 
+	private static final int HEADER_SIZE = 8;
+
 
 	private List<CommentObject<?>> currentCommentList = null;
-	private final OutputStream outputStream;
-	private final DataOutputStream dataOutputStream;
+	private final OutputStream outputStream_;
+	private final BinaryCSONWriter.DataOutputStream dataOutputStream;
 	private final ArrayStack<List<CommentObject<?>>> commentStack = new ArrayStack<>();
+
+	private boolean enableStringTable = true;
+	private final LinkedHashMap<String, Integer> stringTable;
+	private int stringTableIndex = 0;
 
 
 
 	public BinaryCSONWriter() {
-		super(false);
-		this.outputStream = new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
-		this.dataOutputStream = new DataOutputStream(outputStream);
-
+		this(new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE));
 	}
 
 
 	public BinaryCSONWriter(OutputStream outputStream) {
 		super(false);
-		this.outputStream = new BufferedOutputStream(outputStream, DEFAULT_BUFFER_SIZE);
-		this.dataOutputStream = new DataOutputStream(outputStream);
+		this.outputStream_ = outputStream;
+		boolean isByteArrayOutputStream = outputStream instanceof ByteArrayOutputStream;
+		if(isByteArrayOutputStream && !enableStringTable) {
+			this.dataOutputStream = new DataOutputStream(this.outputStream_);
+			this.stringTable = null;
+		} else {
+			if(enableStringTable) {
+				ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(DEFAULT_BUFFER_SIZE);
+				this.dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+				this.stringTable = new LinkedHashMap<>();
+			} else {
+				BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(this.outputStream_, DEFAULT_BUFFER_SIZE);
+				this.dataOutputStream = new DataOutputStream(bufferedOutputStream);
+				this.stringTable = null;
+			}
+		}
 	}
 
 
@@ -89,19 +107,55 @@ public class BinaryCSONWriter extends WriterBorn {
 		if(!isSkipComments()) {
 			optionsFlag |= CSONFlag.ENABLE_COMMENT;
 		}
-		return (byte) optionsFlag;
+		if(enableStringTable) {
+			optionsFlag |= CSONFlag.ENABLE_STRING_TABLE;
+		}
+		return optionsFlag;
 	}
 
 	@Override
 	protected void writeSuffix() {
 		try {
 			dataOutputStream.write(CSONFlag.CSON_FOOTER);
-			dataOutputStream.flush();
-			dataOutputStream.close();
+			if(enableStringTable) {
+				dataOutputStream.flush();
+				insertStringTable();
+				this.outputStream_.close();
+			} else {
+				dataOutputStream.flush();
+				dataOutputStream.close();
+			}
 		}catch (IOException e) {
 			throw new CSONException(e);
 		}
 	}
+
+	private void insertStringTable() throws IOException {
+		byte[] buffer = ((ByteArrayOutputStream)dataOutputStream.getInnerOutputStream()).toByteArray();
+		OutputStream bufferedOutputStream = outputStream_ instanceof ByteArrayOutputStream ? outputStream_ : new BufferedOutputStream(outputStream_, DEFAULT_BUFFER_SIZE);
+		bufferedOutputStream.write(buffer, 0, HEADER_SIZE);
+		//noinspection DataFlowIssue
+		writeStringTable(new DataOutputStream(bufferedOutputStream), stringTable);
+		bufferedOutputStream.write(buffer, HEADER_SIZE, buffer.length - HEADER_SIZE);
+		bufferedOutputStream.flush();
+	}
+
+	private void writeStringTable(DataOutputStream dataOutputStream, Map<String, Integer> stringTableMap) {
+		// 값으로 오름차순된 ArrayList<String> 만들기
+		List<Map.Entry<String, Integer>> stringTableEntryList = new ArrayList<>(stringTableMap.size());
+		stringTableEntryList.addAll(stringTableMap.entrySet());
+		stringTableEntryList.sort(Map.Entry.comparingByValue());
+		int size = stringTableEntryList.size();
+		writeSizeBuffer(dataOutputStream, size, CSONFlag.ARRAY_LESS_THAN_16, CSONFlag.ARRAY_UINT8, CSONFlag.ARRAY_UINT16, CSONFlag.ARRAY_UINT32);
+        for(Map.Entry<String, Integer> entry : stringTableEntryList) {
+            writeString(dataOutputStream, entry.getKey());
+        }
+        try {
+            dataOutputStream.flush();
+        } catch (IOException e) {
+            throw new CSONException(e);
+        }
+    }
 
 	@Override
 	protected void writeArrayPrefix(BaseDataContainer parents, DataIterator<?> iterator) {
@@ -122,11 +176,15 @@ public class BinaryCSONWriter extends WriterBorn {
 
 	}
 
+	private void writeSizeBuffer(int size, int twoBitFlag, int uint8Flag, int uint16Flag, int uint32Flag) {
+		writeSizeBuffer(dataOutputStream, size, twoBitFlag, uint8Flag, uint16Flag, uint32Flag);
+	}
 
-	private void writeSizeBuffer(int size,int twoBitFlag, int uint8Flag, int uint16Flag, int uint32Flag) {
+	private void writeSizeBuffer(DataOutputStream dataOutputStream, int size,int twoBitFlag, int uint8Flag, int uint16Flag, int uint32Flag) {
 		try {
 			if (size < 16 && twoBitFlag > 0) {
-				dataOutputStream.writeByte(twoBitFlag | size);
+				byte flag = (byte) (twoBitFlag | size);
+				dataOutputStream.writeByte(flag);
 			} else if (size < 256) {
 				dataOutputStream.writeByte(uint8Flag);
 				dataOutputStream.writeByte(size);
@@ -176,8 +234,15 @@ public class BinaryCSONWriter extends WriterBorn {
 	private void writeComment(CommentObject<?> commentObject, boolean isKeyValueComment) throws IOException {
 		if(isKeyValueComment) {
 			String index = (String)commentObject.getIndex();
-			writeString(index);
-		} else {
+			if(enableStringTable) {
+				@SuppressWarnings("DataFlowIssue")
+				int tableIndex = stringTable.computeIfAbsent(index, k -> stringTableIndex++);
+				writeStringTableIndex(tableIndex);
+			} else {
+				writeString(index);
+			}
+		}
+		else {
 			Integer index = (Integer)commentObject.getIndex();
 			writeValue(index);
 		}
@@ -241,8 +306,32 @@ public class BinaryCSONWriter extends WriterBorn {
 				currentCommentList.add(commentObject);
 			}
 		}
-		writeString(key);
+		if(enableStringTable) {
+            @SuppressWarnings("DataFlowIssue")
+            Integer index = stringTable.computeIfAbsent(key, k -> stringTableIndex++);
+			writeStringTableIndex(index);
+		} else {
+			writeString(key);
+		}
 	}
+
+	private void writeStringTableIndex(Integer index) {
+		try {
+			if (index < 256) {
+				dataOutputStream.writeByte(CSONFlag.INT8);
+				dataOutputStream.writeByte(index);
+			} else if (index < 65536) {
+				dataOutputStream.writeByte(CSONFlag.INT16);
+				dataOutputStream.writeShort(index);
+			} else {
+				dataOutputStream.writeByte(CSONFlag.INT32);
+				dataOutputStream.writeInt(index);
+			}
+		} catch (IOException e) {
+			throw new CSONException(e);
+		}
+	}
+
 
 	@Override
 	protected void writeObjectValue(Object value) {
@@ -270,6 +359,10 @@ public class BinaryCSONWriter extends WriterBorn {
 
 
 	private void writeString(String value)  {
+		writeString(this.dataOutputStream, value);
+	}
+
+	private void writeString(BinaryCSONWriter.DataOutputStream dataOutputStream, String value)  {
 		try {
 			byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
 			int length = bytes.length;
@@ -366,4 +459,19 @@ public class BinaryCSONWriter extends WriterBorn {
 		dataOutputStream.write(buffer);
 
 	}
+
+	private static class DataOutputStream extends java.io.DataOutputStream {
+
+		OutputStream getInnerOutputStream() {
+			return out;
+		}
+
+		public DataOutputStream(OutputStream out) {
+			super(out);
+		}
+	}
+
+
+
+
 }
