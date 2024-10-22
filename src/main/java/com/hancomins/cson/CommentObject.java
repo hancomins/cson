@@ -2,44 +2,33 @@ package com.hancomins.cson;
 
 import java.util.EnumMap;
 
-public class CommentObject {
+public class CommentObject<T> {
 
 
     private final EnumMap<CommentPosition, String> commentPositionMap = new EnumMap<>(CommentPosition.class);
     private final CommentPosition defaultCommentPosition;
-    public static final CommentObject EMPTY_COMMENT_OBJECT = new CommentObject(CommentPosition.DEFAULT) {
-
-        @Override
-        public CommentObject setComment(CommentPosition commentPosition, String value) {
-            return this;
-        }
-
-        public CommentObject appendComment(CommentPosition commentPosition, String value) {
-            return this;
-        }
-
-        @Override
-        public CommentObject copy() {
-            return this;
-        }
-    };
+    private final T index;
 
 
-
-    static CommentObject forRootElement() {
-        return new CommentObject(CommentPosition.HEADER);
+    static CommentObject<?> forRootElement() {
+        return new CommentObject<>(CommentPosition.HEADER, null);
     }
 
-    static CommentObject forKeyValueContainer() {
-        return new CommentObject(CommentPosition.BEFORE_KEY);
+    public static CommentObject<String> forKeyValueContainer(String index) {
+        return new CommentObject<>(CommentPosition.BEFORE_KEY, index);
     }
 
-    static CommentObject forArrayContainer() {
-        return new CommentObject(CommentPosition.BEFORE_VALUE);
+    public static CommentObject<Integer> forArrayContainer(Integer index) {
+        return new CommentObject<>(CommentPosition.BEFORE_VALUE, index);
     }
 
-    CommentObject(CommentPosition defaultCommentPosition) {
+    public T getIndex() {
+        return index;
+    }
+
+    CommentObject(CommentPosition defaultCommentPosition,T index) {
         this.defaultCommentPosition = defaultCommentPosition;
+        this.index = index;
     }
 
 
@@ -51,7 +40,7 @@ public class CommentObject {
     }
 
 
-    public CommentObject setComment(CommentPosition commentPosition, String value) {
+    public CommentObject<T> setComment(CommentPosition commentPosition, String value) {
         if(commentPosition == CommentPosition.DEFAULT || commentPosition == null) {
             commentPosition = defaultCommentPosition;
         }
@@ -70,7 +59,7 @@ public class CommentObject {
         return commentPositionMap.get(commentPosition);
     }
 
-    public CommentObject appendComment(CommentPosition commentPosition, String value) {
+    public CommentObject<T> appendComment(CommentPosition commentPosition, String value) {
         if(value == null) {
             return this;
         }
@@ -109,8 +98,8 @@ public class CommentObject {
     }
 
 
-    public CommentObject copy() {
-        CommentObject commentObject = new CommentObject(defaultCommentPosition);
+    public CommentObject<T> copy() {
+        CommentObject<T> commentObject = new CommentObject<>(defaultCommentPosition , index);
         commentObject.commentPositionMap.putAll(commentPositionMap);
         return commentObject;
     }

@@ -13,7 +13,7 @@ public abstract class WriterBorn implements FormatWriter {
 
 	private final ArrayStack<DataIterator<?>> dataContainerIteratorStack = new ArrayStack<>();
 	private final ArrayStack<BaseDataContainer> dataContainerStack = new ArrayStack<>();
-	private final ArrayStack<CommentObject> commentStack;
+	private final ArrayStack<CommentObject<?>> commentStack;
 
 	private DataIterator<?> currentIterator;
 
@@ -44,8 +44,10 @@ public abstract class WriterBorn implements FormatWriter {
 	public void write(BaseDataContainer dataContainer) {
         rootContainerIsArray = dataContainer instanceof ArrayDataContainer;
 		writePrefix();
-		String header = dataContainer.getComment(CommentPosition.HEADER);
-		writeHeaderComment(header);
+		if(!isSkipComments()) {
+			String header = dataContainer.getComment(CommentPosition.HEADER);
+			writeHeaderComment(header);
+		}
 		currentDataContainer = dataContainer;
 		this.currentIterator = dataContainer.iterator();
 		dataContainerIteratorStack.push(currentIterator);
@@ -88,9 +90,10 @@ public abstract class WriterBorn implements FormatWriter {
 			}
 		}
 
-		String footerComment = dataContainer.getComment(CommentPosition.FOOTER);
-		writeFooterComment(footerComment);
-
+		if(!isSkipComments()) {
+			String footerComment = dataContainer.getComment(CommentPosition.FOOTER);
+			writeFooterComment(footerComment);
+		}
 		writeSuffix();
 	}
 
@@ -124,7 +127,7 @@ public abstract class WriterBorn implements FormatWriter {
 		return skipComments;
 	}
 
-	protected final CommentObject getCurrentCommentObject() {
+	protected final CommentObject<?> getCurrentCommentObject() {
 		if(skipComments) {
 			return null;
 		}

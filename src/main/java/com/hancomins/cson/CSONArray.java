@@ -4,7 +4,7 @@ package com.hancomins.cson;
 
 import com.hancomins.cson.format.*;
 import com.hancomins.cson.format.cson.BinaryCSONParser;
-import com.hancomins.cson.format.cson.BinaryCSONWriter;;
+import com.hancomins.cson.format.cson.BinaryCSONWriter;
 import com.hancomins.cson.format.json.JSON5Parser;
 import com.hancomins.cson.format.json.JSON5Writer;
 import com.hancomins.cson.serializer.CSONSerializer;
@@ -19,11 +19,10 @@ import java.math.BigDecimal;
 import java.util.*;
 
 
-@SuppressWarnings("ALL")
 public class CSONArray extends CSONElement  implements Collection<java.lang.Object>, Cloneable {
 
 	private ArrayList<java.lang.Object> list = new ArrayList<>();
-	private ArrayList<CommentObject> commentObjectList = null;
+	private ArrayList<CommentObject<Integer>> commentObjectList = null;
 
 
 	public static CSONArray fromCollection(Collection<?> collection) {
@@ -200,13 +199,13 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 
 	public String getComment(CommentPosition commentPosition, int index) {
-		CommentObject commentObject = getCommentObject(index);
+		CommentObject<Integer> commentObject = getCommentObject(index);
 		if(commentObject == null) return null;
 		return commentObject.getComment(commentPosition);
 	}
 
 	public CSONArray setComment(CommentPosition commentPosition, int index, String comment) {
-		CommentObject commentObject = getOrCreateCommentObject(index);
+		CommentObject<Integer> commentObject = getOrCreateCommentObject(index);
 		commentObject.setComment(commentPosition, comment);
 		return this;
 	}
@@ -235,17 +234,17 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 	}
 
 
-	private CommentObject getOrCreateCommentObject(int index) {
-		CommentObject commentObject = getCommentObject(index);
+	private CommentObject<Integer> getOrCreateCommentObject(int index) {
+		CommentObject<Integer> commentObject = getCommentObject(index);
 		if(commentObject == null) {
-			commentObject = CommentObject.forArrayContainer();
+			commentObject = CommentObject.forArrayContainer(index);
 			setCommentObject(index, commentObject);
 		}
 		return commentObject;
 	}
 
 
-	public CommentObject getCommentObject(int index) {
+	public CommentObject<Integer> getCommentObject(int index) {
 		if(commentObjectList == null) return null;
 		if(index >= commentObjectList.size()) return null;
 		return commentObjectList.get(index);
@@ -254,7 +253,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 
 	@SuppressWarnings("unused")
-	public void setCommentObject(int index, CommentObject commentObject) {
+	public void setCommentObject(int index, CommentObject<Integer> commentObject) {
 		if(commentObjectList == null) {
 			commentObjectList = new ArrayList<>();
 		}
@@ -283,7 +282,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 	}
 
 
-	protected void addCommentObjects(CommentObject commentObject) {
+	protected void addCommentObjects(CommentObject<Integer> commentObject) {
 		if(commentObjectList == null) {
 			commentObjectList = new ArrayList<>();
 		}
@@ -367,7 +366,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 			if(e == this) e = ((CSONArray)e).clone();
 			return e;
 		}
-		else if(e instanceof Character || e instanceof Boolean || e instanceof CSONObject || e instanceof byte[] ) {
+		else if(e instanceof Character || e instanceof Boolean || e instanceof byte[]) {
 			return e;
 		} else if(e.getClass().isArray()) {
 			CSONArray array = new CSONArray();
@@ -464,7 +463,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 	private void copyHeadTailCommentToValueObject(int index, java.lang.Object obj) {
 		if(commentObjectList != null && obj instanceof CSONElement && !commentObjectList.isEmpty()) {
-			CommentObject valueCommentObject = commentObjectList.get(index);
+			CommentObject<Integer> valueCommentObject = commentObjectList.get(index);
 			if(valueCommentObject != null) {
 				((CSONElement)obj).setHeaderComment(valueCommentObject.getComment(CommentPosition.BEFORE_VALUE));
 				((CSONElement)obj).setFooterComment(valueCommentObject.getComment(CommentPosition.AFTER_VALUE));
@@ -849,7 +848,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 				result.add(defaultValue);
 				return result;
 			} else {
-				return Collections.EMPTY_LIST;
+				return Collections.emptyList();
 			}
 		}
 	}
@@ -897,10 +896,9 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 	}
 
 	/**
-	 * @Deprecated use {@link #subtractIntersection(CSONArray)} instead.
+	 * &#064;Deprecated  use {@link #subtractIntersection(CSONArray)} instead.
 	 * @param c collection containing elements to be removed from this collection
-	 * @return
-	 */
+     */
 	@Deprecated
 	@Override
 	public boolean removeAll(@SuppressWarnings({"rawtypes", "RedundantSuppression"}) Collection c) {
@@ -1260,7 +1258,6 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 	static class CSONArrayDataContainer implements ArrayDataContainer  {
 		final CSONArray array;
-		private int index = 0;
 
 		protected CSONArrayDataContainer(CSONArray array) {
 			this.array = array;
@@ -1283,6 +1280,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		public Object get(int index) {
 			return array.list.get(index);
 		}
+
 
 		@Override
 		public void setComment(int index, String comment, CommentPosition position) {
@@ -1331,7 +1329,7 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 		}
 
 		@Override
-		public CommentObject getCommentObject(int index) {
+		public CommentObject<Integer> getCommentObject(int index) {
 			return array.getCommentObject(index);
 		}
 
@@ -1353,6 +1351,15 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 
 			}
 
+		}
+
+		@Override
+		public void setComment(CommentObject<?> commentObject) {
+			Object index = commentObject.getIndex();
+			if(index instanceof Integer) {
+                //noinspection unchecked
+                array.setCommentObject((Integer)index, (CommentObject<Integer>)commentObject);
+			}
 		}
 
 		@Override

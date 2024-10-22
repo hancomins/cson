@@ -6,11 +6,15 @@ package com.hancomins.cson.format.cson;
  * 상수 값들은 고정값, 정수형, 실수형, 문자열, 객체, 배열, 코멘트 등 다양한 데이터 타입을 나타냅니다.
  * 또한 각 데이터 타입을 구분하기 위한 플래그를 추가로 제공합니다.
  */
-class CSONFlags {
+class CSONFlag {
 
 
     static final short CSON_VERSION = 100;  // CSON 버전
     static final int CSON_HEADER = 'C' << 24 | 'S' << 16 | 'O' << 8 | 'N';  // CSON 헤더
+
+    // 바이트 플래그
+    static short ENABLE_COMMENT = 1;  // 코멘트 활성화
+    static short ENABLE_STRING_MAP = 2;  // 문자열 맵 활성화
 
     // 고정값
     static final int NULL = 0x10;
@@ -22,6 +26,8 @@ class CSONFlags {
     static final int NEGATIVE_INFINITY = 0x16;
     static final int STRING_MAP = 0x17;
     static final int CSON_FOOTER = 0x18;
+
+
 
 
     // 정수형
@@ -63,11 +69,13 @@ class CSONFlags {
     static final int ARRAY_UINT32 =  0x95;  // uint32 길이 배열
 
     // 코멘트
-    static final int HEADER_COMMENT =  0xa0;
-    static final int FOOTER_COMMENT =  0xa1;
-    static final int OBJECT_COMMENT_UINT8 =  0xa2;   // ~uint8 길이 오브젝트 코멘트
-    static final int OBJECT_COMMENT_UINT16 =  0xa3;  // ~uint16 길이 오브젝트 코멘트
-    static final int OBJECT_COMMENT_UINT32 =  0xa4;  // uint32 길이 오브젝트 코멘트
+    static final int HEADER_COMMENT =  0xa0; // 헤더 코멘트
+    static final int FOOTER_COMMENT =  0xa1; // 푸터 코멘트ㅊ
+    static final int COMMENT_ZERO =  0xa2;  // 코멘트 없음
+    static final int COMMENT_UINT8 =  0xa3;   // ~uint8 길이 오브젝트 코멘트
+    static final int COMMENT_UINT16 =  0xa4;  // ~uint16 길이 오브젝트 코멘트
+    static final int COMMENT_UINT32 =  0xa5;  // uint32 길이 오브젝트 코멘트
+
 
 
     // 타입 플래그
@@ -92,7 +100,7 @@ class CSONFlags {
 
 
     // private 생성자
-    private CSONFlags() {
+    private CSONFlag() {
         // 인스턴스화 방지
     }
 }

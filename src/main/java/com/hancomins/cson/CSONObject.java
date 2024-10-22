@@ -24,7 +24,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	protected Map<String, java.lang.Object> dataMap = new LinkedHashMap<>();
-	private Map<String, CommentObject> keyValueCommentMap;
+	private Map<String, CommentObject<String>> keyValueCommentMap;
 
 
 
@@ -197,9 +197,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 	private void copyHeadTailCommentToValueObject(String key, java.lang.Object obj) {
 		if(keyValueCommentMap != null && obj instanceof CSONElement && !keyValueCommentMap.isEmpty()) {
-			CommentObject commentObject = keyValueCommentMap.get(key);
+			CommentObject<String> commentObject = keyValueCommentMap.get(key);
 			if(commentObject == null) return;
-			CommentObject copiedCommentObject = commentObject.copy();
+			CommentObject<String> copiedCommentObject = commentObject.copy();
 			((CSONElement)obj).setHeaderComment(copiedCommentObject.getComment(CommentPosition.BEFORE_VALUE));
 			((CSONElement)obj).setFooterComment(copiedCommentObject.getComment(CommentPosition.AFTER_VALUE));
 		}
@@ -770,7 +770,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 	public CSONObject setComment(CommentPosition position, String key, String comment) {
-		CommentObject commentObject = getOrCreateCommentObject(key);
+		CommentObject<String> commentObject = getOrCreateCommentObject(key);
 		commentObject.setComment(position, comment);
 		return this;
 	}
@@ -805,9 +805,17 @@ public class CSONObject extends CSONElement implements Cloneable {
 		return setCommentForKey(key, comment);
 	}
 
+	private CSONObject setComment(String key, CommentObject<String> commentObject) {
+		if(keyValueCommentMap == null) {
+			keyValueCommentMap = new LinkedHashMap<>();
+		}
+		keyValueCommentMap.put(key, commentObject);
+		return this;
+	}
+
 	public String getComment(CommentPosition position, String key) {
 		if(keyValueCommentMap == null) return null;
-		CommentObject commentObject = keyValueCommentMap.get(key);
+		CommentObject<String> commentObject = keyValueCommentMap.get(key);
 		if(commentObject == null) return null;
 		return commentObject.getComment(position);
 	}
@@ -833,11 +841,11 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	private CommentObject getOrCreateCommentObject(String key) {
+	private CommentObject<String> getOrCreateCommentObject(String key) {
 		if(keyValueCommentMap == null) {
 			keyValueCommentMap = new LinkedHashMap<>();
 		}
-        return keyValueCommentMap.computeIfAbsent(key, k -> CommentObject.forKeyValueContainer());
+        return keyValueCommentMap.computeIfAbsent(key, k -> CommentObject.forKeyValueContainer(key));
 	}
 
 
@@ -1220,7 +1228,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 
 		@Override
-		public CommentObject getCommentObject(String key) {
+		public CommentObject<String> getCommentObject(String key) {
 			if(csonObject.keyValueCommentMap == null) {
 				return null;
 			}
@@ -1252,9 +1260,20 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 
 		@Override
-		public DataIterator<?> iterator() {
-			return new EntryDataIterator(csonObject.dataMap.entrySet().iterator(), csonObject.dataMap.size(), true);
-		}
+		public void setComment(CommentObject<?> commentObject) {
+				Object index = commentObject.getIndex();
+				if(index instanceof String) {
+					//noinspection unchecked
+					csonObject.setComment((String)index, (CommentObject<String>)commentObject);
+				}
+			}
+
+
+
+			@Override
+			public DataIterator<?> iterator() {
+				return new EntryDataIterator(csonObject.dataMap.entrySet().iterator(), csonObject.dataMap.size(), true);
+			}
 	}
 
 	private static class EntryDataIterator extends DataIterator<Entry<String, Object>>{

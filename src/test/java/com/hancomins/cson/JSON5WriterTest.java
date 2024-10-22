@@ -179,7 +179,5 @@ public class JSON5WriterTest {
         assertEquals(" comment for key3 value ", parsedObject.getCommentForValue("key3"));
         assertEquals(" comment after key3 value ", parsedObject.getCommentAfterValue("key3"));
 
-
-
     }
 }
