@@ -95,6 +95,8 @@ public abstract class WriterBorn implements FormatWriter {
 			String footerComment = dataContainer.getComment(CommentPosition.FOOTER);
 			writeFooterComment(footerComment);
 		}
+		endWrite();
+
 
 	}
 
@@ -114,7 +116,7 @@ public abstract class WriterBorn implements FormatWriter {
 
 	abstract protected void writePrefix();
 	abstract protected void writeSuffix();
-
+	abstract protected void endWrite();
 
 	private void intoChildBaseDataContainer(BaseDataContainer value) {
 		currentDataContainer = value;

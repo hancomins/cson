@@ -16,8 +16,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class BinaryCSONParser {
@@ -89,10 +87,11 @@ public class BinaryCSONParser {
 		dataInputStream = new DataInputStream(inputStream);
 		currentReadState = readHeader();
 		newContainer();
+		int lastState = -1;
 		do {
 			if(currentContainerValueCount.isContains()) {
                 if (currentContainer instanceof KeyValueDataContainer) {
-                    readKeyValueDataContainer();
+					lastState = readKeyValueDataContainer();
                 } else {
                     readArray();
                 }
@@ -103,6 +102,13 @@ public class BinaryCSONParser {
 				upParentContainer();
 			}
 		} while (!containerStack.isEmpty());
+		if(hasComment) {
+			readFooterComment();
+		}
+		int footer = dataInputStream.read();
+		if(footer != CSONFlag.CSON_FOOTER) {
+			throw new CSONParseException("Invalid CSON Footer");
+		}
 
 		return null;
 	}
@@ -149,14 +155,24 @@ public class BinaryCSONParser {
 			byte keyType = (byte)dataInputStream.read();
 			CommentObject<?> commentObject;
 			if(arrayComments) {
-				int commentIndex = (int)readInteger(keyType);
-				 commentObject = CommentObject.forArrayContainer(commentIndex);
+
+				try {
+					int commentIndex = readInteger(keyType);
+					commentObject = CommentObject.forArrayContainer(commentIndex);
+				} catch (ClassCastException e) {
+					throw new CSONParseException("Invalid Comment Index Type");
+				}
 			} else {
 				String commentIndex = readKey(keyType);
 				commentObject = CommentObject.forKeyValueContainer(commentIndex);
 
 			}
 			byte commentType = dataInputStream.readByte();
+			if(commentType == (byte)CSONFlag.FOOTER_COMMENT) {
+				currentContainer.setComment(commentObject);
+				continue;
+			}
+
 			boolean beforeKey = (commentType & CSONFlag.COMMENT_TYPE_BEFORE_KEY) == CSONFlag.COMMENT_TYPE_BEFORE_KEY;
 			boolean afterKey = (commentType & CSONFlag.COMMENT_TYPE_AFTER_KEY) == CSONFlag.COMMENT_TYPE_AFTER_KEY;
 			boolean beforeValue = (commentType & CSONFlag.COMMENT_TYPE_BEFORE_VALUE) == CSONFlag.COMMENT_TYPE_BEFORE_VALUE;
@@ -173,6 +189,7 @@ public class BinaryCSONParser {
 				commentObject.setComment(CommentPosition.BEFORE_VALUE, beforeValueComment);
 			if(afterValue)
 				commentObject.setComment(CommentPosition.AFTER_VALUE, afterValueComment);
+
 			currentContainer.setComment(commentObject);
 		}
 
@@ -204,8 +221,6 @@ public class BinaryCSONParser {
 			readStringTable(state);
 			state = dataInputStream.read();
 		}
-
-
 		if(hasComment) {
 			state = readHeaderComment(state);
 		}
@@ -241,14 +256,26 @@ public class BinaryCSONParser {
 
 
 	private int readHeaderComment(int state) throws IOException {
+		String headerComment;
 		if (state == CSONFlag.HEADER_COMMENT) {
-			this.headerComment = readString();
+			headerComment = readString();
 		} else if(state == CSONFlag.COMMENT_ZERO) {
-			this.headerComment = null;
+			headerComment = null;
 		} else {
 			throw new CSONParseException("Invalid Header Comment Type");
 		}
+		rootDataContainer.setComment(headerComment, CommentPosition.HEADER);
 		return dataInputStream.read();
+	}
+
+	private void readFooterComment() throws IOException {
+		int state = dataInputStream.readByte();
+		if(state == (byte)CSONFlag.FOOTER_COMMENT) {
+			String footerComment = readString();
+			rootDataContainer.setComment(footerComment, CommentPosition.FOOTER);
+		} else if(state != (byte)CSONFlag.COMMENT_ZERO) {
+			throw new CSONParseException("Invalid Footer Comment Type");
+		}
 	}
 
 
@@ -335,7 +362,7 @@ public class BinaryCSONParser {
 	 * 현재 Container 에서 Key, Value 쌍을 읽어서 KeyValueDataContainer 에 저장한다.
 	 * @throws IOException IO Exception
 	 */
-	private void readKeyValueDataContainer() throws IOException {
+	private int readKeyValueDataContainer() throws IOException {
 		while (currentContainerValueCount.isContains()) {
 			currentContainerValueCount.decrease();
 			String key = readKey();
@@ -343,13 +370,15 @@ public class BinaryCSONParser {
 			if(CSONFlag.OBJECT_LESS_THAN_16 <= state &&  state < CSONFlag.HEADER_COMMENT) {
 				lastKey = key;
 				currentReadState = state;
-				return;
+				return currentReadState;
 			}
 			Object value = readValue(state);
 			((KeyValueDataContainer)currentContainer).put(key, value);
 		}
 		upParentContainer();
+		int state = currentReadState;
 		currentReadState = -1;
+		return state;
 	}
 
 	private String readKey() throws IOException {
@@ -415,13 +444,13 @@ public class BinaryCSONParser {
 		return currentContainerValueCount;
 	}
 
-	private Object readInteger(int state) throws IOException {
+	private Object readNumerable(int state) throws IOException {
 		switch (state) {
 			case CSONFlag.BIG_INT:
 				String bigIntValue = readString();
 				return new BigInteger(bigIntValue);
 			case CSONFlag.INT8:
-				return (byte)dataInputStream.read();
+				return dataInputStream.readByte();
 			case CSONFlag.INT16:
 				return dataInputStream.readShort();
 			case CSONFlag.INT32:
@@ -434,6 +463,18 @@ public class BinaryCSONParser {
 				throw new CSONParseException("Invalid Integer Type");
 		}
 	}
+
+	private int readInteger(int state) throws IOException {
+		Object value = readNumerable(state);
+		if(value instanceof Number) {
+			return ((Number)value).intValue();
+		} else if(value instanceof Character) {
+			return (Character)value;
+		} else {
+			throw new CSONParseException("Invalid Integer Type");
+		}
+	}
+
 
 	private Number readFloat(int state) throws IOException {
 		switch (state) {
@@ -552,7 +593,7 @@ public class BinaryCSONParser {
 			case CSONFlag.TYPE_FIXED_VALUE:
 				return readFixedValue(state);
 			case CSONFlag.TYPE_INTEGER:
-				return readInteger(state);
+				return readNumerable(state);
 			case CSONFlag.TYPE_FLOAT:
 				return readFloat(state);
 			case CSONFlag.TYPE_STRING_LESS_THAN_16:

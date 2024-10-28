@@ -64,7 +64,6 @@ public class BinaryCSONWriter extends WriterBorn {
 
 	@Override
 	protected void writeHeaderComment(String comment) {
-
         try {
 			if(comment == null || comment.isEmpty()) {
 				dataOutputStream.write(CSONFlag.COMMENT_ZERO);
@@ -115,6 +114,10 @@ public class BinaryCSONWriter extends WriterBorn {
 
 	@Override
 	protected void writeSuffix() {
+	}
+
+	@Override
+	protected void endWrite() {
 		try {
 			dataOutputStream.write(CSONFlag.CSON_FOOTER);
 			if(enableStringTable) {
@@ -128,6 +131,7 @@ public class BinaryCSONWriter extends WriterBorn {
 		}catch (IOException e) {
 			throw new CSONException(e);
 		}
+
 	}
 
 	private void insertStringTable() throws IOException {
@@ -385,9 +389,69 @@ public class BinaryCSONWriter extends WriterBorn {
 		}
 	}
 
-
-
 	private void writeValue(Object value)  {
+		try {
+			if (value instanceof String) {
+				writeString((String) value);
+			} else if (value instanceof Boolean) {
+				if (value == Boolean.TRUE) {
+					dataOutputStream.writeByte(CSONFlag.TRUE);
+				} else {
+					dataOutputStream.writeByte(CSONFlag.FALSE);
+				}
+			} else if (value instanceof BigInteger) {
+				dataOutputStream.writeByte(CSONFlag.BIG_INT);
+				BigInteger bigInteger = (BigInteger) value;
+				String integerString = bigInteger.toString();
+				writeString(integerString);
+			} else if (value instanceof BigDecimal) {
+				dataOutputStream.writeByte(CSONFlag.BIG_DEC);
+				BigDecimal bigDecimal = (BigDecimal) value;
+				String decimalString = bigDecimal.toString();
+				writeString(decimalString);
+			} else if(value instanceof Float) {
+				dataOutputStream.writeByte(CSONFlag.DEC32);
+				dataOutputStream.writeFloat((Float) value);
+			} else if(value instanceof Double) {
+				dataOutputStream.writeByte(CSONFlag.DEC64);
+				dataOutputStream.writeDouble((Double) value);
+			}
+			else if(value instanceof Number) {
+				long longValue = ((Number)value).longValue();
+				if(longValue >= Byte.MIN_VALUE && longValue <= Byte.MAX_VALUE) {
+					dataOutputStream.writeByte(CSONFlag.INT8);
+					dataOutputStream.writeByte((byte)longValue);
+				}
+				else if(longValue >= Short.MIN_VALUE && longValue <= Short.MAX_VALUE) {
+					dataOutputStream.writeByte(CSONFlag.INT16);
+					dataOutputStream.writeShort((short)longValue);
+				}
+				else if(longValue >= Integer.MIN_VALUE && longValue <= Integer.MAX_VALUE) {
+					dataOutputStream.writeByte(CSONFlag.INT32);
+					dataOutputStream.writeInt((int)longValue);
+				}
+				else {
+					dataOutputStream.writeByte(CSONFlag.INT64);
+					dataOutputStream.writeLong(longValue);
+				}
+			} else if(value instanceof Character) {
+				dataOutputStream.writeByte(CSONFlag.INT_CHAR);
+				dataOutputStream.writeChar((Character) value);
+			}
+
+			else if (value instanceof byte[]) {
+				writeBuffer((byte[]) value);
+			} else {
+				dataOutputStream.write(CSONFlag.NULL);
+			}
+		} catch (IOException e) {
+			throw new CSONException(e);
+		}
+	}
+
+
+
+	/*private void writeValue(Object value)  {
 		try {
 			if (value instanceof String) {
 				writeString((String) value);
@@ -441,7 +505,7 @@ public class BinaryCSONWriter extends WriterBorn {
 		} catch (IOException e) {
 			throw new CSONException(e);
 		}
-	}
+	}*/
 
 
 	private void writeBuffer(byte[] buffer) throws IOException {

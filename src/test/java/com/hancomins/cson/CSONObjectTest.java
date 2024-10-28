@@ -24,7 +24,7 @@ public class CSONObjectTest {
         csonObject.put("1", 1);
         csonObject.put("1.1", 1.1f);
         csonObject.put("2.2", 2.2);
-        csonObject.put("333333L", 333333L);
+        csonObject.put("333333L", Long.MIN_VALUE);
         csonObject.put("boolean", true);
         csonObject.put("char", 'c');
         csonObject.put("short", (short)32000);
@@ -109,10 +109,10 @@ public class CSONObjectTest {
         CSONObject compareCSONObject = new CSONObject(cson);
 
 
-        assertEquals(1, compareCSONObject.get("1"));
+        assertEquals(1, ((Number)compareCSONObject.get("1")).intValue());
         assertEquals(1.1f, (float)compareCSONObject.get("1.1"), 0.0001f);
         assertEquals(2.2, (double)compareCSONObject.get("2.2"), 0.0001);
-        assertEquals(333333L, compareCSONObject.get("333333L"));
+        assertEquals(Long.MIN_VALUE, compareCSONObject.get("333333L"));
         assertEquals(true, compareCSONObject.get("boolean"));
         assertEquals('c', compareCSONObject.get("char"));
         assertEquals(null, compareCSONObject.get("null"));
@@ -127,10 +127,10 @@ public class CSONObjectTest {
         assertArrayEquals(buffer, compareCSONObject.getByteArray("byte[]"));
 
         CSONArray csonArray = compareCSONObject.getCSONArray("array");
-        assertEquals(1, csonArray.get(0));
+        assertEquals(1, csonArray.getInt(0));
         assertEquals(1.1f, (float) csonArray.get(1), 0.00001f);
         assertEquals(2.2, (double) csonArray.get(2), 0.00001);
-        assertEquals(333333L, csonArray.get(3));
+        assertEquals(333333L, csonArray.getLong(3));
         assertEquals(true, csonArray.get(4));
         assertEquals('c', csonArray.get(5));
         assertEquals((short)32000, csonArray.get(6));
@@ -196,7 +196,7 @@ public class CSONObjectTest {
         assertEquals(1, compareCSONObject.getInt("1"));
         assertEquals(1.1f, compareCSONObject.getFloat("1.1"), 0.0001f);
         assertEquals(2.2, compareCSONObject.getDouble("2.2"), 0.0001);
-        assertEquals(333333L, compareCSONObject.getLong("333333L"));
+        assertEquals(Long.MIN_VALUE, compareCSONObject.getLong("333333L"));
         assertEquals(true, compareCSONObject.getBoolean("boolean"));
         assertEquals('c', compareCSONObject.getChar("char"));
         assertEquals((short)32000, compareCSONObject.getShort("short"));

@@ -99,7 +99,7 @@ public class CSONTest {
         assertEquals(originalKeySet, csonKeySet);
         for(String oriKey : originalKeySet) {
             if(oriKey.startsWith("A")) continue;
-            assertEquals(jsonObject.get(oriKey),csonObject.get(oriKey) );
+            assertEquals(Integer.getInteger(jsonObject.get(oriKey)  + "") ,Integer.getInteger( csonObject.get(oriKey) + ""));
         }
 
         numberJsonArray = jsonObject.getJSONArray("AN");

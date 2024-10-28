@@ -70,6 +70,11 @@ public class JSON5Writer extends WriterBorn {
     }
 
     @Override
+    protected void endWrite() {
+
+    }
+
+    @Override
     protected void writeArrayPrefix(BaseDataContainer parents, DataIterator<?> iterator) {
         writeComment(CommentPosition.BEFORE_VALUE, pretty, true);
         stringBuilder.append("[");

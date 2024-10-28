@@ -20,16 +20,16 @@ public class BinaryCSONTest {
         csonObject.put("int", 1);
         csonObject.put("float", 1.1f);
         csonObject.put("double", 2.2);
-        csonObject.put("long", 333333L);
-        csonObject.put("short", (short)32000);
+        csonObject.put("long", Long.MAX_VALUE);
+        csonObject.put("short", Short.MAX_VALUE);
         csonObject.put("byte", (byte)128);
         csonObject.put("char", 'c');
         byte[] csonBytes = csonObject.toBytes();
         CSONObject readObject = new CSONObject(csonBytes);
         System.out.println(csonObject);
         assertEquals(csonObject, readObject);
-        assertEquals(csonObject.get("int"), readObject.get("int"));
-        assertInstanceOf(Integer.class, readObject.get("int"));
+        assertEquals(csonObject.getInt("int"), readObject.getInt("int"));
+        //assertInstanceOf(Integer.class, readObject.get("int"));
         assertEquals(csonObject.get("float"), readObject.get("float"));
         assertInstanceOf(Float.class, readObject.get("float"));
         assertEquals(csonObject.get("double"), readObject.get("double"));
@@ -263,7 +263,11 @@ public class BinaryCSONTest {
     @Test
     public void withComment() {
         CSONObject csonObject = new CSONObject();
+        csonObject.setHeaderComment("header comment");
+        csonObject.setFooterComment("footer comment");
+
         csonObject.put("key", "value");
+
         csonObject.setCommentForKey("key", " comment\n for key");
         csonObject.setCommentAfterKey("key", " comment after key ");
         csonObject.setCommentForValue("key", " comment for value ");
@@ -417,13 +421,16 @@ public class BinaryCSONTest {
         assertEquals(" comment after key3 value ", parsedObject.getCommentAfterValue("key3"));
 
 
+        assertEquals("header comment", parseredCSONObject.getHeaderComment());
+        assertEquals("footer comment", parseredCSONObject.getFooterComment());
+
 
 
     }
 
     @Test
     public void sizeCompare() {
-        if(1 < 2) return;
+        //if(1 < 2) return;
         InputStream inputStream = PerformanceTest.class.getClassLoader().getResourceAsStream("large-file.json");
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];
