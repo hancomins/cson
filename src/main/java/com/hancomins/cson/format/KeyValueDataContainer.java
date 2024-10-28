@@ -26,7 +26,7 @@ public interface KeyValueDataContainer extends BaseDataContainer {
         switch (commentPosition) {
             case HEADER:
             case FOOTER:
-                getComment(null, commentPosition);
+                return getComment(null, commentPosition);
         }
         return null;
     }

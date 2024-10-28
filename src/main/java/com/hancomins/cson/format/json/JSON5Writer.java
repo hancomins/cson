@@ -7,6 +7,7 @@ import com.hancomins.cson.options.JSON5WriterOption;
 import com.hancomins.cson.util.CharacterBuffer;
 import com.hancomins.cson.util.NullValue;
 
+import java.util.Base64;
 import java.util.Map;
 
 public class JSON5Writer extends WriterBorn {
@@ -58,19 +59,6 @@ public class JSON5Writer extends WriterBorn {
 
     @Override
     protected void writePrefix() {
-        /*if(isArrayRootContainer()) {
-            stringBuilder.append("[");
-            if(prettyArray) {
-                stringBuilder.append("\n");
-                depth++;
-            }
-        } else {
-            stringBuilder.append("{");
-            if(pretty) {
-                stringBuilder.append("\n");
-                depth++;
-            }
-        }*/
 
     }
 
@@ -79,22 +67,6 @@ public class JSON5Writer extends WriterBorn {
         if (stringBuilder.last() == ',') {
             stringBuilder.prev();
         }
-        /*if(isArrayRootContainer()) {
-            if(prettyArray) {
-                stringBuilder.append("\n");
-                depth--;
-                stringBuilder.append("]");
-            } else {
-                stringBuilder.append("]");
-            }
-        } else {
-            if(pretty) {
-                stringBuilder.append("\n");
-                depth--;
-            }
-            stringBuilder.append("}");
-        }*/
-
     }
 
     @Override
@@ -161,22 +133,22 @@ public class JSON5Writer extends WriterBorn {
     }
 
     private void writeComment(CommentPosition commentPosition, boolean pretty, boolean breakLineIfPretty) {
-        CommentObject commentObject = getCurrentCommentObject();
+        CommentObject<?> commentObject = getCurrentCommentObject();
         if(commentObject == null) return;
         String comment = commentObject.getComment(commentPosition);
         if(comment == null || comment.isEmpty()) return;
         if(pretty) {
             String[] comments = comment.split("\n");
-            for(String c : comments) {
+            for(int i = 0; i < comments.length; i++) {
+                String c = comments[i];
                 if(c.isEmpty()) continue;
                 if(stringBuilder.last() != ' ') {
                     stringBuilder.append("\n");
                     stringBuilder.repeat(space, depth);
                 }
-
                 stringBuilder.append("//");
                 stringBuilder.append(c);
-                if(breakLineIfPretty) {
+                if(breakLineIfPretty || i != comments.length - 1) {
                     stringBuilder.append("\n");
                     stringBuilder.repeat(space, depth);
                 }
@@ -205,14 +177,56 @@ public class JSON5Writer extends WriterBorn {
     }
 
 
+    private void writeString(String value) {
+        stringBuilder.append("\"");
+        for(int i = 0, n = value.length(); i < n; i++) {
+            char c = value.charAt(i);
+            switch (c) {
+                case '\b':
+                    stringBuilder.append("\\b");
+                    break;
+                case '\f':
+                    stringBuilder.append("\\f");
+                    break;
+                case '\n':
+                    stringBuilder.append("\\n");
+                    break;
+                case '\r':
+                    stringBuilder.append("\\r");
+                    break;
+                case '\t':
+                    stringBuilder.append("\\t");
+                    break;
+                case '\\':
+                    stringBuilder.append("\\\\");
+                    break;
+                case '\"':
+                    stringBuilder.append("\\\"");
+                    break;
+                default:
+                    stringBuilder.append(c);
+            }
+        }
+        stringBuilder.append("\"");
+    }
+
+
     protected void writeValue(Object value) {
         writeComment(CommentPosition.BEFORE_VALUE, prettyArray, true);
         if(value instanceof String) {
-            stringBuilder.append("\"");
-            stringBuilder.append(value.toString());
-            stringBuilder.append("\"");
-        } else if(value == NullValue.Instance) {
+            writeString((String) value);
+        } else if(value instanceof byte[]) {
+            stringBuilder.append('"');
+            stringBuilder.append("base64," + Base64.getEncoder().encodeToString((byte[]) value));
+            stringBuilder.append('"');
+        }
+        // todo MAP  처리.
+        else if(value == NullValue.Instance) {
             stringBuilder.append("null");
+        } else if(value instanceof Character) {
+            stringBuilder.append('"');
+            stringBuilder.append((Character) value);
+            stringBuilder.append('"');
         }
         else {
             stringBuilder.append(String.valueOf(value));

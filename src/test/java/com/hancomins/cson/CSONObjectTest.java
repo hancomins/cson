@@ -64,6 +64,7 @@ public class CSONObjectTest {
 
 
         JSONObject jsonObjectX = new JSONObject("{char:'c'}");
+        System.out.println(jsonObjectX.toString());
 
 
 

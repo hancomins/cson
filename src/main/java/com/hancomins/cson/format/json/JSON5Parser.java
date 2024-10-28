@@ -92,6 +92,7 @@ public class JSON5Parser {
             while((v = reader.read()) != -1) {
                 char c = (char)v;
 
+
                 switch (parsingState) {
                     case Open:
                         inStateOpen(reader, c);
@@ -505,8 +506,6 @@ public class JSON5Parser {
 
     private void setCommentToKeyValueDataContainer() {
         KeyValueDataContainer csonObject = (KeyValueDataContainer)currentContainer;
-
-
         switch (commentParsingState) {
             case BeforeKey:
                 csonObject.setComment(currentKey, comment, CommentPosition.BEFORE_KEY);

@@ -7,7 +7,9 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.StringReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -211,6 +213,13 @@ public class JSON5Test {
 
     }
 
+    @Test
+    public void lineCommentTest() {
+        String comment = "{key: // 값 앞 코멘트 \n {}  // 값 뒤 코멘트 \n ,// key2 코멘트\n key2 : 'value2' // key2 comment \n } // 꼬리 다음 코멘트";
+        CSONObject csonObject = new CSONObject(comment);
+
+    }
+
 
     @Test
     public void testKeyComment() throws IOException {
@@ -237,18 +246,19 @@ public class JSON5Test {
         //if(1 < 2) return;
 
 
-        String json5Str = "{ \n" +
+        String json5Str = "/** 헤더 코멘트 **/ { \n" +
                 "/* 코멘트입니다. */\n //222 \n " +
                 " key: /* 값 코멘트 */ \"value\"//값 코멘트 뒤\n,key2: \"val/* ok */ue2\",/*array코멘트*/array:[1,2,3,4,Infinity],/*코멘트array2*/array2/*코멘트array2*/:/*코멘트array2b*/[1,2,3,4]/*코멘트array2a*/,/* 오브젝트 */ object " +
                 "// 오브젝트 코멘트 \n: /* 오브젝트 값 이전 코멘트 */ { p : 'ok' \n, // 이곳은? \n } // 오브젝트 코멘트 엔드 \n  , // key3comment \n 'key3'" +
                 " /*이상한 코멘트*/: // 값 앞 코멘트 \n 'value3' // 값 뒤 코멘트 \n /*123 */,\"LFARRAY\":[\"sdfasdf \\\n123\"]  ,  \n /*123*/ } /* 꼬리 다음 코멘트 */";
 
 
-        CSONObject origin = new CSONObject(json5Str , WritingOptions.json5().setKeyQuote(""));
+        CSONObject origin = new CSONObject(json5Str);
+        System.out.println(origin);
         assertEquals(" 오브젝트 코멘트 ",origin.getCommentAfterKey("object"));
         assertEquals(" key3comment ",origin.getCommentForKey("key3"));
         //System.out.println(origin);
-        CSONObject csonObject = new CSONObject(json5Str , WritingOptions.json5());
+        CSONObject csonObject = new CSONObject(json5Str);
 
         assertEquals(" 코멘트입니다. \n222 ",csonObject. getCommentForKey("key"));
 
@@ -259,6 +269,16 @@ public class JSON5Test {
 
         System.out.println(greenText + csonObject.toString() + resetText);
 
+        StringReader stringReader = new StringReader(csonObject.toString());
+        BufferedReader  bufferedReader = new BufferedReader(stringReader);
+        String line = null;
+        int lineNumber = 0;
+        while((line = bufferedReader.readLine()) != null) {
+            System.out.println(lineNumber++ + " : " + line);
+        }
+
+
+        
         csonObject = new CSONObject(csonObject.toString() , WritingOptions.json5());
         // 초록섹으로 System.out.println(csonObject.toString());
 
@@ -283,6 +303,7 @@ public class JSON5Test {
         assertEquals("이상한 코멘트",csonObject.getCommentAfterKey("key3"));
         assertEquals(" 값 앞 코멘트 ",csonObject.getCommentForValue("key3"));
         assertEquals(" 값 뒤 코멘트 \n123 ",csonObject.getCommentAfterValue("key3"));
+        System.out.println(csonObject.toString(WritingOptions.json5()));
         assertEquals(" 꼬리 다음 코멘트 ",csonObject.getFooterComment());
 
 

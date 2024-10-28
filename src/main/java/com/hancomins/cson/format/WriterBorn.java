@@ -90,11 +90,12 @@ public abstract class WriterBorn implements FormatWriter {
 			}
 		}
 
+		writeSuffix();
 		if(!isSkipComments()) {
 			String footerComment = dataContainer.getComment(CommentPosition.FOOTER);
 			writeFooterComment(footerComment);
 		}
-		writeSuffix();
+
 	}
 
 	@SuppressWarnings("unchecked")

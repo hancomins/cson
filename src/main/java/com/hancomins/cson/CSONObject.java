@@ -240,7 +240,9 @@ public class CSONObject extends CSONElement implements Cloneable {
 			putToDataMap(key, value);
 		} else if(value instanceof Character || value instanceof Boolean || value instanceof byte[] || value instanceof NullValue) {
 			putToDataMap(key, value);
-		} else if(value.getClass().isArray()) {
+
+		}
+		else if(value.getClass().isArray()) {
 			CSONArray csonArray = new CSONArray();
 			int length = Array.getLength(value);
 			for(int i = 0; i < length; i++) {
@@ -258,6 +260,7 @@ public class CSONObject extends CSONElement implements Cloneable {
 			CSONObject csonObject = CSONSerializer.toCSONObject(value);
 			putToDataMap(key, csonObject);
 		}
+		// todo MAP 처리.
 		else if(isAllowRawValue()) {
 			putToDataMap(key, value);
 		} else if(isUnknownObjectToString()) {

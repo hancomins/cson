@@ -66,7 +66,7 @@ public class PerformanceTest {
                 //CSONArray csonArray = new CSONArray(json);
 
 
-                JSONObject jsonObject = new JSONObject(json);
+                CSONObject jsonObject = new CSONObject(json);
                 jsonObject.toString();
 
                 //CSONObject csonObject = new CSONObject(json);
