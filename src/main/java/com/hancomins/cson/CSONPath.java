@@ -406,6 +406,7 @@ public class CSONPath {
                     assert parents instanceof CSONObject;
                     parents = ((CSONObject) parents).opt(pathItem.getName());
                 }
+                if(parents == null) return null;
             }
         }
         return null;

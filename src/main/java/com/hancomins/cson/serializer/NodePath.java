@@ -237,6 +237,7 @@ public class NodePath {
                     assert parents instanceof SchemaObjectNode;
                     parents = ((SchemaObjectNode) parents).get(pathItem.getName());
                 }
+                if(parents == null) return null;
             }
         }
         return null;
