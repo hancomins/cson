@@ -1038,47 +1038,6 @@ public class CSONObject extends CSONElement implements Cloneable {
 
 
 
-	@Override
-	public boolean equals(java.lang.Object obj) {
-		if(!(obj instanceof CSONObject)) {
-			return false;
-		}
-		CSONObject csonObject = (CSONObject)obj;
-		if(csonObject.size() != size()) {
-			return false;
-		}
-		for (Entry<String, java.lang.Object> entry : dataMap.entrySet()) {
-			String key = entry.getKey();
-			java.lang.Object compareValue = entry.getValue();
-			java.lang.Object value = this.getFromDataMap(key);
-			if ((value == null || value instanceof NullValue) && (compareValue != null && !(compareValue instanceof NullValue))) {
-				return false;
-			} else if (value instanceof CharSequence && (!(compareValue instanceof CharSequence) || !value.toString().equals(compareValue.toString()))) {
-				return false;
-			} else if (value instanceof Boolean && (!(compareValue instanceof Boolean) || value != compareValue)) {
-				return false;
-			} else if (value instanceof Number) {
-				boolean valueIsFloat = (value instanceof Float || value instanceof Double || compareValue instanceof BigDecimal);
-				boolean compareValueIsFloat = (compareValue instanceof Float || compareValue instanceof Double || compareValue instanceof BigDecimal);
-				if (valueIsFloat != compareValueIsFloat) {
-					return false;
-				}
-				BigDecimal v1 = BigDecimal.valueOf(((Number) value).doubleValue());
-				BigDecimal v2 = BigDecimal.valueOf(((Number) compareValue).doubleValue());
-				if (v1.compareTo(v2) != 0) {
-					return false;
-				}
-			} else if (value instanceof CSONArray && (!(compareValue instanceof CSONArray) || !(value).equals(compareValue))) {
-				return false;
-			} else if (value instanceof CSONObject && (!(compareValue instanceof CSONObject) || !(value).equals(compareValue))) {
-				return false;
-			} else if (value instanceof byte[] && (!(compareValue instanceof byte[]) || !Arrays.equals((byte[]) value, (byte[]) compareValue))) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	public Collection<java.lang.Object> values() {
 		return dataMap.values();
 	}

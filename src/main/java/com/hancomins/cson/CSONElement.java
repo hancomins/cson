@@ -209,6 +209,23 @@ public abstract  class CSONElement implements Iterable<java.lang.Object>  {
 	}
 
 
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof CSONElement) {
+			return CSONElements.equals(this, (CSONElement)obj);
+		}
+		return false;
+	}
+
+	public boolean equalsIgnoreTypes(Object csonElement) {
+		if(csonElement instanceof CSONElement) {
+			return CSONElements.equalsIgnoreTypes(this, (CSONElement)csonElement);
+		}
+		else if(csonElement instanceof String) {
+			return this.toString().equals(csonElement);
+		}
+		return false;
+	}
 
 
 
