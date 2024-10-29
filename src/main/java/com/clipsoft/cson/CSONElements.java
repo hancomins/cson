@@ -1,5 +1,7 @@
 package com.clipsoft.cson;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Optional;
 
 public class CSONElements {
@@ -45,33 +47,62 @@ public class CSONElements {
         return value.equals(value2);
     }
 
-    private static boolean equalNumbers(Number number1, Number number2) {
-        if(number1.getClass() == number2.getClass()) {
-            return number1.equals(number2);
+    private static boolean equals(Object value, Object value2) {
+        if (value2 == value) {
+            return true;
+        }
+        if (value2 == null || value == null) {
+            return false;
+        }
+        if (value instanceof CSONElement) {
+            return equals((CSONElement) value, (CSONElement) value2);
         }
 
-
-        boolean isFloatNumber1 = number1 instanceof Float || number1 instanceof Double;
-        boolean isFloatNumber2 = number2 instanceof Float || number2 instanceof Double;
-        boolean isFloat = isFloatNumber1 || isFloatNumber2;
-        boolean isIntegerNumber1 = number1 instanceof Integer || number1 instanceof Long;
-        boolean isIntegerNumber2 = number2 instanceof Integer || number2 instanceof Long;
-        boolean isInteger = isIntegerNumber1 || isIntegerNumber2;
-
-        if(isFloat) {
-            return number1.doubleValue() == number2.doubleValue();
+        if (value instanceof Number && value2 instanceof Number) {
+            return equals((Number) value, (Number) value2);
         }
-        else if(isInteger) return number1.longValue() == number2.longValue();
+
+        return value.equals(value2);
+    }
 
 
+    private static boolean equals(Number value, Number value2) {
 
-
-
-
-        if(number1 instanceof Double || number1 instanceof Float || number2 instanceof Double || number2 instanceof Float) {
-            return number1.doubleValue() == number2.doubleValue();
+        // 같은 타입이면 직접 비교
+        if (value.getClass() == value2.getClass()) {
+            return value.equals( value2);
         }
-        return number1.longValue() == number2.longValue();
+
+        // 정수 타입끼리 비교: longValue()로 빠르게 비교
+        if (isIntegerType( value) && isIntegerType( value2)) {
+            return ( value).longValue() == ( value2).longValue();
+        }
+
+        // 부동소수점 타입끼리 비교: doubleValue()로 빠르게 비교
+        if (isFloatingPointType( value) && isFloatingPointType( value2)) {
+            return Double.compare(( value).doubleValue(), ( value2).doubleValue()) == 0;
+        }
+
+        // 정밀도 중요한 경우에만 BigDecimal로 비교
+        return toBigDecimal( value).compareTo(toBigDecimal( value2)) == 0;
+    }
+
+    private static boolean isIntegerType(Number number) {
+        return number instanceof Long || number instanceof Integer || number instanceof Short || number instanceof Byte;
+    }
+
+    private static boolean isFloatingPointType(Number number) {
+        return number instanceof Double || number instanceof Float;
+    }
+
+    private static BigDecimal toBigDecimal(Number number) {
+        if (number instanceof BigDecimal) {
+            return (BigDecimal) number;
+        } else if (number instanceof BigInteger) {
+            return new BigDecimal((BigInteger) number);
+        } else {
+            return BigDecimal.valueOf(number.doubleValue());
+        }
     }
 
 }
