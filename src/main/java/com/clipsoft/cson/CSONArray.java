@@ -1098,14 +1098,22 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 
 	@Override
 	public boolean equals(Object obj) {
-		if(!(obj instanceof CSONArray)) return false;
+		if(!(obj instanceof CSONArray)) {
+			return false;
+		}
 		CSONArray csonObject = (CSONArray)obj;
-		if(csonObject.size() != size()) return false;
+		if(csonObject.size() != size()) {
+			return false;
+		}
 
 		for(int i = 0, n = list.size(); i < n; ++i) {
 			Object compareValue = csonObject.list.get(i);
 			Object value = list.get(i);
-			if(value instanceof CharSequence && (!(compareValue instanceof CharSequence) || !value.toString().equals(compareValue.toString())) ) {
+			if((value != null && compareValue == null) || (value == null && compareValue != null)) {
+				return false;
+			}
+
+			else if(value instanceof CharSequence && (!(compareValue instanceof CharSequence) || !value.toString().equals(compareValue.toString())) ) {
 				return false;
 			}
 			else if(value instanceof Boolean && (!(compareValue instanceof Boolean) || value != compareValue)) {
@@ -1131,7 +1139,9 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 			}
 			else if(value instanceof byte[] && (!(compareValue instanceof byte[]) || !Arrays.equals((byte[])value, (byte[])compareValue))) {
 				return false;
-			} else if(value != compareValue) {
+			} else if(value instanceof byte[] && !Arrays.equals((byte[])value, (byte[])compareValue)) {
+				return false;
+			} else if(!(value instanceof byte[]) && !Objects.equals(value, compareValue)) {
 				return false;
 			}
 		}
