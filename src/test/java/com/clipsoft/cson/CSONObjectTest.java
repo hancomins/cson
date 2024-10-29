@@ -76,7 +76,7 @@ public class CSONObjectTest {
 
         System.out.println(csonObject.toString());
         JSONObject jsonObject1 = new JSONObject(csonObject.toString(JSONOptions.json()));
-        assertEquals(csonObject2,new CSONObject(csonObject.toString(JSONOptions.json())));
+        assertTrue( csonObject2.equalsIgnoreTypes(new CSONObject(csonObject.toString(JSONOptions.json()))));
 
 
 

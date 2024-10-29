@@ -200,5 +200,25 @@ public abstract  class CSONElement implements Iterable<Object>  {
 	}
 
 
+	// 0.9.x //
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof CSONElement)) {
+			return false;
+		}
+		return CSONElements.equals(this, (CSONElement) obj);
+	}
+
+	// 0.9.x
+	public boolean equalsIgnoreTypes(Object obj) {
+		if(!(obj instanceof CSONElement)) {
+			return false;
+		}
+		return CSONElements.equalsIgnoreTypes(this, (CSONElement) obj);
+	}
+
+
+
+
 
 }

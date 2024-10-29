@@ -1096,56 +1096,5 @@ public class CSONArray  extends CSONElement  implements Collection<Object>, Clon
 		}
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if(!(obj instanceof CSONArray)) {
-			return false;
-		}
-		CSONArray csonObject = (CSONArray)obj;
-		if(csonObject.size() != size()) {
-			return false;
-		}
-
-		for(int i = 0, n = list.size(); i < n; ++i) {
-			Object compareValue = csonObject.list.get(i);
-			Object value = list.get(i);
-			if((value != null && compareValue == null) || (value == null && compareValue != null)) {
-				return false;
-			}
-
-			else if(value instanceof CharSequence && (!(compareValue instanceof CharSequence) || !value.toString().equals(compareValue.toString())) ) {
-				return false;
-			}
-			else if(value instanceof Boolean && (!(compareValue instanceof Boolean) || value != compareValue)) {
-				return false;
-			}
-			else if(value instanceof Number) {
-				boolean valueIsFloat = (value instanceof Float || value instanceof Double);
-				boolean compareValueIsFloat = (compareValue instanceof Float || compareValue instanceof Double);
-				if(valueIsFloat != compareValueIsFloat) {
-					return false;
-				}
-				BigDecimal v1 = BigDecimal.valueOf(((Number)value).doubleValue());
-				BigDecimal v2 = BigDecimal.valueOf(((Number)compareValue).doubleValue());
-				if(v1.compareTo(v2) != 0) {
-					return false;
-				}
-			}
-			else if(value instanceof CSONArray && (!(compareValue instanceof CSONArray) || !value.equals(compareValue))) {
-				return false;
-			}
-			else if(value instanceof CSONObject && (!(compareValue instanceof CSONObject) || !value.equals(compareValue))) {
-				return false;
-			}
-			else if(value instanceof byte[] && (!(compareValue instanceof byte[]) || !Arrays.equals((byte[])value, (byte[])compareValue))) {
-				return false;
-			} else if(value instanceof byte[] && !Arrays.equals((byte[])value, (byte[])compareValue)) {
-				return false;
-			} else if(!(value instanceof byte[]) && !Objects.equals(value, compareValue)) {
-				return false;
-			}
-		}
-		return true;
-	}
 
 }
