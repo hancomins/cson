@@ -389,7 +389,8 @@ public class CSONPath {
                         return ((CSONArray)parents).get(pathItem.getIndex());
                     }
                 } else {
-                    return ((CSONObject) parents).opt(pathItem.getName());
+
+                    return ((CSONObject)parents).opt(pathItem.getName());
                 }
             }
             else if((parents instanceof CSONObject && pathItem.isInArray()) || (parents instanceof CSONArray && !pathItem.isInArray())) {
@@ -406,6 +407,8 @@ public class CSONPath {
                     assert parents instanceof CSONObject;
                     parents = ((CSONObject) parents).opt(pathItem.getName());
                 }
+                // 0.9.30 ////
+                if(parents == null) return null;
             }
         }
         return null;

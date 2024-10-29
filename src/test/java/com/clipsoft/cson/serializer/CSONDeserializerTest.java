@@ -474,6 +474,25 @@ public class CSONDeserializerTest {
         assertEquals(10, data.size);
     }
 
+    @CSON
+    public static class UnableField {
+
+        @CSONValue("name.ok.ok")
+        String value;
+
+        @CSONValue("name")
+        String name;
+    }
+
+    @Test
+    public void unableFieldTest() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("name", "test");
+        UnableField unableField = CSONSerializer.fromCSONObject(csonObject, new UnableField());
+        assertNull(unableField.value);
+        assertEquals("test", unableField.name);
+    }
+
 
 
 

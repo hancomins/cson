@@ -58,6 +58,12 @@ public class CSONPathTest {
     }
 
     @Test
+    public void optInvalid() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.opt("$.invalid.path");
+    }
+
+    @Test
     public  void optFloat() {
 
 
