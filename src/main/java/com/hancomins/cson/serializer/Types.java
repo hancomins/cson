@@ -1,5 +1,8 @@
 package com.hancomins.cson.serializer;
 
+import com.hancomins.cson.format.ArrayDataContainer;
+import com.hancomins.cson.format.BaseDataContainer;
+
 enum Types {
     Byte,
     Short,
@@ -64,11 +67,11 @@ enum Types {
             return Double;
         } else if(type == java.math.BigDecimal.class) {
             return BigDecimal;
-        } else if(com.hancomins.cson.CSONObject.class.isAssignableFrom(type)) {
+        } else if(com.hancomins.cson.CSONObject.class.isAssignableFrom(type) || com.hancomins.cson.CSONObject.class.isAssignableFrom(type)) {
             return CSONObject;
-        } else if(com.hancomins.cson.CSONArray.class.isAssignableFrom(type)) {
+        } else if(com.hancomins.cson.CSONArray.class.isAssignableFrom(type) || ArrayDataContainer.class.isAssignableFrom(type)) {
             return CSONArray;
-        } else if(com.hancomins.cson.CSONElement.class.isAssignableFrom(type)) {
+        } else if(com.hancomins.cson.CSONElement.class.isAssignableFrom(type) || BaseDataContainer.class.isAssignableFrom(type)) {
             return CSONElement;
         }
         else if(type == boolean.class || type == Boolean.class) {
