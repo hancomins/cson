@@ -1198,6 +1198,11 @@ public class CSONObject extends CSONElement implements Cloneable {
 		}
 
 		@Override
+		public Set<String> keySet() {
+			return csonObject.dataMap.keySet();
+		}
+
+		@Override
 		public int size() {
 			return csonObject.dataMap.size();
 		}

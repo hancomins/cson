@@ -3,6 +3,7 @@ package com.hancomins.cson.format;
 import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
 
+import java.util.Set;
 
 
 public interface KeyValueDataContainer extends BaseDataContainer {
@@ -11,7 +12,8 @@ public interface KeyValueDataContainer extends BaseDataContainer {
     void remove(String key);
     void setComment(String key, String comment, CommentPosition type);
     String getComment(String key, CommentPosition type);
-    CommentObject getCommentObject(String key);
+    CommentObject<String> getCommentObject(String key);
+    Set<String> keySet();
     String getLastAccessedKey();
 
     default void setComment(String comment, CommentPosition commentPosition) {

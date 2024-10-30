@@ -6,6 +6,7 @@ import com.hancomins.cson.CommentPosition;
 public interface ArrayDataContainer extends BaseDataContainer {
     void add(Object value);
     Object get(int index);
+    void set(int index, Object value);
     void setComment(int index, String comment, CommentPosition position);
     String getComment(int index, CommentPosition position);
     void remove(int index);

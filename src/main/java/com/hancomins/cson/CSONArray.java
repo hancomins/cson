@@ -1238,6 +1238,12 @@ public class CSONArray extends CSONElement  implements Collection<java.lang.Obje
 			return array.list.get(index);
 		}
 
+		@Override
+		public void set(int index, Object value) {
+			array.set(index, value);
+
+		}
+
 
 		@Override
 		public void setComment(int index, String comment, CommentPosition position) {

@@ -175,9 +175,6 @@ public class Utils {
     }
 
     static Object optFrom(CSONElement cson, Object key, Types valueType) {
-
-
-
         boolean isArrayType = cson instanceof CSONArray;
         if(isArrayType && ((CSONArray)cson).isNull((int)key)) {
             return null;
@@ -205,7 +202,6 @@ public class Utils {
         } else {
             return  isArrayType ? ((CSONArray) cson).opt((int)key) : ((CSONObject)cson).opt((String)key);
         }
-
     }
 
 }
