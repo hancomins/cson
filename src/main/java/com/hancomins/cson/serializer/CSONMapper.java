@@ -277,7 +277,8 @@ public class CSONMapper {
                 }
             } else if(valueType == String.class) {
                 if(writingOptions != null && value instanceof BaseDataContainer) {
-                    result.add((T)((BaseDataContainer) value).toString(writingOptions));
+                    CSONElement csonElement = toCSONElement(value);
+                    result.add((T)(csonElement.toString(  writingOptions)));
                 } else {
                     result.add((T) value.toString());
                 }
@@ -797,43 +798,55 @@ public class CSONMapper {
             } else if(isNull(cson,key)) {
                 schemaField.setValue(parents, null);
             }
-        } else if(Types.CSONObject == valueType) {
-            Object value = null;
-            if(isArrayType) {
-                value = ((ArrayDataContainer) cson).get((int)key);
-            } else {
-                value = ((KeyValueDataContainer)cson).get((String)key);
-            }
-            if(value instanceof KeyValueDataContainer) {
-                schemaField.setValue(parents, value);
-            } else {
-                schemaField.setValue(parents, null);
-            }
-        } else if(Types.CSONArray == valueType) {
-            Object value = null;
-            if(isArrayType) {
-                value = ((ArrayDataContainer) cson).get((int)key);
-            } else {
-                value = ((KeyValueDataContainer)cson).get((String)key);
-            }
-
-
-            ArrayDataContainer value = isArrayType ? ((ArrayDataContainer) cson).optArrayDataContainer((int)key) : ((KeyValueDataContainer)cson).optArrayDataContainer((String)key);
-            schemaField.setValue(parents, value);
-        } else if(Types.BaseDataContainer == valueType) {
-            Object value = isArrayType ? ((ArrayDataContainer) cson).opt((int)key) : ((KeyValueDataContainer)cson).opt((String)key);
-            if(value instanceof BaseDataContainer) {
-                schemaField.setValue(parents, value);
-            } else {
-                schemaField.setValue(parents, null);
-            }
+        } else if(Types.CSONArray == valueType || Types.CSONElement == valueType || Types.CSONObject == valueType) {
+            Object value = optValue(cson, key);
+            CSONElement csonElement = toCSONElement(value);
+            schemaField.setValue(parents, csonElement);
         }
         else {
             try {
                 schemaField.setValue(parents, null);
             } catch (Exception ignored) {}
         }
+    }
 
+    private static CSONElement toCSONElement(Object object) {
+        if(object instanceof KeyValueDataContainer) {
+            return toCSONObject((KeyValueDataContainer)object);
+        } else if(object instanceof ArrayDataContainer) {
+            return toCSONArray((ArrayDataContainer)object);
+        }
+        return null;
+    }
+
+    private static CSONArray toCSONArray(ArrayDataContainer arrayDataContainer) {
+        CSONArray csonArray = new CSONArray();
+        for(int i = 0, n = arrayDataContainer.size(); i < n; ++i) {
+            Object value = arrayDataContainer.get(i);
+            if(value instanceof KeyValueDataContainer) {
+                csonArray.add(toCSONObject((KeyValueDataContainer)value));
+            } else if(value instanceof ArrayDataContainer) {
+                csonArray.add(toCSONArray((ArrayDataContainer)value));
+            } else {
+                csonArray.add(value);
+            }
+        }
+        return csonArray;
+    }
+
+    private static CSONObject toCSONObject(KeyValueDataContainer keyValueDataContainer) {
+        CSONObject csonObject = new CSONObject();
+        for(String key : keyValueDataContainer.keySet()) {
+            Object value = keyValueDataContainer.get(key);
+            if(value instanceof KeyValueDataContainer) {
+                csonObject.put(key, toCSONObject((KeyValueDataContainer)value));
+            } else if(value instanceof ArrayDataContainer) {
+                csonObject.put(key, toCSONArray((ArrayDataContainer)value));
+            } else {
+                csonObject.put(key, value);
+            }
+        }
+        return csonObject;
     }
 
     private static Object optValue(BaseDataContainer cson, Object key) {
@@ -867,7 +880,16 @@ public class CSONMapper {
                 throw new CSONSerializerException("To deserialize a generic, abstract or interface type you must have a @ObtainTypeValue annotated method. target=" + obtainTypeValueInvokerGetter.targetPath());
             }
             try {
-                Object obj = invoker.obtain(parents, csonObjectOrValue instanceof KeyValueDataContainer ? (KeyValueDataContainer) csonObjectOrValue : keyValueDataContainerFactory.create().put("$value", csonObjectOrValue), root);
+                Object cson;
+                if(csonObjectOrValue instanceof KeyValueDataContainer) {
+                    cson = csonObjectOrValue;
+                } else  {
+                    cson =  keyValueDataContainerFactory.create();
+                    ((KeyValueDataContainer)cson).put("$value",  root);
+                }
+
+
+                Object obj = invoker.obtain(parents, toCSONObject((KeyValueDataContainer)cson), toCSONObject(root));
                 if (obj != null && invoker.isDeserializeAfter()) {
                     obj = dynamicCasting(obj, csonObjectOrValue);
                 }
@@ -883,7 +905,7 @@ public class CSONMapper {
 
 
 
-    private boolean isNull(BaseDataContainer csonElement, Object key) {
+    private static boolean isNull(BaseDataContainer csonElement, Object key) {
         Object value;
         if(key instanceof String && csonElement instanceof KeyValueDataContainer) {
             value = ((KeyValueDataContainer)csonElement).get((String) key);
@@ -898,41 +920,23 @@ public class CSONMapper {
 
 
 
+    private ArrayDataContainer optValueInArrayDataContainer(ArrayDataContainer csonArray, int index) {
+        Object value = csonArray.get(index);
+        return value instanceof ArrayDataContainer ? (ArrayDataContainer)value : null;
+    }
+
 
     private Object optValueInArrayDataContainer(ArrayDataContainer csonArray, int index, ISchemaArrayValue ISchemaArrayValue) {
-
-        switch (ISchemaArrayValue.getEndpointValueType()) {
-            case Byte:
-                return csonArray.optByte(index);
-            case Short:
-                return csonArray.optShort(index);
-            case Integer:
-                return csonArray.optInt(index);
-            case Long:
-                return csonArray.optLong(index);
-            case Float:
-                return csonArray.optFloat(index);
-            case Double:
-                return csonArray.optDouble(index);
-            case Boolean:
-                return csonArray.optBoolean(index);
-            case Character:
-                return csonArray.optChar(index, '\0');
-            case String:
-                return csonArray.optString(index);
-            case CSONArray:
-                return csonArray.optArrayDataContainer(index);
-            case CSONObject:
-                return csonArray.optKeyValueDataContainer(index);
-            case Object:
-                KeyValueDataContainer csonObject = csonArray.optKeyValueDataContainer(index);
-                if(csonObject != null) {
-                    Object target = ISchemaArrayValue.getObjectValueTypeElement().newInstance();
-                    fromKeyValueDataContainer(csonObject, target);
-                    return target;
-                }
+        Types types = ISchemaArrayValue.getEndpointValueType();
+        if(types == Types.Object) {
+            Object value = csonArray.get(index);
+            if(value instanceof KeyValueDataContainer) {
+                Object target = ISchemaArrayValue.getObjectValueTypeElement().newInstance();
+                fromKeyValueDataContainer((KeyValueDataContainer) value, target);
+                return target;
+            }
         }
-        return null;
+        return optFrom(csonArray, index, types);
     }
 
 
@@ -953,7 +957,7 @@ public class CSONMapper {
         for(int index = 0; index <= end; ++index) {
             objectItem.setArrayIndex(index);
             if(collectionItem.isGeneric() || collectionItem.isAbstractType()) {
-                KeyValueDataContainer csonObject =  objectItem.csonArray.optKeyValueDataContainer(index);
+                KeyValueDataContainer csonObject =  optKeyValueDataContainer(objectItem.csonArray,index);
                 Object object = onObtainTypeValue.obtain(csonObject);
                 objectItem.collectionObject.add(object);
             }
@@ -961,7 +965,7 @@ public class CSONMapper {
                 Object value = optValueInArrayDataContainer(objectItem.csonArray, index, ISchemaArrayValue);
                 objectItem.collectionObject.add(value);
             } else {
-                ArrayDataContainer inArray = objectItem.csonArray.optArrayDataContainer(index);
+                ArrayDataContainer inArray = optValueInArrayDataContainer(objectItem.csonArray, index);
                 if (inArray == null) {
                     objectItem.collectionObject.add(null);
                 } else {
@@ -1044,32 +1048,35 @@ public class CSONMapper {
 
 
     static Object optFrom(BaseDataContainer baseDataContainer, Object key, Types valueType) {
-        boolean isArrayType = baseDataContainer instanceof ArrayDataContainer;
-        if(isArrayType && ((ArrayDataContainer)baseDataContainer).isNull((int)key)) {
-            return null;
-        } else if(!isArrayType && ((KeyValueDataContainer)baseDataContainer).isNull((String)key)) {
+
+        Object value = optValue(baseDataContainer, key);
+        if(value == null) {
             return null;
         }
+
+
         if(Types.Boolean == valueType) {
-            return isArrayType ? ((ArrayDataContainer) baseDataContainer).optBoolean((int)key) : ((KeyValueDataContainer)baseDataContainer).optBoolean((String)key);
+            return DataConverter.toBoolean(value);
         } else if(Types.Byte == valueType) {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).optByte((int)key) : ((KeyValueDataContainer)baseDataContainer).optByte((String)key);
+            return DataConverter.toByte(value);
         } else if(Types.Character == valueType) {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).optChar((int)key, '\0') : ((KeyValueDataContainer)baseDataContainer).optChar((String)key, '\0');
+            return DataConverter.toChar(value);
+        } else if(Types.Long == valueType) {
+            return DataConverter.toLong(value);
         } else if(Types.Short == valueType) {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).optShort((int)key) : ((KeyValueDataContainer)baseDataContainer).optShort((String)key);
+            return DataConverter.toShort(value);
         } else if(Types.Integer == valueType) {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).optInt((int)key) : ((KeyValueDataContainer)baseDataContainer).optInt((String)key);
+            return DataConverter.toInteger(value);
         } else if(Types.Float == valueType) {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).optFloat((int)key) : ((KeyValueDataContainer)baseDataContainer).optFloat((String)key);
+            return DataConverter.toFloat(value);
         } else if(Types.Double == valueType) {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).optDouble((int)key) : ((KeyValueDataContainer)baseDataContainer).optDouble((String)key);
+            return DataConverter.toDouble(value);
         } else if(Types.String == valueType) {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).optString((int)key) : ((KeyValueDataContainer)baseDataContainer).optString((String)key);
+            return DataConverter.toString(value);
         }  else if(Types.ByteArray == valueType) {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).optByteArray((int)key) : ((KeyValueDataContainer)baseDataContainer).optByteArray((String)key);
+            return DataConverter.toByteArray(value);
         } else {
-            return  isArrayType ? ((ArrayDataContainer) baseDataContainer).opt((int)key) : ((KeyValueDataContainer)baseDataContainer).opt((String)key);
+            return value;
         }
     }
 
