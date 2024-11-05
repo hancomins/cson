@@ -58,6 +58,9 @@ public class SchemaFieldNormal extends SchemaField {
         }*/
 
 
-
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.NORMAL_FIELD;
+    }
 
 }

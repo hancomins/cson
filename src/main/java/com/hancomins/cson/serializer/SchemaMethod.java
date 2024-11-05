@@ -370,6 +370,9 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         return schemaValue.getClass() == SchemaMethod.class && (((SchemaMethod)schemaValue).getMethodType() == SchemaMethod.MethodType.Getter  || ((SchemaMethod)schemaValue).getMethodType() == SchemaMethod.MethodType.Both);
     }
 
-
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.METHOD;
+    }
 
 }

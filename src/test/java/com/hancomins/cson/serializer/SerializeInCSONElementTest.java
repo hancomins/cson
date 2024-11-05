@@ -10,7 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SerializeInCSONElementTest {
-    @CSON
+     @CSON(explicit = true)
     public static class CSONClass {
         @CSONValue
         String name;

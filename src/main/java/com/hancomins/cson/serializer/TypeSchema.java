@@ -34,6 +34,7 @@ class TypeSchema {
         }
     }
 
+    private final boolean explicit;
     private final Class<?> type;
     private final Constructor<?> constructor;
     private final ConcurrentHashMap<String, ObtainTypeValueInvoker> fieldValueObtaiorMap = new ConcurrentHashMap<>();
@@ -45,7 +46,7 @@ class TypeSchema {
     private final Set<String> genericTypeNames = new HashSet<>();
 
 
-    protected SchemaObjectNode getSchema() {
+    protected SchemaObjectNode getSchemaObjectNode() {
         if(schema == null) {
             schema = NodePath.makeSchema(this,null);
         }
@@ -123,13 +124,16 @@ class TypeSchema {
         this.type = type;
         this.constructor = constructor;
         CSON cson = type.getAnnotation(CSON.class);
+
         if(cson != null) {
+            explicit = cson.explicit();
             String commentBefore = cson.comment();
             String commentAfter = cson.commentAfter();
 
             this.comment = commentBefore.isEmpty() ? null : commentBefore;
             this.commentAfter = commentAfter.isEmpty() ? null : commentAfter;
         } else {
+            explicit = false;
             this.comment = null;
             this.commentAfter = null;
         }
@@ -247,6 +251,10 @@ class TypeSchema {
         return fieldValueObtaiorMap.get(fieldName);
     }
 
+
+    boolean isExplicit() {
+        return explicit;
+    }
 
 
 

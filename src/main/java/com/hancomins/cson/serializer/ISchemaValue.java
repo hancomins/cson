@@ -38,4 +38,16 @@ public interface ISchemaValue extends ISchemaNode {
         }
     }
 
+    // 0.9.29
+    static boolean serializable(Class<?> valueType) {
+        if(CSONElement.class.isAssignableFrom(valueType)) {
+            return true;
+        }
+        Types type = Types.of(valueType);
+        if(valueType.isArray() && type != Types.ByteArray) {
+            return false;
+        }
+        return type != Types.Object || valueType.getAnnotation(CSON.class) != null;
+    }
+
 }

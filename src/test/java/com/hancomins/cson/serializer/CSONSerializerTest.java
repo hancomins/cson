@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class CSONSerializerTest {
 
-    @CSON
+     @CSON(explicit = true)
     static class TestClassC {
         @CSONValue
         private String name = "C";
@@ -22,7 +22,7 @@ public class CSONSerializerTest {
 
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class TestClassB {
         @CSONValue
         private String name = "B";
@@ -32,7 +32,7 @@ public class CSONSerializerTest {
 
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class TestClassA {
         @CSONValue
         private String name = "A";
@@ -207,7 +207,7 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     private static class TestClassNull {
 
         @CSONValue
@@ -261,7 +261,7 @@ public class CSONSerializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class Item {
         @CSONValue
         private String name = "item";
@@ -269,7 +269,7 @@ public class CSONSerializerTest {
         private int value = 1;
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class ArrayTestClass {
         @CSONValue("array[10]")
         int array10 = 10;
@@ -439,7 +439,7 @@ public class CSONSerializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class ByteArray {
         @CSONValue
         byte[] bytes = new byte[]{1,2,3,4,5,6,7,8,9,10};
@@ -468,7 +468,7 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class MapClassTest {
         @CSONValue
         private HashMap<String, String> map = new HashMap<>();
@@ -519,14 +519,14 @@ public class CSONSerializerTest {
 
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class GenericClass<T> {
         @CSONValue
         private String value = "value";
 
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class Sim {
         @CSONValue
         Collection<GenericClass<String>> collection = new ArrayList<>();
@@ -550,7 +550,7 @@ public class CSONSerializerTest {
             return name;
         }
     }
-    @CSON
+     @CSON(explicit = true)
     static class TestChildClass extends TestSuperClass {
 
     }
@@ -573,19 +573,19 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class TestClassY {
         @CSONValue
         private int age = 29;
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class TestClassP {
         @CSONValue("ageReal")
         private int age = 27;
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class TestClassX {
         @CSONValue("nickname.key[10]")
         private String name = "name";
@@ -628,7 +628,7 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     class NestedValueClass {
         @CSONValue
         private String name = "name";
@@ -639,7 +639,7 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class NestedObjectClass {
         @CSONValue(key =  "ages", comment = "닉네임 오브젝트:testClassP", commentAfterKey = "닉네임 오브젝트 끝:testClassP")
         private TestClassP testClassP = new TestClassP();
@@ -676,7 +676,7 @@ public class CSONSerializerTest {
 
     }
 
-   @CSON
+    @CSON(explicit = true)
    public static class SetterGetterTestClass {
 
         Map<String, String> nameAgeMap = null;
@@ -836,7 +836,7 @@ public class CSONSerializerTest {
 
 
 
-   @CSON
+    @CSON(explicit = true)
    public static class Addr {
         @CSONValue
         private String city;
@@ -845,7 +845,7 @@ public class CSONSerializerTest {
    }
 
 
-   @CSON
+    @CSON(explicit = true)
    public static class User {
        @CSONValue
        private String name;
@@ -933,7 +933,7 @@ public class CSONSerializerTest {
 
    }
 
-   @CSON
+    @CSON(explicit = true)
     public static class CSONElementInClass {
         @CSONValue
         private ArrayList<CSONArray> csonArrayInList = new ArrayList<>();
@@ -1015,7 +1015,7 @@ public class CSONSerializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static interface InterfaceTest {
         @CSONValueGetter
         String getName();
@@ -1025,12 +1025,12 @@ public class CSONSerializerTest {
 
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static interface InterfaceTestText extends InterfaceTest {
 
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class GenericClassTest<T extends  InterfaceTest> {
         @CSONValue
         private T value;
@@ -1061,7 +1061,7 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class ObjGenericClassTest<TV , IV> {
 
         @CSONValue
@@ -1261,7 +1261,7 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class ResponseMessage<T> {
         @CSONValue
         private boolean success = false;
@@ -1286,7 +1286,7 @@ public class CSONSerializerTest {
         }
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class FileInfo {
         @CSONValue
         private String name = "name";
@@ -1319,7 +1319,7 @@ public class CSONSerializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class A1 {
         @CSONValue
         private String name = "name";
@@ -1334,7 +1334,7 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class A2 extends A1 {
         @CSONValue
         private String name = "name2";
@@ -1364,7 +1364,7 @@ public class CSONSerializerTest {
         VALUE1, VALUE2, VALUE3, VALUE4
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class EnumClass<T> {
         @CSONValue
         private ValueEnum valueEnum = ValueEnum.VALUE1;
@@ -1397,7 +1397,7 @@ public class CSONSerializerTest {
         }
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static interface I1 {
         @CSONValueGetter
         String getName();
@@ -1406,7 +1406,7 @@ public class CSONSerializerTest {
         void setName(String name);
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class I1Impl implements  I1 {
 
         private String name = "name";
@@ -1423,7 +1423,7 @@ public class CSONSerializerTest {
         }
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class I2 {
         @CSONValue
         private I1Impl i1 = new I1Impl();
@@ -1533,14 +1533,14 @@ public class CSONSerializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     public interface ResultMessage<T> {
 
         @CSONValueGetter
         T getData();
     }
 
-    @CSON
+     @CSON(explicit = true)
     public class ResultMessageImpl<T> implements  ResultMessage<T>{
 
         T data = null;

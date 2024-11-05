@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CSONDeserializerTest {
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class TestListInListInListClass {
         @CSONValue
         public LinkedList<ArrayDeque<ArrayList<String>>> list = new LinkedList<>();
@@ -82,7 +82,7 @@ public class CSONDeserializerTest {
 
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class TestClass {
         @CSONValue
         public String name;
@@ -195,7 +195,7 @@ public class CSONDeserializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class User {
         String name;
         int age;
@@ -204,7 +204,7 @@ public class CSONDeserializerTest {
 
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class Address {
         @CSONValue
         String city;
@@ -223,7 +223,7 @@ public class CSONDeserializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class TransportationFacilities  {
         @CSONValue
         boolean subway;
@@ -235,7 +235,7 @@ public class CSONDeserializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class HouseType {
         @CSONValue
         String type;
@@ -244,7 +244,7 @@ public class CSONDeserializerTest {
         float buildingHeight;
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class HouseTypeEx{
         @CSONValue
         int totalFloor;
@@ -267,7 +267,7 @@ public class CSONDeserializerTest {
         }
     }
 
-    @CSON
+     @CSON(explicit = true)
     public static class Home  {
 
         @CSONValue
@@ -325,7 +325,7 @@ public class CSONDeserializerTest {
 
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class SimpleObjectInArray {
         @CSONValue
         ArrayList<HouseType> transportationFacilities = new ArrayList<>();
@@ -365,7 +365,7 @@ public class CSONDeserializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class ArrayItemKey {
         @CSONValue("key.list[10][10].ok")
         public String key;
@@ -396,7 +396,7 @@ public class CSONDeserializerTest {
     }
 
 
-    @CSON
+     @CSON(explicit = true)
     public static class BigDecimalValue {
         @CSONValue("value")
         public BigDecimal bigValue;

@@ -36,7 +36,7 @@ public class CSONSerializer {
         else*/ if(rootObject == null) {
             return null;
         }
-        SchemaObjectNode schemaRoot = typeSchema.getSchema();
+        SchemaObjectNode schemaRoot = typeSchema.getSchemaObjectNode();
 
         HashMap<Integer, Object> parentObjMap = new HashMap<>();
         CSONElement csonElement = new CSONObject();
@@ -541,7 +541,7 @@ public class CSONSerializer {
 
     public static<T> T fromCSONObject(final CSONObject csonObject, T targetObject) {
         TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(targetObject.getClass());
-        SchemaObjectNode schemaRoot = typeSchema.getSchema();
+        SchemaObjectNode schemaRoot = typeSchema.getSchemaObjectNode();
         HashMap<Integer, Object> parentObjMap = new HashMap<>();
         CSONElement csonElement = csonObject;
         ArrayDeque<ObjectSerializeDequeueItem> objectSerializeDequeueItems = new ArrayDeque<>();

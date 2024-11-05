@@ -10,5 +10,6 @@ import java.lang.annotation.Target;
 public @interface CSON {
     String comment() default "";
     String commentAfter() default "";
+    boolean explicit() default false;
 
 }

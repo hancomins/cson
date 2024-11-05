@@ -104,4 +104,9 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
         return super.equalsValueType(schemaValueAbs);
     }
 
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.METHOD_FOR_ARRAY;
+    }
+
 }

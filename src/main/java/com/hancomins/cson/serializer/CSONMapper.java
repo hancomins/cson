@@ -39,7 +39,7 @@ public class CSONMapper {
         else*/ if(rootObject == null) {
             return null;
         }
-        SchemaObjectNode schemaRoot = typeSchema.getSchema();
+        SchemaObjectNode schemaRoot = typeSchema.getSchemaObjectNode();
 
         HashMap<Integer, Object> parentObjMap = new HashMap<>();
         BaseDataContainer csonElement = keyValueDataContainerFactory.create();
@@ -556,7 +556,7 @@ public class CSONMapper {
 
     public<T> T fromKeyValueDataContainer(final KeyValueDataContainer csonObject, T targetObject) {
         TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(targetObject.getClass());
-        SchemaObjectNode schemaRoot = typeSchema.getSchema();
+        SchemaObjectNode schemaRoot = typeSchema.getSchemaObjectNode();
         HashMap<Integer, Object> parentObjMap = new HashMap<>();
         BaseDataContainer csonElement = csonObject;
         ArrayDeque<ObjectSerializeDequeueItem> objectSerializeDequeueItems = new ArrayDeque<>();

@@ -17,7 +17,7 @@ public class NodePath {
     }
 
 
-    protected static SchemaObjectNode makeSchema(TypeSchema targetTypeSchema, SchemaValueAbs parentFieldRack) {
+    public static SchemaObjectNode makeSchema(TypeSchema targetTypeSchema, SchemaValueAbs parentFieldRack) {
         List<SchemaValueAbs> fieldRacks = searchAllCSONValueFields(targetTypeSchema, targetTypeSchema.getType());
         SchemaObjectNode objectNode = new SchemaObjectNode().setBranchNode(false);
 
