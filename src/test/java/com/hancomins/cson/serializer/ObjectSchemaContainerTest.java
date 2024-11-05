@@ -23,7 +23,22 @@ class ObjectSchemaContainerTest {
 
         Object valule = container.get("a");
         assertEquals(valule, "a");
+        
 
+        Object valule2 = container.get("b");
+
+
+    }
+
+    @Test
+    void putTest() {
+
+        TestClass testClass = new TestClass();
+        ObjectSchemaContainer container = new ObjectSchemaContainer(TestClass.class, testClass);
+
+        container.put("a", "aaa");
+        assertEquals(testClass.a, "aaa");
+        container.get()
 
     }
 

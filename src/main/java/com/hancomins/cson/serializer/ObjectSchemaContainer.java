@@ -9,6 +9,7 @@ import com.hancomins.cson.serializer.mapper.Mappable;
 import org.w3c.dom.Notation;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,6 +24,8 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
     private SchemaObjectNode schemaRoot;
 
     private Object value;
+
+    //private ThreadLocal<Map<Integer, Schema>>
 
     public ObjectSchemaContainer(Class<?> classType) {
         this(classType,null);
@@ -44,7 +47,20 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
 
     @Override
     public void put(String key, Object value) {
+        ISchemaNode iSchemaNode = this.schemaRoot.get(key);
+        NodeType nodeType = iSchemaNode.getNodeType();
+        switch (nodeType) {
+            case OBJECT:
+                SchemaObjectNode schemaObjectNode = (SchemaObjectNode)iSchemaNode;
+                List<SchemaValueAbs> schemaFieldList = schemaObjectNode.getParentSchemaFieldList();
 
+            case NORMAL_FIELD:
+                assert iSchemaNode instanceof SchemaFieldNormal;
+                ((SchemaFieldNormal)iSchemaNode).setValue(this.value,value);
+                break;
+            default:
+                break;
+        }
     }
 
     @Override
@@ -53,7 +69,8 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
         NodeType nodeType = iSchemaNode.getNodeType();
         switch (nodeType) {
             case OBJECT:
-                 ((SchemaObjectNode)iSchemaNode).isBranchNode();
+                SchemaObjectNode schemaObjectNode = (SchemaObjectNode)iSchemaNode;
+                List<SchemaValueAbs> schemaFieldList = schemaObjectNode.getParentSchemaFieldList();
 
             case NORMAL_FIELD:
                 return ((SchemaFieldNormal)iSchemaNode).getValue(value);
