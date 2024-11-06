@@ -11,7 +11,7 @@ public interface ArrayDataContainer extends BaseDataContainer {
     String getComment(int index, CommentPosition position);
     void remove(int index);
     int size();
-    CommentObject getCommentObject(int index);
+    CommentObject<Integer> getCommentObject(int index);
 
     default void setComment(String comment, CommentPosition commentPosition) {
         switch (commentPosition) {

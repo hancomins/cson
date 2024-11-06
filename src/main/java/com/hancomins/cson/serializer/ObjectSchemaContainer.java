@@ -2,9 +2,7 @@ package com.hancomins.cson.serializer;
 
 import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
-import com.hancomins.cson.format.DataIterator;
-import com.hancomins.cson.format.FormatType;
-import com.hancomins.cson.format.KeyValueDataContainer;
+import com.hancomins.cson.format.*;
 import com.hancomins.cson.serializer.mapper.Mappable;
 import org.w3c.dom.Notation;
 
@@ -28,19 +26,18 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
     //private ThreadLocal<Map<Integer, Schema>>
 
     public ObjectSchemaContainer(Class<?> classType) {
-        this(classType,null);
-    }
-
-
-    public <T> ObjectSchemaContainer(Class<T> classType,T value) {
         this.classType = classType;
         this.typeSchema = TypeSchemaMap.getInstance().getTypeInfo(classType);
         this.schemaRoot = typeSchema.getSchemaObjectNode();
-        if(value == null) {
-            this.value = typeSchema.newInstance();
-        } else {
-            this.value = value;
-        }
+        this.value = typeSchema.newInstance();
+    }
+
+
+    public ObjectSchemaContainer(Object value) {
+        this.classType = value.getClass();
+        this.typeSchema = TypeSchemaMap.getInstance().getTypeInfo(classType);
+        this.schemaRoot = typeSchema.getSchemaObjectNode();
+        this.value = value;
     }
 
 
@@ -133,4 +130,31 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
     public DataIterator<?> iterator() {
         return null;
     }
+
+
+    public static class ObjectSchemaContainerFactory implements KeyValueDataContainerFactory {
+
+        private Object refrenceObject;
+
+
+
+        ObjectSchemaContainerFactory(Object object) {
+            this.refrenceObject = object;
+        }
+
+
+
+        @Override
+        public KeyValueDataContainer create() {
+            if(refrenceObject != null) {
+                Object arg = refrenceObject;
+                refrenceObject = null;
+                return new ObjectSchemaContainer(arg instanceof Class<?> ? (Class<?>)arg : arg.getClass());
+
+            }
+            return new KeyValueDataContainerWrapper();
+
+        }
+    }
+
 }
