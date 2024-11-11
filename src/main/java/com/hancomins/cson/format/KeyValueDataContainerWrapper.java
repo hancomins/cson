@@ -129,6 +129,10 @@ public class KeyValueDataContainerWrapper implements KeyValueDataContainer {
         return container.iterator();
     }
 
+    public void setContainer(KeyValueDataContainer container) {
+        this.container = container;
+    }
+
 
     public static KeyValueDataContainerFactory newFactory(KeyValueDataContainer container) {
         return () -> new KeyValueDataContainerWrapper(container);
