@@ -120,4 +120,9 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
         return isAbstractValue;
     }
 
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.METHOD_FOR_MAP;
+    }
+
 }

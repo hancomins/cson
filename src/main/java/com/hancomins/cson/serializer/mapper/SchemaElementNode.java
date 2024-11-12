@@ -11,7 +11,7 @@ public abstract class SchemaElementNode implements ISchemaNode {
     /**
      * 브런치 노드. 참조된 필드가 없는 노드.
      */
-    protected boolean isBranchNode = true;
+    private boolean isBranchNode = true;
 
 
 

@@ -8,7 +8,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+@SuppressWarnings("DuplicatedCode")
 public class NodePath {
 
     private final SchemaElementNode node;
@@ -18,8 +20,8 @@ public class NodePath {
     }
 
 
-    protected static SchemaObjectNode makeSchema(TypeSchema targetTypeSchema, SchemaValueAbs parentFieldRack) {
-        List<SchemaValueAbs> fieldRacks = searchAllCSONValueFields(targetTypeSchema, targetTypeSchema.getType());
+    static SchemaObjectNode makeSchema(TypeSchema targetTypeSchema, SchemaValueAbs parentFieldRack) {
+        List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType());
         SchemaObjectNode objectNode = new SchemaObjectNode().setBranchNode(false);
 
         for(SchemaValueAbs fieldRack : fieldRacks) {
@@ -47,7 +49,7 @@ public class NodePath {
     }
 
 
-    private static List<SchemaValueAbs> searchAllCSONValueFields(TypeSchema typeSchema, Class<?> clazz) {
+    private static List<SchemaValueAbs> searchAllFields(TypeSchema typeSchema, Class<?> clazz) {
         //Set<String> fieldPaths = new HashSet<>();
         List<SchemaValueAbs> results = new ArrayList<>();
         findSchemaByAncestors(typeSchema, results, clazz);
@@ -63,7 +65,9 @@ public class NodePath {
     private static void findSchemaByAncestors(TypeSchema typeSchema, List<SchemaValueAbs> results, Class<?> currentClass) {
         List<Field> fields = ReflectionUtils.getAllInheritedFields(currentClass);
         List<Method> methods = ReflectionUtils.getAllInheritedMethods(currentClass);
-        findCsonValueFields(typeSchema, results, fields);
+        TypeUtil.filterSupportedTypes(fields).stream().map(field -> SchemaValueAbs.of(typeSchema, field))
+                .filter(Objects::nonNull).forEach(results::add);
+
         findCsonGetterSetterMethods(typeSchema, results, methods);
 
     }
@@ -79,18 +83,6 @@ public class NodePath {
             }
         }
     }
-
-    private static void findCsonValueFields(TypeSchema typeSchema, List<SchemaValueAbs> results, List<Field> fields) {
-        if(fields != null) {
-            for (Field field : fields) {
-                SchemaValueAbs fieldRack = SchemaValueAbs.of(typeSchema, field);
-                if (fieldRack != null  /* && !fieldPaths.contains(fieldRack.getPath()) */) {
-                    results.add(fieldRack);
-                }
-            }
-        }
-    }
-
 
 
     private static SchemaElementNode obtainOrCreateChild(SchemaElementNode Node, PathItem pathItem) {

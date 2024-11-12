@@ -35,7 +35,7 @@ public class CSONSerializer {
         else*/ if(rootObject == null) {
             return null;
         }
-        SchemaObjectNode schemaRoot = typeSchema.getSchema();
+        SchemaObjectNode schemaRoot = typeSchema.getSchemaObjectNode();
 
         HashMap<Integer, Object> parentObjMap = new HashMap<>();
         CSONElement csonElement = new CSONObject();
@@ -540,7 +540,7 @@ public class CSONSerializer {
 
     public static<T> T fromCSONObject(final CSONObject csonObject, T targetObject) {
         TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(targetObject.getClass());
-        SchemaObjectNode schemaRoot = typeSchema.getSchema();
+        SchemaObjectNode schemaRoot = typeSchema.getSchemaObjectNode();
         HashMap<Integer, Object> parentObjMap = new HashMap<>();
         CSONElement csonElement = csonObject;
         ArrayDeque<ObjectSerializeDequeueItem> objectSerializeDequeueItems = new ArrayDeque<>();
@@ -693,7 +693,7 @@ public class CSONSerializer {
         return null;
     }
 
-    private static void setValueTargetFromCSONObject(Object parents, SchemaValueAbs schemaField, final CSONElement cson, Object key, CSONObject root) {
+    private static void setValueTargetFromCSONObject(Object parents, SchemaValueAbs schemaField,final CSONElement cson, Object key, CSONObject root) {
         boolean isArrayType = cson instanceof CSONArray;
 
         /*Object value = isArrayType ? ((CSONArray) cson).opt((int)key) : ((CSONObject)cson).opt((String)key);
@@ -782,7 +782,7 @@ public class CSONSerializer {
     }
 
 
-    private static OnObtainTypeValue makeOnObtainTypeValue(ObtainTypeValueInvokerGetter obtainTypeValueInvokerGetter, Object parents, CSONObject root) {
+    private static OnObtainTypeValue makeOnObtainTypeValue(ObtainTypeValueInvokerGetter obtainTypeValueInvokerGetter,Object parents, CSONObject root) {
         return (csonObjectOrValue) -> {
             ObtainTypeValueInvoker invoker = obtainTypeValueInvokerGetter.getObtainTypeValueInvoker();
             if(invoker == null ) {
@@ -941,10 +941,10 @@ public class CSONSerializer {
 
     private static class ObjectSerializeDequeueItem {
         Iterator<Object> keyIterator;
-        com.hancomins.cson.serializer.mapper.ISchemaNode ISchemaNode;
+        ISchemaNode ISchemaNode;
         CSONElement resultElement;
 
-        private ObjectSerializeDequeueItem(Iterator<Object> keyIterator, com.hancomins.cson.serializer.mapper.ISchemaNode ISchemaNode, CSONElement resultElement) {
+        private ObjectSerializeDequeueItem(Iterator<Object> keyIterator, ISchemaNode ISchemaNode, CSONElement resultElement) {
             this.keyIterator = keyIterator;
             this.ISchemaNode = ISchemaNode;
             this.resultElement = resultElement;

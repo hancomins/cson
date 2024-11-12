@@ -152,4 +152,9 @@ class SchemaObjectNode extends SchemaElementNode {
         return stringBuilder.toString();
     }
 
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.OBJECT;
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.hancomins.cson.serializer;
+package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.format.json.JSON5Parser;
 import com.hancomins.cson.options.JsonParsingOptions;

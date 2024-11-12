@@ -29,12 +29,18 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
 
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
-        String comment = csonValue.comment();
-        String afterComment = csonValue.commentAfterKey();
-        this.comment = comment.isEmpty() ? null : comment;
-        this.afterComment = afterComment.isEmpty() ? null : afterComment;
+        if(csonValue != null) {
+            String comment = csonValue.comment();
+            String afterComment = csonValue.commentAfterKey();
+            this.comment = comment.isEmpty() ? null : comment;
+            this.afterComment = afterComment.isEmpty() ? null : afterComment;
+            ISchemaValue.assertValueType(field.getType(), this.getType(), field.getDeclaringClass().getName() + "." + field.getName() );
+        } else {
+            this.comment = null;
+            this.afterComment = null;
+        }
 
-        ISchemaValue.assertValueType(field.getType(), this.getType(), field.getDeclaringClass().getName() + "." + field.getName() );
+
     }
 
 

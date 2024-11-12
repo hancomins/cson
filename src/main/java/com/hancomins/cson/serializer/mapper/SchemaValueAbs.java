@@ -34,24 +34,37 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
     static SchemaValueAbs of(TypeSchema typeSchema, Field field) {
-        CSONValue csonValue = field.getAnnotation(CSONValue.class);
         int modifiers = field.getModifiers();
-        if(csonValue == null) return null;
+        CSONValue csonValue = field.getAnnotation(CSONValue.class);
+        // 0.9.29 /////////
         if(Modifier.isFinal(modifiers)) {
+            if(csonValue == null) {
+                return null;
+            }
             throw new CSONSerializerException("@CSONValue field cannot be final. (path: " + typeSchema.getType().getName() + "." + field.getName() + ")");
         }
-        String key = csonValue.key();
-        if(key == null || key.isEmpty()) key = csonValue.value();
-        if(key == null || key.isEmpty()) key = field.getName();
+        // 0.9.29 /////////
+        String key = field.getName();
+        if(csonValue != null) {
+            if(csonValue.ignore()) return null;
+            key = csonValue.key();
+            if (key == null || key.isEmpty()) key = csonValue.value();
+            if (key == null || key.isEmpty()) key = field.getName();
+        } else if(typeSchema.isExplicit() || !ISchemaValue.serializable(field.getType())) {
+            return null;
+        }
 
+        SchemaValueAbs schemaValue;
         if(Collection.class.isAssignableFrom(field.getType())) {
-            return new SchemaFieldArray(typeSchema, field, key);
+            schemaValue = new SchemaFieldArray(typeSchema, field, key);
         } else if(Map.class.isAssignableFrom(field.getType())) {
-            return new SchemaFieldMap(typeSchema, field, key);
+            schemaValue = new SchemaFieldMap(typeSchema, field, key);
         }
         else {
-            return new SchemaFieldNormal(typeSchema, field, key);
+            schemaValue = new SchemaFieldNormal(typeSchema, field, key);
         }
+
+        return schemaValue;
     }
 
     static SchemaValueAbs of(TypeSchema typeSchema, Method method) {

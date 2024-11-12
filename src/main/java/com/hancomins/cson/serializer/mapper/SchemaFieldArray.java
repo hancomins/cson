@@ -108,5 +108,9 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
         return obtainTypeValueInvoker != null && obtainTypeValueInvoker.isIgnoreError();
     }
 
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.ARRAY_FIELD;
+    }
 
 }

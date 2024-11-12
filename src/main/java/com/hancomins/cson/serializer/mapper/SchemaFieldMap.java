@@ -109,4 +109,9 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     public ISchemaNode copyNode() {
         return new SchemaFieldMap(parentsTypeSchema, field, path);
     }
+
+    @Override
+    public NodeType getNodeType() {
+        return NodeType.MAP_FIELD;
+    }
 }

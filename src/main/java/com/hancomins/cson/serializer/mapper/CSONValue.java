@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CSONValue {
 
+    boolean ignore() default false;
     String value() default "";
 
     String key() default "";

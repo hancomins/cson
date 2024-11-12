@@ -1,14 +1,15 @@
-package com.hancomins.cson.serializer;
+package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CSONObject;
-import com.hancomins.cson.format.KeyValueDataContainer;
+import com.hancomins.cson.serializer.CSON;
+import com.hancomins.cson.serializer.CSONValue;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ObjectSchemaContainerTest {
 
-     @CSON
+     @com.hancomins.cson.serializer.CSON
     public static class TestClass {
         String a = "a";
 
@@ -17,9 +18,10 @@ class ObjectSchemaContainerTest {
 
      @CSON
     public static class TestClass2 {
-        public int a = 200;
+         @CSONValue("a")
+         public int a = 200;
 
-        @CSONValue("a")
+        //@CSONValue("a")
         public String ab = "";
 
         /*@CSONValue("obj.k")

@@ -38,9 +38,10 @@ class TypeSchema {
         }
     }
 
+    private final boolean explicit;
     private final Class<?> type;
     private final Constructor<?> constructor;
-    private final ConcurrentHashMap<String, ObtainTypeValueInvoker> fieldValueObtaiorMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ObtainTypeValueInvoker> fieldValueObtainMap = new ConcurrentHashMap<>();
 
     private SchemaObjectNode schema;
 
@@ -49,7 +50,7 @@ class TypeSchema {
     private final Set<String> genericTypeNames = new HashSet<>();
 
 
-    protected SchemaObjectNode getSchema() {
+    protected SchemaObjectNode getSchemaObjectNode() {
         if(schema == null) {
             schema = NodePath.makeSchema(this,null);
         }
@@ -94,7 +95,7 @@ class TypeSchema {
         if(CSONArray.class.isAssignableFrom(type)) {
             return CSON_ARRAY;
         }
-        checkCSONAnnotation(type);
+        //checkCSONAnnotation(type);
         Constructor<?> constructor = null;
         try {
             constructor = type.getDeclaredConstructor();
@@ -127,13 +128,16 @@ class TypeSchema {
         this.type = type;
         this.constructor = constructor;
         CSON cson = type.getAnnotation(CSON.class);
+
         if(cson != null) {
+            explicit = cson.explicit();
             String commentBefore = cson.comment();
             String commentAfter = cson.commentAfter();
 
             this.comment = commentBefore.isEmpty() ? null : commentBefore;
             this.commentAfter = commentAfter.isEmpty() ? null : commentAfter;
         } else {
+            explicit = false;
             this.comment = null;
             this.commentAfter = null;
         }
@@ -155,7 +159,7 @@ class TypeSchema {
         List<ObtainTypeValueInvoker> obtainTypeValueInvokers = ObtainTypeValueInvoker.searchObtainTypeValueInvoker(this);
         for(ObtainTypeValueInvoker obtainTypeValueInvoker : obtainTypeValueInvokers) {
             // 뒤에 있는 것일수록 부모 클래스의 것이므로 덮어쓰지 않는다.
-            fieldValueObtaiorMap.putIfAbsent(obtainTypeValueInvoker.getFieldName(), obtainTypeValueInvoker);
+            fieldValueObtainMap.putIfAbsent(obtainTypeValueInvoker.getFieldName(), obtainTypeValueInvoker);
         }
 
     }
@@ -196,10 +200,10 @@ class TypeSchema {
 
     }
 
-
     Set<String> getGenericTypeNames() {
         return genericTypeNames;
     }
+
 
     private static boolean isCSONAnnotatedOfInterface(Class<?> type) {
         Class<?>[] interfaces = type.getInterfaces();
@@ -221,19 +225,6 @@ class TypeSchema {
     }
 
 
-    private static void checkCSONAnnotation(Class<?> type) {
-         Annotation a = type.getAnnotation(CSON.class);
-         if(a == null) {
-             if(isCSONAnnotated(type) || isCSONAnnotatedOfInterface(type)) {
-                 return;
-             }
-             if(type.isAnonymousClass()) {
-                throw new CSONSerializerException("Anonymous class " + type.getName() + " is not annotated with @CSON");
-             }
-             throw new CSONSerializerException("Type " + type.getName() + " is not annotated with @CSON");
-         }
-    }
-
     private static void checkConstructor(Class<?> type) {
         Constructor<?> constructor = null;
         try {
@@ -248,9 +239,13 @@ class TypeSchema {
     }
 
     ObtainTypeValueInvoker findObtainTypeValueInvoker(String fieldName) {
-        return fieldValueObtaiorMap.get(fieldName);
+        return fieldValueObtainMap.get(fieldName);
     }
 
+
+    boolean isExplicit() {
+        return explicit;
+    }
 
 
 
