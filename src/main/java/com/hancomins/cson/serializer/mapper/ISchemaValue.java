@@ -1,6 +1,7 @@
 package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CSONElement;
+import com.hancomins.cson.serializer.CSON;
 
 public interface ISchemaValue extends ISchemaNode {
 

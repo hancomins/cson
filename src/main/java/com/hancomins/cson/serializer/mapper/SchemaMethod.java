@@ -1,6 +1,8 @@
 package com.hancomins.cson.serializer.mapper;
 
 
+import com.hancomins.cson.serializer.CSONValueGetter;
+import com.hancomins.cson.serializer.CSONValueSetter;
 import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.Method;

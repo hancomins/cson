@@ -1,5 +1,7 @@
 package com.hancomins.cson.serializer.mapper;
 
+import com.hancomins.cson.serializer.CSON;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

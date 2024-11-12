@@ -1,6 +1,8 @@
 package com.hancomins.cson.serializer.mapper;
 
 
+import com.hancomins.cson.serializer.CSON;
+
 import java.lang.reflect.Field;
 
 public class SchemaFieldNormal extends SchemaField {

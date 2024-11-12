@@ -1,6 +1,9 @@
 package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CSONObject;
+import com.hancomins.cson.serializer.CSON;
+import com.hancomins.cson.serializer.CSONValue;
+import com.hancomins.cson.serializer.CSONValueSetter;
 import com.hancomins.cson.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -81,7 +84,8 @@ public class ObtainTypeValueInvoker {
                     for(String setterMethodName : setterMethodNames) {
                         setterMethodName = setterMethodName.trim();
                         String finalMethodName = setterMethodName;
-                        if(allMethods.stream().filter(methodObj -> methodObj.getAnnotation(CSONValueSetter.class) != null).noneMatch(methodObj -> methodObj.getName().equals(finalMethodName))) {
+                        if(allMethods.stream().filter(methodObj -> methodObj.getAnnotation(
+                                CSONValueSetter.class) != null).noneMatch(methodObj -> methodObj.getName().equals(finalMethodName))) {
                             throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ". Method '" + methodName + "' not found in " + currentType.getName());
                         }
 

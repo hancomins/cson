@@ -2,6 +2,9 @@ package com.hancomins.cson.serializer.mapper;
 
 
 import com.hancomins.cson.CSONObject;
+import com.hancomins.cson.serializer.CSONValue;
+import com.hancomins.cson.serializer.CSONValueGetter;
+import com.hancomins.cson.serializer.CSONValueSetter;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;

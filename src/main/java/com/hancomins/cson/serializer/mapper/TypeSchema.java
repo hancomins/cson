@@ -3,6 +3,7 @@ package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CSONArray;
 import com.hancomins.cson.CSONObject;
+import com.hancomins.cson.serializer.CSON;
 import com.hancomins.cson.util.ReflectionUtils;
 
 import java.lang.annotation.Annotation;
