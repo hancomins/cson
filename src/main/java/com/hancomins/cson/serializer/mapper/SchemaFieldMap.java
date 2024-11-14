@@ -13,7 +13,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     private final boolean isGenericTypeValue;
     private final boolean isAbstractValue;
     private ObtainTypeValueInvoker obtainTypeValueInvoker;
-    SchemaFieldMap(TypeSchema parentsTypeSchema, Field field, String path) {
+    SchemaFieldMap(ClassSchema parentsTypeSchema, Field field, String path) {
         super(parentsTypeSchema, field, path);
 
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
@@ -111,7 +111,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.MAP_FIELD;
+    public _SchemaType getNodeType() {
+        return _SchemaType.MAP_FIELD;
     }
 }

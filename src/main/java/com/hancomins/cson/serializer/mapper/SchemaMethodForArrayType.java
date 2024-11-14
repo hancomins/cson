@@ -36,11 +36,11 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
     }
 
     private final List<CollectionItems> collectionBundles;
-    protected final Types endpointValueType;
-    private final TypeSchema objectValueTypeSchema;
+    protected final SchemaType endpointValueType;
+    private final ClassSchema objectValueTypeSchema;
 
 
-    SchemaMethodForArrayType(TypeSchema parentsTypeSchema, Method method) {
+    SchemaMethodForArrayType(ClassSchema parentsTypeSchema, Method method) {
         super(parentsTypeSchema, method);
 
 
@@ -58,9 +58,9 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
         this.collectionBundles = ISchemaArrayValue.getGenericType(genericFieldType, methodPath);
         CollectionItems lastCollectionItems = this.collectionBundles.get(this.collectionBundles.size() - 1);
         Class<?> valueClass = lastCollectionItems.getValueClass();
-        endpointValueType = lastCollectionItems.isGeneric() ? Types.GenericType : Types.of(valueClass);
-        if (endpointValueType == Types.Object) {
-            objectValueTypeSchema = TypeSchemaMap.getInstance().getTypeInfo(valueClass);
+        endpointValueType = lastCollectionItems.isGeneric() ? SchemaType.GenericType : SchemaType.of(valueClass);
+        if (endpointValueType == SchemaType.Object) {
+            objectValueTypeSchema = ClassSchemaMap.getInstance().getTypeInfo(valueClass);
         } else {
             objectValueTypeSchema = null;
         }
@@ -70,12 +70,12 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
 
 
     @Override
-    public Types getEndpointValueType() {
+    public SchemaType getEndpointValueType() {
         return this.endpointValueType;
     }
 
     @Override
-    public TypeSchema getObjectValueTypeElement() {
+    public ClassSchema getObjectValueTypeElement() {
         return this.objectValueTypeSchema;
     }
 
@@ -87,7 +87,7 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
 
     @Override
     public boolean isAbstractType() {
-        return endpointValueType == Types.AbstractObject;
+        return endpointValueType == SchemaType.AbstractObject;
     }
 
 
@@ -107,8 +107,8 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.METHOD_FOR_ARRAY;
+    public _SchemaType getNodeType() {
+        return _SchemaType.METHOD_FOR_ARRAY;
     }
 
 }

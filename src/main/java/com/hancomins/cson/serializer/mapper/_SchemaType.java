@@ -1,6 +1,6 @@
 package com.hancomins.cson.serializer.mapper;
 
-public enum NodeType {
+public enum _SchemaType {
     ARRAY,
     OBJECT,
     NORMAL_FIELD,

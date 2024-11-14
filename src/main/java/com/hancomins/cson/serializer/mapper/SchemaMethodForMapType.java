@@ -34,7 +34,7 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
 
     private final String methodPath;
 
-    SchemaMethodForMapType(TypeSchema parentsTypeSchema, Method method) {
+    SchemaMethodForMapType(ClassSchema parentsTypeSchema, Method method) {
         super(parentsTypeSchema, method);
 
         boolean isGetter = getMethodType() == MethodType.Getter;
@@ -124,8 +124,8 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.METHOD_FOR_MAP;
+    public _SchemaType getNodeType() {
+        return _SchemaType.METHOD_FOR_MAP;
     }
 
 }

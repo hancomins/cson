@@ -3,15 +3,16 @@ package com.hancomins.cson.serializer.mapper;
 
 
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 class SchemaObjectNode extends SchemaElementNode {
 
     private final Map<Object, ISchemaNode> map = new LinkedHashMap<>();
+    private ClassSchema objectTypeSchema;
 
-    private SchemaFieldNormal fieldRack;
+    private List<SchemaFieldNormal> schemaFieldList = new ArrayList<>();
+    private final int id = LAST_ID.getAndIncrement();
+    private int parentId = -1;
 
     private String comment;
     private String afterComment;
@@ -24,15 +25,25 @@ class SchemaObjectNode extends SchemaElementNode {
     }
 
 
-    SchemaFieldNormal getFieldRack() {
-        return fieldRack;
-    }
 
-    SchemaObjectNode setFieldRack(SchemaFieldNormal fieldRack) {
-        this.fieldRack = fieldRack;
+
+    SchemaObjectNode addSchemaField(SchemaFieldNormal schemaField) {
+        schemaFieldList.add(schemaField);
         return this;
     }
 
+    List<SchemaFieldNormal> getSchemaFieldList() {
+        return schemaFieldList;
+    }
+
+    SchemaObjectNode setObjectTypeSchema(ClassSchema objectTypeSchema) {
+        this.objectTypeSchema = objectTypeSchema;
+        return this;
+    }
+
+    ClassSchema getObjectTypeSchema() {
+        return objectTypeSchema;
+    }
 
 
 
@@ -106,10 +117,11 @@ class SchemaObjectNode extends SchemaElementNode {
                 ISchemaNode node = entry.getValue();
                 ISchemaNode thisNode = map.get(key);
                 if(thisNode instanceof  SchemaObjectNode && node instanceof SchemaObjectNode) {
+                    ((SchemaObjectNode) thisNode).schemaFieldList.addAll(((SchemaObjectNode) node).schemaFieldList);
                     ((SchemaObjectNode) thisNode).merge((SchemaObjectNode) node);
                 } else if(thisNode instanceof SchemaValueAbs && node instanceof SchemaValueAbs) {
                     if(!((SchemaValueAbs)thisNode).appendDuplicatedSchemaValue((SchemaValueAbs) node)) {
-                        map.put(key, node);
+                        ((SchemaValueAbs) thisNode).appendDuplicatedSchemaValue((SchemaValueAbs) node);
                     }
                 }
                 else {
@@ -153,8 +165,23 @@ class SchemaObjectNode extends SchemaElementNode {
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.OBJECT;
+    public _SchemaType getNodeType() {
+        return _SchemaType.OBJECT;
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public int getParentId() {
+        return parentId;
+    }
+
+    @Override
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
     }
 
 }

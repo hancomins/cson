@@ -1,19 +1,14 @@
 package com.hancomins.cson.serializer.mapper;
 
 
-import com.hancomins.cson.serializer.CSON;
 
 import java.lang.reflect.Field;
 
 public class SchemaFieldNormal extends SchemaField {
 
 
-    protected SchemaFieldNormal(TypeSchema typeSchema, Field field, String path) {
+    protected SchemaFieldNormal(ClassSchema typeSchema, Field field, String path) {
         super(typeSchema, field, path);
-
-        if(this.types() != Types.CSONObject && this.types() != Types.CSONArray &&  this.types() == Types.Object && getField().getType().getAnnotation(CSON.class) == null)  {
-            throw new CSONSerializerException("Object type " + this.field.getType().getName() + " is not annotated with @CSON");
-        }
     }
 
 
@@ -43,7 +38,7 @@ public class SchemaFieldNormal extends SchemaField {
 
     @Override
     public boolean isAbstractType() {
-        return types() == Types.AbstractObject;
+        return types() == SchemaType.AbstractObject;
     }
 
     /*
@@ -61,8 +56,8 @@ public class SchemaFieldNormal extends SchemaField {
 
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.NORMAL_FIELD;
+    public _SchemaType getNodeType() {
+        return _SchemaType.NORMAL_FIELD;
     }
 
 }

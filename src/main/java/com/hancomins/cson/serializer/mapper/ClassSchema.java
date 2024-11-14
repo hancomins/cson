@@ -6,7 +6,6 @@ import com.hancomins.cson.CSONObject;
 import com.hancomins.cson.serializer.CSON;
 import com.hancomins.cson.util.ReflectionUtils;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
@@ -16,24 +15,24 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-class TypeSchema {
+class ClassSchema implements ISchemaNode {
 
 
-    protected static final TypeSchema CSON_OBJECT;
+    protected static final ClassSchema CSON_OBJECT;
 
     static {
         try {
-            CSON_OBJECT = new TypeSchema(CSONObject.class, CSONObject.class.getConstructor());
+            CSON_OBJECT = new ClassSchema(CSONObject.class, CSONObject.class.getConstructor());
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
 
-    protected static final TypeSchema CSON_ARRAY;
+    protected static final ClassSchema CSON_ARRAY;
 
     static {
         try {
-            CSON_ARRAY = new TypeSchema(CSONArray.class, CSONArray.class.getConstructor());
+            CSON_ARRAY = new ClassSchema(CSONArray.class, CSONArray.class.getConstructor());
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -44,19 +43,19 @@ class TypeSchema {
     private final Constructor<?> constructor;
     private final ConcurrentHashMap<String, ObtainTypeValueInvoker> fieldValueObtainMap = new ConcurrentHashMap<>();
 
-    private SchemaObjectNode schema;
+    //private SchemaObjectNode rootNode;
 
     private final String comment;
     private final String commentAfter;
     private final Set<String> genericTypeNames = new HashSet<>();
 
 
-    protected SchemaObjectNode getSchemaObjectNode() {
-        if(schema == null) {
-            schema = NodePath.makeSchema(this,null);
+    /*protected SchemaObjectNode getNode() {
+        if(rootNode == null) {
+            rootNode = NodePath.makeSchema(this,null, -1);
         }
-        return schema;
-    }
+        return rootNode;
+    }*/
 
     private static Class<?> findNoAnonymousClass(Class<?> type) {
         if(!type.isAnonymousClass()) {
@@ -87,7 +86,7 @@ class TypeSchema {
 
 
 
-    protected synchronized static TypeSchema create(Class<?> type) {
+    protected synchronized static ClassSchema create(Class<?> type) {
         type = findNoAnonymousClass(type);
 
         if(CSONObject.class.isAssignableFrom(type)) {
@@ -102,7 +101,7 @@ class TypeSchema {
             constructor = type.getDeclaredConstructor();
             constructor.setAccessible(true);
         } catch (NoSuchMethodException ignored) {}
-        return new TypeSchema(type, constructor);
+        return new ClassSchema(type, constructor);
     }
 
 
@@ -125,7 +124,7 @@ class TypeSchema {
         return genericTypeNames.contains(name);
     }
 
-    private TypeSchema(Class<?> type, Constructor<?> constructor) {
+    private ClassSchema(Class<?> type, Constructor<?> constructor) {
         this.type = type;
         this.constructor = constructor;
         CSON cson = type.getAnnotation(CSON.class);
@@ -249,5 +248,31 @@ class TypeSchema {
     }
 
 
+    @Override
+    public int getId() {
+        return 0;
+    }
 
+    @Override
+    public int getParentId() {
+        return 0;
+    }
+
+    @Override
+    public void setParentId(int parentId) {
+
+
+    }
+
+    @Override
+    public _SchemaType getNodeType() {
+        return null;
+    }
+
+
+
+    @Override
+    public ISchemaNode copyNode() {
+        return null;
+    }
 }

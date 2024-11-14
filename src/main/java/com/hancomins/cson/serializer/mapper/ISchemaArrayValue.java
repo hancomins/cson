@@ -11,9 +11,9 @@ import java.util.Map;
 
 interface ISchemaArrayValue extends ISchemaValue {
 
-     Types getEndpointValueType();
+     SchemaType getEndpointValueType();
 
-     TypeSchema getObjectValueTypeElement();
+     ClassSchema getObjectValueTypeElement();
 
      List<CollectionItems> getCollectionItems();
 

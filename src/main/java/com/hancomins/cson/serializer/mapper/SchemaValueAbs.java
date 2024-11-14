@@ -11,19 +11,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
-    private static final AtomicInteger LAST_ID = new AtomicInteger(1);
-
     private final int id = LAST_ID.getAndIncrement();
+    protected int parentID = -1;
 
-    final TypeSchema parentsTypeSchema;
-    final TypeSchema objectTypeSchema;
+    final ClassSchema parentsTypeSchema;
+    final ClassSchema objectTypeSchema;
 
     final String path;
-    private Types type;
+    private SchemaType type;
 
     private final boolean isPrimitive;
     final boolean isEnum;
@@ -36,7 +34,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     private final ArrayList<SchemaValueAbs> allSchemaValueAbsList = new ArrayList<>();
 
 
-    static SchemaValueAbs of(TypeSchema typeSchema, Field field) {
+    static SchemaValueAbs of(ClassSchema typeSchema, Field field) {
         int modifiers = field.getModifiers();
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
         // 0.9.29 /////////
@@ -70,7 +68,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         return schemaValue;
     }
 
-    static SchemaValueAbs of(TypeSchema typeSchema, Method method) {
+    static SchemaValueAbs of(ClassSchema typeSchema, Method method) {
         CSONValueGetter getter = method.getAnnotation(CSONValueGetter.class);
         CSONValueSetter setter = method.getAnnotation(CSONValueSetter.class);
         if(setter == null && getter == null) return null;
@@ -84,11 +82,14 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     }
 
 
+    public boolean isDeclaredType(ClassSchema typeSchema) {
+        return typeSchema == parentsTypeSchema;
+    }
+
+
     boolean appendDuplicatedSchemaValue(SchemaValueAbs node) {
-        if(node.parentsTypeSchema != this.parentsTypeSchema) {
-            return false;
-        }
-        else if(node instanceof ISchemaArrayValue && !(this instanceof ISchemaArrayValue) ||
+
+        if(node instanceof ISchemaArrayValue && !(this instanceof ISchemaArrayValue) ||
                 !(node instanceof ISchemaArrayValue) && this instanceof ISchemaArrayValue) {
             //TODO 예외 발생 시켜야한다.
             return false;
@@ -113,6 +114,9 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     }
 
 
+    ClassSchema getClassSchema() {
+        return objectTypeSchema;
+    }
 
 
     Object newInstance() {
@@ -122,27 +126,27 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
 
-    SchemaValueAbs(TypeSchema parentsTypeSchema, String path, Class<?> valueTypeClass, Type genericType) {
+    SchemaValueAbs(ClassSchema parentsTypeSchema, String path, Class<?> valueTypeClass, Type genericType) {
 
         this.path = path;
         this.valueTypeClass = valueTypeClass;
         this.parentsTypeSchema = parentsTypeSchema;
         this.isEnum = valueTypeClass.isEnum();
 
-        Types type = Types.Object;
+        SchemaType type = SchemaType.Object;
         if(genericType instanceof TypeVariable && parentsTypeSchema != null) {
             TypeVariable typeVariable = (TypeVariable)genericType;
             if(parentsTypeSchema.containsGenericType(typeVariable.getName())) {
-                type = Types.GenericType;
+                type = SchemaType.GenericType;
             }
         } else {
-            type = Types.of(valueTypeClass);
+            type = SchemaType.of(valueTypeClass);
         }
         this.type = type;
 
-        if(this.type == Types.Object || this.type == Types.AbstractObject) {
+        if(this.type == SchemaType.Object || this.type == SchemaType.AbstractObject) {
             try {
-                this.objectTypeSchema = TypeSchemaMap.getInstance().getTypeInfo(valueTypeClass);
+                this.objectTypeSchema = ClassSchemaMap.getInstance().getTypeInfo(valueTypeClass);
             } catch (CSONSerializerException e) {
                 throw new CSONSerializerException("A type that cannot be used as a serialization object : " + valueTypeClass.getName() + ". (path: " + parentsTypeSchema.getType().getName() + "." + path + ")", e);
             }
@@ -158,11 +162,11 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
 
-    final Types types() {
+    final SchemaType types() {
         return type;
     }
 
-    void changeType(Types type) {
+    void changeType(SchemaType type) {
         this.type = type;
     }
 
@@ -172,12 +176,23 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
 
-    final Types getType() {
+    final SchemaType getType() {
         return type;
     }
 
-    final int getId() {
+    @Override
+    public int getId() {
         return id;
+    }
+
+    @Override
+    public int getParentId() {
+        return parentID;
+    }
+
+    @Override
+    public void setParentId(int parentId) {
+        this.parentID = parentId;
     }
 
     final String getPath() {
@@ -202,7 +217,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
     @Override
-    public Object getValue(Object parent) {
+    public Object getValue(Map<Integer, Object> parentMap) {
         Object value = null;
 
         int index = 0;
@@ -211,10 +226,10 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         while(value == null && index < size) {
             SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
 
-            value = duplicatedSchemaValueAbs.onGetValue(parent);
-            if(value != null && duplicatedSchemaValueAbs.getType() == Types.GenericType) {
-                Types inType = Types.of(value.getClass());
-                if(Types.isSingleType(inType) || Types.isCsonType(inType)) {
+            value = duplicatedSchemaValueAbs.onGetValue(parentMap);
+            if(value != null && duplicatedSchemaValueAbs.getType() == SchemaType.GenericType) {
+                SchemaType inType = SchemaType.of(value.getClass());
+                if(SchemaType.isSingleType(inType) || SchemaType.isCsonType(inType)) {
                     return value;
                 } else {
                     return CSONObject.fromObject(value);
@@ -320,18 +335,23 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     }*/
 
     @Override
-    public void setValue(Object parent, Object value) {
-        onSetValue(parent, value);
+    public void setValue(Map<Integer, Object> parentMap, Object value) {
+        allSchemaValueAbsList.forEach(schemaValueAbs -> schemaValueAbs.onSetValue(parentMap, value));
+
+
+        //onSetValue(parent, value);
+
+
     }
 
 
-    abstract Object onGetValue(Object parent);
+    abstract Object onGetValue(Map<Integer, Object> parentsMap);
 
-    abstract void onSetValue(Object parent, Object value);
-
-
+    abstract void onSetValue(Map<Integer, Object> parentsMap, Object value);
 
 
+
+    /*
     void onSetValue(Object parent, short value) {
         onSetValue(parent, Short.valueOf(value));
     }
@@ -362,7 +382,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
     void onSetValue(Object parent, byte value) {
          onSetValue(parent,Byte.valueOf(value));
-    }
+    }*/
 
 
     boolean equalsValueType(SchemaValueAbs schemaValueAbs) {

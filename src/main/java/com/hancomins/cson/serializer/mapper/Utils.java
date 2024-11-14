@@ -39,7 +39,7 @@ public class Utils {
 
 
     @SuppressWarnings({"rawtypes", "ReassignedVariable", "unchecked"})
-    static Object convertCollectionValue(Object origin, List<CollectionItems> resultCollectionItemsList, Types returnType) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+    static Object convertCollectionValue(Object origin, List<CollectionItems> resultCollectionItemsList, SchemaType returnType) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         if(origin == null) {
             return null;
         }
@@ -83,7 +83,7 @@ public class Utils {
 
     }
 
-    static Object convertValue(Object origin, Types returnType) {
+    static Object convertValue(Object origin, SchemaType returnType) {
         try {
             if(origin instanceof String) {
                 return convertValueFromString((String)origin,returnType);
@@ -96,31 +96,31 @@ public class Utils {
         return null;
     }
 
-    static Object convertValueFromString(String origin, Types returnType) {
+    static Object convertValueFromString(String origin, SchemaType returnType) {
         if(origin == null) {
             return null;
         }
-        if(returnType == Types.String) {
+        if(returnType == SchemaType.String) {
             return origin;
-        } else if(returnType == Types.Byte) {
+        } else if(returnType == SchemaType.Byte) {
             return Byte.valueOf(origin);
-        } else if(returnType == Types.Short) {
+        } else if(returnType == SchemaType.Short) {
             return Short.valueOf(origin);
-        } else if(returnType == Types.Integer) {
+        } else if(returnType == SchemaType.Integer) {
             return Integer.valueOf(origin);
-        } else if(returnType == Types.Long) {
+        } else if(returnType == SchemaType.Long) {
             return Long.valueOf(origin);
-        } else if(returnType == Types.Float) {
+        } else if(returnType == SchemaType.Float) {
             return Float.valueOf(origin);
-        } else if(returnType == Types.Double) {
+        } else if(returnType == SchemaType.Double) {
             return Double.valueOf(origin);
-        } else if(returnType == Types.Character) {
+        } else if(returnType == SchemaType.Character) {
             return origin.charAt(0);
-        } else if(returnType == Types.Boolean) {
+        } else if(returnType == SchemaType.Boolean) {
             return Boolean.valueOf(origin);
-        } else if(returnType == Types.BigDecimal) {
+        } else if(returnType == SchemaType.BigDecimal) {
             return new BigDecimal(origin);
-        } else if(returnType == Types.BigInteger) {
+        } else if(returnType == SchemaType.BigInteger) {
             return new java.math.BigInteger(origin);
         }
 
@@ -129,78 +129,78 @@ public class Utils {
 
     }
 
-    static Object convertValueFromNumber(Number origin, Types returnType) {
+    static Object convertValueFromNumber(Number origin, SchemaType returnType) {
         if(origin == null) {
             return null;
         }
-        if(origin instanceof BigDecimal && returnType == Types.BigDecimal) {
+        if(origin instanceof BigDecimal && returnType == SchemaType.BigDecimal) {
             return origin;
-        } else if(origin instanceof Double && returnType == Types.Double) {
+        } else if(origin instanceof Double && returnType == SchemaType.Double) {
             return origin;
-        } else if(origin instanceof Float && returnType == Types.Float) {
+        } else if(origin instanceof Float && returnType == SchemaType.Float) {
             return origin;
-        } else if(origin instanceof Long && returnType == Types.Long) {
+        } else if(origin instanceof Long && returnType == SchemaType.Long) {
             return origin;
-        } else if(origin instanceof Integer && returnType == Types.Integer) {
+        } else if(origin instanceof Integer && returnType == SchemaType.Integer) {
             return origin;
-        } else if(origin instanceof Short && returnType == Types.Short) {
+        } else if(origin instanceof Short && returnType == SchemaType.Short) {
             return origin;
-        } else if(origin instanceof Byte && returnType == Types.Byte) {
+        } else if(origin instanceof Byte && returnType == SchemaType.Byte) {
             return origin;
         }
 
-        if(returnType == Types.Byte) {
+        if(returnType == SchemaType.Byte) {
             return origin.byteValue();
-        } else if(returnType == Types.Short) {
+        } else if(returnType == SchemaType.Short) {
             return origin.shortValue();
-        } else if(returnType == Types.Integer) {
+        } else if(returnType == SchemaType.Integer) {
             return origin.intValue();
-        } else if(returnType == Types.Long) {
+        } else if(returnType == SchemaType.Long) {
             return origin.longValue();
-        } else if(returnType == Types.Float) {
+        } else if(returnType == SchemaType.Float) {
             return origin.floatValue();
-        } else if(returnType == Types.Double) {
+        } else if(returnType == SchemaType.Double) {
             return origin.doubleValue();
-        } else if(returnType == Types.Character) {
+        } else if(returnType == SchemaType.Character) {
             return (char)origin.intValue();
-        } else if(returnType == Types.Boolean) {
+        } else if(returnType == SchemaType.Boolean) {
             return origin.intValue() != 0;
-        } else if(returnType == Types.BigDecimal) {
+        } else if(returnType == SchemaType.BigDecimal) {
             return new BigDecimal(origin.toString());
-        } else if(returnType == Types.BigInteger) {
+        } else if(returnType == SchemaType.BigInteger) {
             return new java.math.BigInteger(origin.toString());
-        } else if(returnType == Types.String) {
+        } else if(returnType == SchemaType.String) {
             return origin.toString();
-        } else if(returnType == Types.ByteArray) {
+        } else if(returnType == SchemaType.ByteArray) {
             return new byte[]{origin.byteValue()};
         }
         return null;
     }
 
-    static Object optFrom(CSONElement cson, Object key, Types valueType) {
+    static Object optFrom(CSONElement cson, Object key, SchemaType valueType) {
         boolean isArrayType = cson instanceof CSONArray;
         if(isArrayType && ((CSONArray)cson).isNull((int)key)) {
             return null;
         } else if(!isArrayType && ((CSONObject)cson).isNull((String)key)) {
             return null;
         }
-        if(Types.Boolean == valueType) {
+        if(SchemaType.Boolean == valueType) {
             return isArrayType ? ((CSONArray) cson).optBoolean((int)key) : ((CSONObject)cson).optBoolean((String)key);
-        } else if(Types.Byte == valueType) {
+        } else if(SchemaType.Byte == valueType) {
             return  isArrayType ? ((CSONArray) cson).optByte((int)key) : ((CSONObject)cson).optByte((String)key);
-        } else if(Types.Character == valueType) {
+        } else if(SchemaType.Character == valueType) {
             return  isArrayType ? ((CSONArray) cson).optChar((int)key, '\0') : ((CSONObject)cson).optChar((String)key, '\0');
-        } else if(Types.Short == valueType) {
+        } else if(SchemaType.Short == valueType) {
             return  isArrayType ? ((CSONArray) cson).optShort((int)key) : ((CSONObject)cson).optShort((String)key);
-        } else if(Types.Integer == valueType) {
+        } else if(SchemaType.Integer == valueType) {
             return  isArrayType ? ((CSONArray) cson).optInt((int)key) : ((CSONObject)cson).optInt((String)key);
-        } else if(Types.Float == valueType) {
+        } else if(SchemaType.Float == valueType) {
             return  isArrayType ? ((CSONArray) cson).optFloat((int)key) : ((CSONObject)cson).optFloat((String)key);
-        } else if(Types.Double == valueType) {
+        } else if(SchemaType.Double == valueType) {
             return  isArrayType ? ((CSONArray) cson).optDouble((int)key) : ((CSONObject)cson).optDouble((String)key);
-        } else if(Types.String == valueType) {
+        } else if(SchemaType.String == valueType) {
             return  isArrayType ? ((CSONArray) cson).optString((int)key) : ((CSONObject)cson).optString((String)key);
-        }  else if(Types.ByteArray == valueType) {
+        }  else if(SchemaType.ByteArray == valueType) {
             return  isArrayType ? ((CSONArray) cson).optByteArray((int)key) : ((CSONObject)cson).optByteArray((String)key);
         } else {
             return  isArrayType ? ((CSONArray) cson).opt((int)key) : ((CSONObject)cson).opt((String)key);

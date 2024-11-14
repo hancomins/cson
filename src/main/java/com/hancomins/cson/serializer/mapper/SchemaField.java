@@ -4,6 +4,7 @@ import com.hancomins.cson.serializer.CSONValue;
 import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 
 public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeValueInvokerGetter {
 
@@ -19,7 +20,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     //private final boolean isMapField;
 
 
-    SchemaField(TypeSchema parentsTypeSchema, Field field, String path) {
+    SchemaField(ClassSchema parentsTypeSchema, Field field, String path) {
         super(parentsTypeSchema, path, field.getType(), field.getGenericType());
         this.field = field;
         this.fieldName = field.getName();
@@ -44,6 +45,13 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     }
 
+    @Override
+    public void setParentId(int parentId) {
+        if(parentId == 11) {
+            System.out.println("SchemaField.setParentId");
+        }
+        super.setParentId(parentId);
+    }
 
     @Override
     public ObtainTypeValueInvoker getObtainTypeValueInvoker() {
@@ -68,9 +76,12 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
 
 
+
+
     @Override
-    Object onGetValue(Object parent) {
-        if(isStatic) parent = null;
+    Object onGetValue(Map<Integer, Object> parentMap) {
+        Object parent = null;
+        if(!isStatic) parent = parentMap.get(parentID);
         try {
             Object value = field.get(parent);
             if(isEnum && value != null) {
@@ -78,17 +89,29 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
             }
             return value;
         } catch (IllegalAccessException e) {
+            // todo: 상황에 따라서 예외처리를 다르게 해야할 수도 있음.
             e.printStackTrace();
             return null;
         }
     }
+
+
+
     @SuppressWarnings("unchecked")
     @Override
-    void onSetValue(Object parent, Object value) {
-        if(isStatic) parent = null;
+    void onSetValue(Map<Integer, Object> parentMap, Object value) {
+        Object parent = null;
+        if(!isStatic) {
+            parent = parentMap.get(parentID);
+            if(parent == null) {
+                return;
+            }
+        }
+
         try {
             if(isEnum) {
                 try {
+                    //noinspection rawtypes
                     value = Enum.valueOf((Class<Enum>) valueTypeClass, value.toString());
                 } catch (Exception e) {
                     value = null;
@@ -101,11 +124,13 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
                 field.set(parent, value);
             }
         } catch (IllegalAccessException e) {
+            // todo: 상황에 따라서 예외처리를 다르게 해야할 수도 있음.
             throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
 
 
+    /*
 
 
 
@@ -183,11 +208,13 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         }
     }
 
+    */
+
 
 
     @Override
     public String toString() {
-        return getId() + ""; /*"FieldRack{" +
+        return getId() + "<" + getType() + ">"; /*"FieldRack{" +
                 "id=" + id +
                 ", field=" + field +
                 ", path='" + path + '\'' +

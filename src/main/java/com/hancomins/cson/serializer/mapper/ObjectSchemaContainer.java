@@ -11,96 +11,101 @@ import java.util.Set;
 
 public class ObjectSchemaContainer implements KeyValueDataContainer {
 
+    private Class<?> classType;
 
 
-    private static ThreadLocal<Map<Integer, Object>> mapThreadLocal = new ThreadLocal<>();
-
-    private final Class<?> classType;
-    private Map<String, Mappable> schemaMap = new HashMap<>();
-
-    private TypeSchema typeSchema;
-    private SchemaObjectNode schemaRoot;
+    private SchemaObjectNode parentNode;
 
     /*
     *  가지 노드.
      */
     private SchemaObjectNode branchNode;
+    private Object parent;
 
-    private Object value;
+
+    private Map<Integer, Object> parentMap = null;
 
     //private ThreadLocal<Map<Integer, Schema>>
 
-    public ObjectSchemaContainer(Class<?> classType) {
-        this.classType = classType;
-        this.typeSchema = TypeSchemaMap.getInstance().getTypeInfo(classType);
-        this.schemaRoot = typeSchema.getSchemaObjectNode();
-        this.value = typeSchema.newInstance();
-        mapThreadLocal.set(new HashMap<>());
-    }
-
-    private ObjectSchemaContainer() {
-        this.classType = null;
-        this.typeSchema = null;
-        this.schemaRoot = null;
-        this.value = null;
-        mapThreadLocal.set(new HashMap<>());
-    }
-
-
     public ObjectSchemaContainer(Object value) {
-        this.classType = value.getClass();
-        this.typeSchema = TypeSchemaMap.getInstance().getTypeInfo(classType);
-        this.schemaRoot = typeSchema.getSchemaObjectNode();
-        this.value = value;
-        mapThreadLocal.set(new HashMap<>());
-        //mapThreadLocal.get().put(this)
+        if(value instanceof Class<?>) {
+            this.classType = (Class<?>)value;
+            this.parent = ClassSchemaMap.getInstance().getTypeInfo(classType).newInstance();
+        } else {
+            this.classType = value.getClass();
+            this.parent = value;
+        }
+        this.parentNode = RootObjectNodeMap.getInstance().getObjectNode(classType);
+        this.parentMap = new HashMap<>();
+        this.parentMap.put(this.parentNode.getId(), this.parent);
+    }
+
+
+    private ObjectSchemaContainer(Map<Integer, Object> parentMap) {
+        this.classType = null;
+        this.parentNode = null;
+        this.parent = null;
+        this.parentMap = parentMap;
+    }
+
+
+    ObjectSchemaContainer(SchemaObjectNode node, Map<Integer, Object> parentMap) {
+
+        this.parentNode = node;
+        this.parentMap = parentMap;
     }
 
 
     private void setBranchNode(SchemaObjectNode schemaObjectNode) {
         this.branchNode = schemaObjectNode;
-        this.schemaRoot = schemaObjectNode;
+        this.parentNode = schemaObjectNode;
     }
 
+
+    private void setParent(Object parent) {
+        if(parent == null) {
+            return;
+        }
+        this.parent = parent;
+        this.classType = parent.getClass();
+    }
 
 
 
     @Override
     public void put(String key, Object value) {
-
-
-
-
-        ISchemaNode iSchemaNode = this.schemaRoot.get(key);
-        NodeType nodeType = iSchemaNode.getNodeType();
+        ISchemaNode iSchemaNode = this.parentNode.get(key);
+        if(iSchemaNode == null) {
+            return;
+        }
+        _SchemaType nodeType = iSchemaNode.getNodeType();
         switch (nodeType) {
             case OBJECT:
+                SchemaObjectNode schemaObjectNode = (SchemaObjectNode) iSchemaNode;
                 if(value instanceof KeyValueDataContainerWrapper) {
-                    KeyValueDataContainerWrapper keyValueDataContainerWrapper = (KeyValueDataContainerWrapper)value;
-                    SchemaObjectNode schemaObjectNode = (SchemaObjectNode)iSchemaNode;
-                    List<SchemaValueAbs> schemaFieldList = schemaObjectNode.getParentSchemaFieldList();
-
-
+                    KeyValueDataContainerWrapper keyValueDataContainerWrapper = (KeyValueDataContainerWrapper) value;
                     ObjectSchemaContainer objectSchemaContainer = null;
-                    for(SchemaValueAbs schemaValueAbs : schemaFieldList) {
-                        if(schemaValueAbs instanceof SchemaFieldNormal) {
-                            SchemaFieldNormal schemaFieldNormal = (SchemaFieldNormal)schemaValueAbs;
-                            Object instance = schemaFieldNormal.newInstance();
-                            objectSchemaContainer = new ObjectSchemaContainer(instance);
-                            keyValueDataContainerWrapper.setContainer(objectSchemaContainer);
-                            schemaFieldNormal.setValue(this.value,instance);
-                            int id = schemaFieldNormal.getId();
-                            mapThreadLocal.get().put(id,instance);
+                    if (!keyValueDataContainerWrapper.hasContainer()) {
+                        objectSchemaContainer = new ObjectSchemaContainer(schemaObjectNode, parentMap);
+                        keyValueDataContainerWrapper.setContainer(objectSchemaContainer);
 
+                        List<SchemaFieldNormal> schemaFieldList = schemaObjectNode.getSchemaFieldList();
+                        if(!schemaFieldList.isEmpty()) {
+
+                            schemaFieldList.forEach(schemaFieldNormal -> {
+                                int id = schemaFieldNormal.getId();
+                                this.parentMap.computeIfAbsent(id, (id_) -> {
+                                    Object instance = schemaFieldNormal.newInstance();
+                                    schemaFieldNormal.setValue(this.parentMap, instance);
+                                    return instance;
+                                });
+                            });
                         }
+
+
                     }
-                    if(schemaObjectNode.isBranchNode()) {
-                        if(objectSchemaContainer == null) {
-                            objectSchemaContainer = new ObjectSchemaContainer();
-                            keyValueDataContainerWrapper.setContainer(objectSchemaContainer);
-                        }
-                        objectSchemaContainer.setBranchNode(schemaObjectNode);
-                    }
+
+
 
 
                 }
@@ -115,11 +120,16 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
 
                 int id = schemaNode.getId();
 
-                Map<Integer, Object> map = mapThreadLocal.get();
+                /*Map<Integer, Object> map = mapThreadLocal.get();
                 Object parent = map.get(id);
-                if(parent == null) parent = this.value;
+                if(parent == null) {
+                    parent = getRootValue();
+                    if(!schemaNode.isDeclaredType(parent.getClass())) {
+                        break;
+                    }
+                }*/
 
-                ((SchemaFieldNormal)iSchemaNode).setValue(parent,value);
+                ((SchemaFieldNormal)iSchemaNode).setValue(parentMap,value);
                 break;
             default:
                 break;
@@ -128,15 +138,15 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
 
     @Override
     public Object get(String key) {
-        ISchemaNode iSchemaNode = this.schemaRoot.get(key);
-        NodeType nodeType = iSchemaNode.getNodeType();
+        ISchemaNode iSchemaNode = this.parentNode.get(key);
+        _SchemaType nodeType = iSchemaNode.getNodeType();
         switch (nodeType) {
             case OBJECT:
                 SchemaObjectNode schemaObjectNode = (SchemaObjectNode)iSchemaNode;
                 List<SchemaValueAbs> schemaFieldList = schemaObjectNode.getParentSchemaFieldList();
 
             case NORMAL_FIELD:
-                return ((SchemaFieldNormal)iSchemaNode).getValue(value);
+                //return ((SchemaFieldNormal)iSchemaNode).getValue(parent);
             default:
                 return null;
         }
@@ -215,8 +225,7 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
             if(refrenceObject != null) {
                 Object arg = refrenceObject;
                 refrenceObject = null;
-                return new ObjectSchemaContainer(arg instanceof Class<?> ? (Class<?>)arg : arg);
-
+                return new ObjectSchemaContainer(arg);
             }
             return new KeyValueDataContainerWrapper();
 

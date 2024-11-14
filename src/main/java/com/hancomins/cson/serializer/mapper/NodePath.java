@@ -20,26 +20,31 @@ public class NodePath {
     }
 
 
-    static SchemaObjectNode makeSchema(TypeSchema targetTypeSchema, SchemaValueAbs parentFieldRack) {
-        List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType());
-        SchemaObjectNode objectNode = new SchemaObjectNode().setBranchNode(false);
+    static SchemaObjectNode makeNode(ClassSchema targetTypeSchema, SchemaValueAbs parentFieldRack, int parentID) {
+        List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType(), parentID);
+        SchemaObjectNode objectNode = new SchemaObjectNode()
+                .addSchemaField((SchemaFieldNormal) parentFieldRack)
+                .setObjectTypeSchema(targetTypeSchema).setBranchNode(false);
+        objectNode.setParentId(parentID);
 
+        int objectNodeId = objectNode.getId();
         for(SchemaValueAbs fieldRack : fieldRacks) {
+            fieldRack.setParentId(parentFieldRack == null ? objectNodeId : parentFieldRack.getId());
             fieldRack.setParentFiled(parentFieldRack);
             String path = fieldRack.getPath();
-            if(fieldRack.getType() == Types.Object) {
-                TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(fieldRack.getValueTypeClass());
-                SchemaObjectNode childTree = makeSchema(typeSchema,fieldRack);
+            if(fieldRack.getType() == SchemaType.Object) {
+                ClassSchema typeSchema = ClassSchemaMap.getInstance().getTypeInfo(fieldRack.getValueTypeClass());
+                SchemaObjectNode childTree = makeNode(typeSchema,fieldRack,objectNodeId);
                 childTree.setComment(fieldRack.getComment());
                 childTree.setAfterComment(fieldRack.getAfterComment());
                 childTree.addParentFieldRack(fieldRack);
                 childTree.setBranchNode(false);
-                SchemaElementNode elementNode = makeSubTree(path, childTree);
+                SchemaElementNode elementNode = makeSubTree(path, childTree, childTree.getId());
                 elementNode.setBranchNode(false);
                 objectNode.merge(elementNode);
                 continue;
             }
-            SchemaElementNode elementNode = makeSubTree(path, fieldRack);
+            SchemaElementNode elementNode = makeSubTree(path, fieldRack, objectNodeId);
             objectNode.merge(elementNode);
         }
         if(parentFieldRack == null) {
@@ -49,20 +54,18 @@ public class NodePath {
     }
 
 
-    private static List<SchemaValueAbs> searchAllFields(TypeSchema typeSchema, Class<?> clazz) {
+    private static List<SchemaValueAbs> searchAllFields(ClassSchema typeSchema, Class<?> clazz, int parentID) {
         //Set<String> fieldPaths = new HashSet<>();
         List<SchemaValueAbs> results = new ArrayList<>();
-        findSchemaByAncestors(typeSchema, results, clazz);
+        findSchemaByAncestors(typeSchema, results, clazz, parentID);
         Class<?>[] interfaces = clazz.getInterfaces();
-        if(interfaces != null) {
-            for(Class<?> interfaceClass : interfaces) {
-                findSchemaByAncestors(typeSchema, results, interfaceClass);
-            }
+        for (Class<?> interfaceClass : interfaces) {
+            findSchemaByAncestors(typeSchema, results, interfaceClass, parentID);
         }
         return results;
     }
 
-    private static void findSchemaByAncestors(TypeSchema typeSchema, List<SchemaValueAbs> results, Class<?> currentClass) {
+    private static void findSchemaByAncestors(ClassSchema typeSchema, List<SchemaValueAbs> results, Class<?> currentClass, int parentID) {
         List<Field> fields = ReflectionUtils.getAllInheritedFields(currentClass);
         List<Method> methods = ReflectionUtils.getAllInheritedMethods(currentClass);
         TypeUtil.filterSupportedTypes(fields).stream().map(field -> SchemaValueAbs.of(typeSchema, field))
@@ -73,7 +76,7 @@ public class NodePath {
     }
 
 
-    private static void findCsonGetterSetterMethods(TypeSchema typeSchema, List<SchemaValueAbs> results, List<Method> methods) {
+    private static void findCsonGetterSetterMethods(ClassSchema typeSchema, List<SchemaValueAbs> results, List<Method> methods) {
         if(methods != null) {
             for(Method method : methods) {
                 SchemaMethod methodRack = (SchemaMethod) SchemaValueAbs.of(typeSchema,method);
@@ -179,10 +182,11 @@ public class NodePath {
     }
 
 
-    public static SchemaElementNode makeSubTree(String path, ISchemaNode value) {
+    public static SchemaElementNode makeSubTree(String path, ISchemaNode value, int parentId) {
         List<PathItem> list = PathItem.parseMultiPath2(path);
         SchemaElementNode rootNode = new SchemaObjectNode();
         SchemaElementNode schemaNode = rootNode;
+        value.setParentId(parentId);
         //noinspection ForLoopReplaceableByForEach
         for(int i = 0, n = list.size(); i < n; ++i) {
             PathItem pathItem = list.get(i);
@@ -191,6 +195,7 @@ public class NodePath {
                 break;
             }
             schemaNode = obtainOrCreateChild(schemaNode, pathItem);
+
         }
         return rootNode;
     }

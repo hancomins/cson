@@ -17,6 +17,11 @@ public class KeyValueDataContainerWrapper implements KeyValueDataContainer {
     public KeyValueDataContainerWrapper() {
     }
 
+
+    public boolean hasContainer() {
+        return container != null;
+    }
+
     @Override
     public void put(String key, Object value) {
         if(container == null) {

@@ -1,7 +1,6 @@
 package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CSONObject;
-import com.hancomins.cson.serializer.CSON;
 import com.hancomins.cson.serializer.CSONValue;
 import com.hancomins.cson.serializer.CSONValueSetter;
 import com.hancomins.cson.util.ReflectionUtils;
@@ -14,7 +13,7 @@ import java.util.*;
 
 public class ObtainTypeValueInvoker {
 
-    static List<ObtainTypeValueInvoker> searchObtainTypeValueInvoker(TypeSchema typeSchema) {
+    static List<ObtainTypeValueInvoker> searchObtainTypeValueInvoker(ClassSchema typeSchema) {
         List<ObtainTypeValueInvoker> result = new ArrayList<>();
 
         // 이미 등록된 메서드를 덮어쓰지 않도록 하기 위해 HashSet을 사용한다.
@@ -110,9 +109,9 @@ public class ObtainTypeValueInvoker {
         if(genericReturnType instanceof TypeVariable && genericTypeNames.contains(((TypeVariable<?>) genericReturnType).getName())) {
             genericType = true;
         }
-        else if(!Types.isSingleType(Types.of(returnType)) && (returnType == void.class || returnType == Void.class || returnType == null || (!genericType && returnType.getAnnotation(CSON.class) == null))) {
+        /*else if(!Types.isSingleType(Types.of(returnType)) && (returnType == void.class || returnType == Void.class || returnType == null || (!genericType && returnType.getAnnotation(CSON.class) == null))) {
             throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ".  Return type must be a class annotated with @CSON");
-        }
+        }*/
         int parameterCount = method.getParameterCount();
         Class<?>[] parameterTypes = method.getParameterTypes();
         if(parameterCount > 0) {

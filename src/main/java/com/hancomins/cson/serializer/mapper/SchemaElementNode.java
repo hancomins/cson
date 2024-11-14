@@ -8,6 +8,7 @@ public abstract class SchemaElementNode implements ISchemaNode {
     private ISchemaNode parent;
     private List<SchemaValueAbs> parentSchemaFieldList = new ArrayList<>();
 
+
     /**
      * 브런치 노드. 참조된 필드가 없는 노드.
      */
@@ -38,20 +39,20 @@ public abstract class SchemaElementNode implements ISchemaNode {
     protected abstract void onBranchNode(boolean branchNode);
 
 
-    public SchemaElementNode setParent(ISchemaNode parent) {
+    SchemaElementNode setParent(ISchemaNode parent) {
         this.parent = parent;
         return this;
     }
 
-    protected List<SchemaValueAbs> getParentSchemaFieldList() {
+    List<SchemaValueAbs> getParentSchemaFieldList() {
         return parentSchemaFieldList;
     }
 
-    protected void setParentSchemaFieldList(List<SchemaValueAbs> parentSchemaFieldList) {
+    void setParentSchemaFieldList(List<SchemaValueAbs> parentSchemaFieldList) {
         this.parentSchemaFieldList = parentSchemaFieldList;
     }
 
-    public SchemaElementNode addParentFieldRack(SchemaValueAbs parentFieldRack) {
+    SchemaElementNode addParentFieldRack(SchemaValueAbs parentFieldRack) {
         if(this.parentSchemaFieldList.contains(parentFieldRack)) {
             return this;
         }
@@ -59,7 +60,7 @@ public abstract class SchemaElementNode implements ISchemaNode {
         return this;
     }
 
-    public SchemaElementNode addParentFieldRackAll(Collection<SchemaValueAbs> parentFieldRackCollection) {
+    SchemaElementNode addParentFieldRackAll(Collection<SchemaValueAbs> parentFieldRackCollection) {
         for(SchemaValueAbs parentFieldRack : parentFieldRackCollection) {
             addParentFieldRack(parentFieldRack);
         }

@@ -9,13 +9,13 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     //private final Types valueType;
 
     private final List<CollectionItems> collectionBundles;
-    protected final Types ValueType;
-    private final TypeSchema objectValueTypeSchema;
+    protected final SchemaType ValueType;
+    private final ClassSchema objectValueTypeSchema;
     private final ObtainTypeValueInvoker obtainTypeValueInvoker;
 
 
 
-    protected SchemaFieldArray(TypeSchema typeSchema, Field field, String path) {
+    protected SchemaFieldArray(ClassSchema typeSchema, Field field, String path) {
         super(typeSchema, field, path);
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
         this.collectionBundles = ISchemaArrayValue.getGenericType(field.getGenericType(), fieldPath);
@@ -25,20 +25,20 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
         CollectionItems collectionItems = this.collectionBundles.get(collectionBundles.size() - 1);
         Class<?> valueClass = collectionItems.getValueClass();
-        Types valueType = Types.of(valueClass);
+        SchemaType valueType = SchemaType.of(valueClass);
 
         if(collectionItems.isGeneric()) {
             if( !typeSchema.containsGenericType(collectionItems.getGenericTypeName())) {
                 throw new CSONSerializerException("Collection generic type is already defined. (path: " + fieldPath + ")");
             }
-            valueType = Types.GenericType;
+            valueType = SchemaType.GenericType;
         } else if(collectionItems.isAbstractType()) {
-            valueType = Types.AbstractObject;
+            valueType = SchemaType.AbstractObject;
         }
         ValueType = valueType;
 
-        if (ValueType == Types.Object || valueType == Types.AbstractObject ) {
-            objectValueTypeSchema = TypeSchemaMap.getInstance().getTypeInfo(valueClass);
+        if (ValueType == SchemaType.Object || valueType == SchemaType.AbstractObject ) {
+            objectValueTypeSchema = ClassSchemaMap.getInstance().getTypeInfo(valueClass);
         } else {
             objectValueTypeSchema = null;
         }
@@ -47,7 +47,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
 
     @Override
-    public TypeSchema getObjectValueTypeElement() {
+    public ClassSchema getObjectValueTypeElement() {
         return objectValueTypeSchema;
     }
 
@@ -58,7 +58,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public boolean isAbstractType() {
-        return ValueType == Types.AbstractObject;
+        return ValueType == SchemaType.AbstractObject;
     }
 
     @Override
@@ -68,7 +68,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
 
     @Override
-    public Types getEndpointValueType() {
+    public SchemaType getEndpointValueType() {
         return ValueType;
     }
 
@@ -109,8 +109,8 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.ARRAY_FIELD;
+    public _SchemaType getNodeType() {
+        return _SchemaType.ARRAY_FIELD;
     }
 
 }

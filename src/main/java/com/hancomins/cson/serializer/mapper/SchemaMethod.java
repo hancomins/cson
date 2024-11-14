@@ -7,6 +7,7 @@ import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 
 class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGetter {
@@ -197,7 +198,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     private final boolean isStatic;
 
 
-    SchemaMethod(TypeSchema parentsTypeSchema, Method method) {
+    SchemaMethod(ClassSchema parentsTypeSchema, Method method) {
         super(parentsTypeSchema,getPath(method), getValueType(method), getGenericType(method));
         this.isStatic = java.lang.reflect.Modifier.isStatic(method.getModifiers());
 
@@ -218,7 +219,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         }
         this.methodPath = methodPath;
 
-        if(this.getType() != Types.GenericType) {
+        if(this.getType() != SchemaType.GenericType) {
             ISchemaValue.assertValueType(getValueTypeClass(), method.getDeclaringClass().getName() + "." + method.getName());
         }
         if(methodType == MethodType.Getter) {
@@ -315,13 +316,14 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
 
     @Override
     public boolean isAbstractType() {
-        return types() == Types.AbstractObject;
+        return types() == SchemaType.AbstractObject;
     }
 
     @Override
-    Object onGetValue(Object parent) {
+    Object onGetValue(Map<Integer, Object> parentMap) {
         if(methodGetter == null) return null;
-        if(isStatic) parent = null;
+        Object parent = null;
+        if(!isStatic) parent = parentMap.get(parentID);
         try {
             Object value = methodGetter.invoke(parent);
             if(isEnum && value != null) {
@@ -338,9 +340,10 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     }
 
     @Override
-    void onSetValue(Object parent, Object value) {
+    void onSetValue(Map<Integer,Object> parentMap, Object value) {
         if(methodSetter == null) return;
-        if(isStatic) parent = null;
+        Object parent = null;
+        if(!isStatic) parent = parentMap.get(parentID);
         try {
             if(isEnum) {
                 try {
@@ -373,8 +376,8 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     }
 
     @Override
-    public NodeType getNodeType() {
-        return NodeType.METHOD;
+    public _SchemaType getNodeType() {
+        return _SchemaType.METHOD;
     }
 
 }

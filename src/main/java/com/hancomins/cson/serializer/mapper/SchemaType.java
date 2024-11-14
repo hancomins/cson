@@ -3,7 +3,7 @@ package com.hancomins.cson.serializer.mapper;
 import com.hancomins.cson.format.ArrayDataContainer;
 import com.hancomins.cson.format.BaseDataContainer;
 
-enum Types {
+enum SchemaType {
     Byte,
     Short,
     Integer,
@@ -27,22 +27,22 @@ enum Types {
 
 
 
-    static boolean isPrimitivableType(Types type) {
+    static boolean isPrimitivableType(SchemaType type) {
         return type == Byte || type == Short || type == Integer || type == Long || type == Float || type == Double || type == Boolean || type == Character;
     }
 
-    static boolean isSingleType(Types type) {
+    static boolean isSingleType(SchemaType type) {
         return type == Byte || type == Short || type == Integer || type == Long || type == Float || type == Double || type == Boolean || type == Character || type == String || type == ByteArray || type == BigDecimal || type == BigInteger;
     }
 
-    static boolean isCsonType(Types type) {
+    static boolean isCsonType(SchemaType type) {
         return type == CSONElement || type == CSONObject || type == CSONArray;
     }
 
 
 
 
-    static Types of(Class<?> type) {
+    static SchemaType of(Class<?> type) {
         /*if(type.isAnonymousClass()) {
             Class<?> superClass = type.getSuperclass();
             if(superClass != null && superClass != Object.class) {
