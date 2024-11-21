@@ -268,14 +268,14 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
                 this.parentsTypeSchema == node.parentsTypeSchema &&
                 this.valueTypeClass == node.valueTypeClass) {
 
-            if(node instanceof SchemaMethodForMapType &&
-                    this instanceof SchemaMethodForMapType &&
-                    !((SchemaMethodForMapType) node).getElementType().equals(((SchemaMethodForMapType) this).getElementType())
+            if(node instanceof SetterGetterSchemaUseMap &&
+                    this instanceof SetterGetterSchemaUseMap &&
+                    !((SetterGetterSchemaUseMap) node).getElementType().equals(((SetterGetterSchemaUseMap) this).getElementType())
             ) {
                 return super.appendDuplicatedSchemaValue(node);
-            } else if(node instanceof SchemaMethodForArrayType &&
-                    this instanceof SchemaMethodForArrayType &&
-                    !((SchemaMethodForArrayType) node).equalsValueType(this))
+            } else if(node instanceof SetterGetterSchemaUseCollection &&
+                    this instanceof SetterGetterSchemaUseCollection &&
+                    !((SetterGetterSchemaUseCollection) node).equalsValueType(this))
              {
                 return super.appendDuplicatedSchemaValue(node);
             }

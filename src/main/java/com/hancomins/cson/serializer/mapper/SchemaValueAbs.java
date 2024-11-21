@@ -72,11 +72,11 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         CSONValueGetter getter = method.getAnnotation(CSONValueGetter.class);
         CSONValueSetter setter = method.getAnnotation(CSONValueSetter.class);
         if(setter == null && getter == null) return null;
-        if(SchemaMethodForArrayType.isCollectionTypeParameterOrReturns(method)) {
-            return new SchemaMethodForArrayType(typeSchema, method);
+        if(SetterGetterSchemaUseCollection.isCollectionTypeParameterOrReturns(method)) {
+            return new SetterGetterSchemaUseCollection(typeSchema, method);
         }
-        else if(SchemaMethodForMapType.isMapTypeParameterOrReturns(method)) {
-            return new SchemaMethodForMapType(typeSchema, method);
+        else if(SetterGetterSchemaUseMap.isMapTypeParameterOrReturns(method)) {
+            return new SetterGetterSchemaUseMap(typeSchema, method);
         }
         return new SchemaMethod(typeSchema, method);
     }

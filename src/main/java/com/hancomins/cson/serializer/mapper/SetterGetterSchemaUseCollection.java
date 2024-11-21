@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 
-class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue {
+class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArrayValue {
 
 
 
@@ -40,7 +40,7 @@ class SchemaMethodForArrayType extends SchemaMethod implements ISchemaArrayValue
     private final ClassSchema objectValueTypeSchema;
 
 
-    SchemaMethodForArrayType(ClassSchema parentsTypeSchema, Method method) {
+    SetterGetterSchemaUseCollection(ClassSchema parentsTypeSchema, Method method) {
         super(parentsTypeSchema, method);
 
 

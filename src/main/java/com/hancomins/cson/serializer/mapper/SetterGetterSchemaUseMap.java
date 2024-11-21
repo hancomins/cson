@@ -9,7 +9,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.Map;
 
-class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
+class SetterGetterSchemaUseMap extends SchemaMethod implements ISchemaMapValue {
 
 
     @SuppressWarnings("DuplicatedCode")
@@ -34,7 +34,7 @@ class SchemaMethodForMapType extends SchemaMethod implements ISchemaMapValue {
 
     private final String methodPath;
 
-    SchemaMethodForMapType(ClassSchema parentsTypeSchema, Method method) {
+    SetterGetterSchemaUseMap(ClassSchema parentsTypeSchema, Method method) {
         super(parentsTypeSchema, method);
 
         boolean isGetter = getMethodType() == MethodType.Getter;

@@ -5,9 +5,15 @@ import com.hancomins.cson.serializer.CSONValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-class _NodeBuilderTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+public class _NodeBuilderTest {
 
 
 
@@ -30,20 +36,37 @@ class _NodeBuilderTest {
 
 
     @Test
+    @DisplayName("기본 노드 생성 테스트")
     void test() {
         _ObjectNode node = new _ObjectNode();
         nodeBuilder = new _NodeBuilder(null);
         ClassSchema classSchema = ClassSchemaMap.getInstance().getTypeInfo(TestClass.class);
-        _ObjectNode objectNode = nodeBuilder.makeNode(classSchema);
-
-        assertNotNull(objectNode);
-        _ObjectNode aNode = objectNode.getNode("a");
+        _ObjectNode rootObjectNode = nodeBuilder.makeNode(classSchema);
+        assertNotNull(rootObjectNode);
+        _ObjectNode aNode = rootObjectNode.getNode("a");
         assertNotNull(aNode);
         assertTrue(aNode.isEndPoint());
-        _ObjectNode kNode = objectNode.getNode("b").getNode("obj").getNode("k");
+        _ObjectNode kNode = rootObjectNode.getNode("b").getNode("obj").getNode("k");
+        List<Integer> idList = kNode.getFileSchemedPointerList().stream().map(_SchemaPointer::getParentId).collect(Collectors.toList());
         assertNotNull(kNode);
         assertTrue(kNode.isEndPoint());
         assertEquals(2, kNode.getFileSchemedPointerList().size());
+
+        _SchemaPointer schemaPointer = rootObjectNode.getClassSchemaPointerList().get(0);
+        int rootID = schemaPointer.getId();
+        _ObjectNode objNode = rootObjectNode.getNode("b").getNode("obj");
+        int objID = objNode.getClassSchemaPointerList().get(0).getId();
+        int parentID = objNode.getClassSchemaPointerList().get(0).getParentId();
+
+        List<Integer> classSchemaIDList = new ArrayList<>();
+        classSchemaIDList.add(rootID);
+        classSchemaIDList.add(objID);
+        assertEquals(rootID, parentID);
+        assertTrue(classSchemaIDList.containsAll(idList));
+
+
+
+
     }
 
     public static class ConflictParentClass {
@@ -52,10 +75,8 @@ class _NodeBuilderTest {
 
     public static class ConflictClass {
         String a = "a";
-
         @CSONValue("a")
         TestClass b = new TestClass();
-
     }
 
     @Test
@@ -70,8 +91,23 @@ class _NodeBuilderTest {
         } catch (CSONException csonException) {
             csonException.printStackTrace();
         }
+    }
+
+
+    public static class CollectionTestClass {
+        Set<String> valueList;
+        @CSONValue("valueList[0]")
+        String idx0Value;
+    }
+
+    @Test
+    @DisplayName("컬렉션 노드 테스트")
+    void testForCollectionNode() {
+
 
     }
+
+
 
 
 

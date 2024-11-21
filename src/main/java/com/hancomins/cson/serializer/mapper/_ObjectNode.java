@@ -6,10 +6,7 @@ import com.hancomins.cson.ErrorMessage;
 import com.hancomins.cson.ExceptionMessages;
 import com.hancomins.cson.util.ArrayMap;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class _ObjectNode {
 
@@ -101,6 +98,11 @@ public class _ObjectNode {
     String getName() {
         return name;
     }
+
+    List<_SchemaPointer> getClassSchemaPointerList() {
+        return classSchemaPointerMap == null ? null : (List<_SchemaPointer>) classSchemaPointerMap.values();
+    }
+
 
     private void mergeSchemas(_ObjectNode node) {
         if(node.classSchemaPointerMap != null) {
