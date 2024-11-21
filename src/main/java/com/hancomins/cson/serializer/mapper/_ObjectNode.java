@@ -1,6 +1,9 @@
 package com.hancomins.cson.serializer.mapper;
 
 
+import com.hancomins.cson.CSONException;
+import com.hancomins.cson.ErrorMessage;
+import com.hancomins.cson.ExceptionMessages;
 import com.hancomins.cson.util.ArrayMap;
 
 import java.util.ArrayList;
@@ -12,7 +15,7 @@ public class _ObjectNode {
 
     private Map<String, _ObjectNode> children;
 
-    private _NodeType type = _NodeType.END_POINT;
+    private _NodeType type = _NodeType.UNDEFINED;
     private _ObjectNode parent;
     private ArrayMap<_SchemaPointer> classSchemaPointerMap;
     private ArrayList<_SchemaPointer> fileSchemedPointerList;
@@ -117,10 +120,24 @@ public class _ObjectNode {
                 fileSchemedPointerList.add(pointer);
             }
         }
-
     }
 
+    /*private String makeThisPath() {
+        if(parent == null) {
+            return name == null ? "" : name;
+        }
+        String path = parent.makeThisPath();
+        if(path.isEmpty()) {
+            return name;
+        }
+        return name  + "." + name;
+    }*/
+
     void merge(_ObjectNode node) {
+        if((node.type != this.type) && (node.type == _NodeType.END_POINT || type == _NodeType.END_POINT)) {
+            throw new CSONException(ErrorMessage.CONFLICT_KEY_VALUE_TYPE.formatMessage(name));
+        }
+
         mergeSchemas(node);
         if(node.children == null) {
             return;
@@ -139,6 +156,7 @@ public class _ObjectNode {
 
     void setEndPoint() {
         this.endPoint = true;
+        this.type = _NodeType.END_POINT;
     }
 
     boolean isEndPoint() {

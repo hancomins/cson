@@ -190,6 +190,7 @@ public class _NodeBuilder {
             if(childNode == null) {
                 childNode = new _ObjectNode();
                 currentNode.putNode(nodeName, childNode);
+                childNode.setParent(currentNode);
                 currentNode = childNode;
             } else {
                 currentNode = childNode;
@@ -202,12 +203,15 @@ public class _NodeBuilder {
                  if(objectTypeSchema != null) {
                      _ObjectNode node  = makeNode(objectTypeSchema, parentID);
                      currentNode.merge(node);
+                     currentNode.setNodeType(_NodeType.OBJECT);
                  } else {
                      currentNode.putFieldSchema(valueSchema,parentID);
                      currentNode.setEndPoint();
                  }
                 break;
-            }
+            } else {
+                currentNode.setNodeType(_NodeType.OBJECT);
+             }
 
         }
         return rootNode;

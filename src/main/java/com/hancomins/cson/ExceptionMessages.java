@@ -43,6 +43,9 @@ public class ExceptionMessages {
 
     public static final String[] NOT_ALLOWED_UNQUOTED_STRING = {"Unquoted string is not allowed.", "\" 또는 ' 없는 문자열은 허용되지 않습니다."};
 
+    public static final String[] CONFLICT_KEY_VALUE_TYPE = {"Conflict detected for key '%s': Value is defined as both an object(%s) and a value(%s).", "키 'a'에 대한 충돌이 감지되었습니다: 값이 객체(%s)와 값(%s)으로 동시에 정의되었습니다."};
+
+
     public static String formatMessage(String[] message, Object... args) {
         String localeMessage = message[localeIndex];
         return String.format(localeMessage, args);
@@ -74,6 +77,8 @@ public class ExceptionMessages {
         String ctrl = c == '\n' ? "\\n" : c == '\r' ? "\\r" : c == '\t' ? "\\t" : c == '\b' ? "\\b" : c == '\f' ? "\\f" : c == '\u000B' ? "\\v" : "\\x" + Integer.toHexString(c);
         return String.format(CTRL_CHAR_NOT_ALLOWED[localeIndex], ctrl);
     }
+
+
 
 
 
