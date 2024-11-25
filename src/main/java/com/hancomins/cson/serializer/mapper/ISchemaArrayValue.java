@@ -13,7 +13,7 @@ interface ISchemaArrayValue extends ISchemaValue {
 
      SchemaType getEndpointValueType();
 
-     ClassSchema getObjectValueTypeElement();
+
 
      List<CollectionItems> getCollectionItems();
 

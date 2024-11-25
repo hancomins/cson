@@ -10,7 +10,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     private final List<CollectionItems> collectionBundles;
     protected final SchemaType ValueType;
-    private final ClassSchema objectValueTypeSchema;
+    //private final ClassSchema objectValueTypeSchema;
     private final ObtainTypeValueInvoker obtainTypeValueInvoker;
 
 
@@ -38,18 +38,14 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
         ValueType = valueType;
 
         if (ValueType == SchemaType.Object || valueType == SchemaType.AbstractObject ) {
-            objectValueTypeSchema = ClassSchemaMap.getInstance().getTypeInfo(valueClass);
+            setObjectTypeSchema(ClassSchemaMap.getInstance().getTypeInfo(valueClass));
         } else {
-            objectValueTypeSchema = null;
+            setObjectTypeSchema(null);
         }
 
     }
 
 
-    @Override
-    public ClassSchema getObjectValueTypeElement() {
-        return objectValueTypeSchema;
-    }
 
     @Override
     public List<CollectionItems> getCollectionItems() {

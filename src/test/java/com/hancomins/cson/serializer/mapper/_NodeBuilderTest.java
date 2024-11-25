@@ -94,17 +94,29 @@ public class _NodeBuilderTest {
     }
 
 
+    public static class ItemClassTest {
+        String value = "a";
+
+    }
+
     public static class CollectionTestClass {
-        Set<String> valueList;
-        @CSONValue("valueList[0]")
-        String idx0Value;
+        //List<ItemClassTest> list = new ArrayList<>();
+        //@CSONValue("list[0]")
+        //String zeroIndex = "zeroIndex";
+
+
+        List<Set<ItemClassTest>> list;
+
     }
 
     @Test
     @DisplayName("컬렉션 노드 테스트")
     void testForCollectionNode() {
+        ClassSchema classSchema = ClassSchemaMap.getInstance().getTypeInfo(CollectionTestClass.class);
+        nodeBuilder = new _NodeBuilder(null);
+        _ObjectNode objectNode = nodeBuilder.makeNode(classSchema);
 
-
+        System.out.println(objectNode);
     }
 
 

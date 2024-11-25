@@ -18,7 +18,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     protected int parentID = -1;
 
     final ClassSchema parentsTypeSchema;
-    final ClassSchema objectTypeSchema;
+    private ClassSchema objectTypeSchema;
 
     final String path;
     private SchemaType type;
@@ -113,6 +113,9 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         return (List<T>) this.allSchemaValueAbsList;
     }
 
+    void setObjectTypeSchema(ClassSchema objectTypeSchema) {
+        this.objectTypeSchema = objectTypeSchema;
+    }
 
     ClassSchema getClassSchema() {
         return objectTypeSchema;

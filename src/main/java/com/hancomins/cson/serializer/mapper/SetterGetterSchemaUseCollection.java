@@ -37,7 +37,7 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
 
     private final List<CollectionItems> collectionBundles;
     protected final SchemaType endpointValueType;
-    private final ClassSchema objectValueTypeSchema;
+
 
 
     SetterGetterSchemaUseCollection(ClassSchema parentsTypeSchema, Method method) {
@@ -60,9 +60,9 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
         Class<?> valueClass = lastCollectionItems.getValueClass();
         endpointValueType = lastCollectionItems.isGeneric() ? SchemaType.GenericType : SchemaType.of(valueClass);
         if (endpointValueType == SchemaType.Object) {
-            objectValueTypeSchema = ClassSchemaMap.getInstance().getTypeInfo(valueClass);
+            setObjectTypeSchema(ClassSchemaMap.getInstance().getTypeInfo(valueClass));
         } else {
-            objectValueTypeSchema = null;
+            setObjectTypeSchema(null);
         }
 
     }
@@ -74,10 +74,6 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
         return this.endpointValueType;
     }
 
-    @Override
-    public ClassSchema getObjectValueTypeElement() {
-        return this.objectValueTypeSchema;
-    }
 
     @Override
     public List<CollectionItems> getCollectionItems() {
