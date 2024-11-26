@@ -57,15 +57,16 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                 if(nodeSchemaPointers != null) {
                     for(_SchemaPointer schemaPointer : nodeSchemaPointers) {
                         int id = schemaPointer.getId();
+                        int parentId = schemaPointer.getParentId();
                         Object object = parentMap.get(id);
                         if(object == null) {
                             SchemaValueAbs schemaValue = schemaPointer.getSchema();
                             ClassSchema classSchema = schemaValue.getClassSchema();
                             object = classSchema.newInstance();
                             parentMap.put(id, object);
-                            int parentId = classSchema.getParentId();
                             Object parent = parentMap.get(parentId);
                             schemaValue.setValue(parent, object);
+
                         }
                     }
                 }

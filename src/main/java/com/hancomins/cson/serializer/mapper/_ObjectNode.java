@@ -91,6 +91,18 @@ public class _ObjectNode {
     }
 
     void putFieldSchema(ISchemaNode schema, int parentId) {
+        if(schema instanceof SchemaValueAbs) {
+            SchemaValueAbs schemaValueAbs = (SchemaValueAbs) schema;
+            List<SchemaValueAbs> allSchemaValueAbsList = schemaValueAbs.getAllSchemaValueList();
+            int allSchemaValueAbsListSize = allSchemaValueAbsList.size();
+            if(allSchemaValueAbsListSize > 1) {
+                for(int i = 1; i < allSchemaValueAbsListSize; ++i) {
+                    putFieldSchema(allSchemaValueAbsList.get(i), parentId);
+                }
+            }
+        }
+
+
         _SchemaPointer pointer = new _SchemaPointer(schema, _SchemaPointer.NO_ID, parentId);
         if(fieldSchemedPointerList == null) {
             fieldSchemedPointerList = new ArrayList<>();
@@ -98,6 +110,8 @@ public class _ObjectNode {
                 return;
         }
         fieldSchemedPointerList.add(pointer);
+
+
 
     }
 

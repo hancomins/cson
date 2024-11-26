@@ -3,6 +3,7 @@ package com.hancomins.cson.serializer.mapper;
 import com.hancomins.cson.CSONObject;
 import com.hancomins.cson.serializer.CSON;
 import com.hancomins.cson.serializer.CSONValue;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,11 +31,6 @@ class ObjectSchemaContainerTest {
 
 
     public static class TestClass2 {
-         //@CSONValue("a")
-         //public int a = 200;
-
-        //@CSONValue("a")
-        //public String ab = "";
 
         @CSONValue("obj.k")
         public String k = "";
@@ -46,20 +42,13 @@ class ObjectSchemaContainerTest {
     @Test
     void test() {
         ObjectSchemaContainer container = new ObjectSchemaContainer(TestClass.class);
-
         Object valule = container.get("a");
-
         assertEquals(valule, "a");
-
-
-        
-
         Object valule2 = container.get("b");
-
-
     }
 
     @Test
+    @DisplayName("기본 노드 생성 테스트")
     void putTestDefault() {
         CSONObject csonObject = new CSONObject();
         csonObject.put("k", "aaa");
@@ -84,7 +73,7 @@ class ObjectSchemaContainerTest {
         csonObject.put("$.b.a", 10000);
         csonObject.put("$.b.obj.k", "k");
 
-        System.out.println(csonObject.toString());
+        System.out.println(csonObject);
 
         TestClass testClass = new TestClass();
         CSONM csonm = new CSONM();
@@ -97,8 +86,8 @@ class ObjectSchemaContainerTest {
         //assertEquals(testClass.b.ab, "10000");
 
 
-        assertEquals(testClass.b.k, "k");
         assertNotNull(testClass.c);
+        assertEquals(testClass.b.k, "k");
         assertEquals("k", testClass.c.a);
 
 

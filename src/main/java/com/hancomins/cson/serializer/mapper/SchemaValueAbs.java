@@ -339,6 +339,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
     @Override
     public void setValue(Object parent, Object value) {
+        if(parent == null) return;
         //allSchemaValueAbsList.forEach(schemaValueAbs -> schemaValueAbs.onSetValue(parentMap, value));
 
 
