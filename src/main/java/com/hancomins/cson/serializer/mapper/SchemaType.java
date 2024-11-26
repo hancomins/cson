@@ -1,7 +1,7 @@
 package com.hancomins.cson.serializer.mapper;
 
-import com.hancomins.cson.format.ArrayDataContainer;
-import com.hancomins.cson.format.BaseDataContainer;
+import com.hancomins.cson.container.ArrayDataContainer;
+import com.hancomins.cson.container.BaseDataContainer;
 
 enum SchemaType {
     Byte,
@@ -67,7 +67,10 @@ enum SchemaType {
             return Double;
         } else if(type == java.math.BigDecimal.class) {
             return BigDecimal;
-        } else if(com.hancomins.cson.CSONObject.class.isAssignableFrom(type) || com.hancomins.cson.CSONObject.class.isAssignableFrom(type)) {
+        } else if(type == java.math.BigInteger.class) {
+            return BigInteger;
+        }
+        else if(com.hancomins.cson.CSONObject.class.isAssignableFrom(type) || com.hancomins.cson.CSONObject.class.isAssignableFrom(type)) {
             return CSONObject;
         } else if(com.hancomins.cson.CSONArray.class.isAssignableFrom(type) || ArrayDataContainer.class.isAssignableFrom(type)) {
             return CSONArray;

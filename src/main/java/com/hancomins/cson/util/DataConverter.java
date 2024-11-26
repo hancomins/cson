@@ -3,7 +3,7 @@ package com.hancomins.cson.util;
 import com.hancomins.cson.CSONArray;
 import com.hancomins.cson.CSONException;
 import com.hancomins.cson.CSONObject;
-import com.hancomins.cson.format.json.ValueBuffer;
+import com.hancomins.cson.container.json.ValueBuffer;
 import com.hancomins.cson.options.INumberConversionOption;
 
 import java.math.BigDecimal;

@@ -2,7 +2,7 @@ package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
-import com.hancomins.cson.format.*;
+import com.hancomins.cson.container.*;
 import com.hancomins.cson.util.ArrayMap;
 
 import java.util.List;

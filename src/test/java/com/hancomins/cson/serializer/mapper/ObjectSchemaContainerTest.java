@@ -6,6 +6,8 @@ import com.hancomins.cson.serializer.CSONValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ObjectSchemaContainerTest {
@@ -17,6 +19,10 @@ class ObjectSchemaContainerTest {
 
         @CSONValue("b.obj")
         TestClassC c;
+
+        @CSONValue("b.ab")
+        BigInteger d;
+
     }
 
     public static class TestClassC {
@@ -34,6 +40,9 @@ class ObjectSchemaContainerTest {
 
         @CSONValue("obj.k")
         public String k = "";
+
+        public int a = 0;
+        public String ab = "0";
     }
 
 
@@ -70,7 +79,8 @@ class ObjectSchemaContainerTest {
         CSONObject csonObject = new CSONObject();
         csonObject.put("a", "aaa");
         //csonObject.put("$.a.b", 10000);
-        csonObject.put("$.b.a", 10000);
+        csonObject.put("$.b.a", "10000");
+        csonObject.put("$.b.ab", 10000);
         csonObject.put("$.b.obj.k", "k");
 
         System.out.println(csonObject);
@@ -82,8 +92,8 @@ class ObjectSchemaContainerTest {
 
 
         assertEquals(testClass.a, "aaa");
-        //assertEquals(testClass.b.a, 10000);
-        //assertEquals(testClass.b.ab, "10000");
+        assertEquals(testClass.b.a, 10000);
+        assertEquals(testClass.b.ab, "10000");
 
 
         assertNotNull(testClass.c);
@@ -91,6 +101,8 @@ class ObjectSchemaContainerTest {
         assertEquals("k", testClass.c.a);
 
 
+        assertNotNull(testClass.d);
+        assertEquals(testClass.d.toString(), "10000");
 
 
 

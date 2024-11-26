@@ -1,4 +1,4 @@
-package com.hancomins.cson.format.json;
+package com.hancomins.cson.container.json;
 
 import com.hancomins.cson.util.CharacterBuffer;
 

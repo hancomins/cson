@@ -1,4 +1,4 @@
-package com.hancomins.cson.format.cson;
+package com.hancomins.cson.container.cson;
 
 /**
  * 이 클래스는 CSON 구조의 각 코드 값에 해당하는 상수 플래그들과

@@ -2,11 +2,11 @@ package com.hancomins.cson;
 
 
 
-import com.hancomins.cson.format.*;
-import com.hancomins.cson.format.cson.BinaryCSONParser;
-import com.hancomins.cson.format.cson.BinaryCSONWriter;
-import com.hancomins.cson.format.json.JSON5Parser;
-import com.hancomins.cson.format.json.JSON5Writer;
+import com.hancomins.cson.container.*;
+import com.hancomins.cson.container.cson.BinaryCSONParser;
+import com.hancomins.cson.container.cson.BinaryCSONWriter;
+import com.hancomins.cson.container.json.JSON5Parser;
+import com.hancomins.cson.container.json.JSON5Writer;
 import com.hancomins.cson.serializer.CSONSerializer;
 import com.hancomins.cson.util.DataConverter;
 import com.hancomins.cson.util.NoSynchronizedStringReader;
@@ -15,7 +15,6 @@ import com.hancomins.cson.options.*;
 
 import java.io.*;
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
 import java.util.*;
 
 

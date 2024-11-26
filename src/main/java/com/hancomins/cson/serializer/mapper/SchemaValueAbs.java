@@ -7,6 +7,7 @@ import com.hancomins.cson.serializer.CSONValueGetter;
 import com.hancomins.cson.serializer.CSONValueSetter;
 
 import java.lang.reflect.*;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +36,8 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
     static SchemaValueAbs of(ClassSchema typeSchema, Field field) {
+
+
         int modifiers = field.getModifiers();
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
         // 0.9.29 /////////

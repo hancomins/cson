@@ -17,7 +17,6 @@ public class _NodeBuilder {
     private int lastID = 1;
 
     protected _NodeBuilder(_ObjectNode Node) {
-
     }
 
 

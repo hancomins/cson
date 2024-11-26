@@ -19,7 +19,7 @@ dependencies {
 * Pure JSON is the default. And it performs the best. easiest to use. This usage method is the same as [JAVA-JSON](https://github.com/stleary/JSON-java).
    ```java
     CSONObject obj = new CSONObject();
-    // You can change the format options. 
+    // You can change the container options. 
     // default is StringFormatOption.json()
     // CSONObject obj = new CSONObject(StringFormatOption.json());
     

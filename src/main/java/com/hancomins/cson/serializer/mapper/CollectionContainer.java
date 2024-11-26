@@ -2,9 +2,9 @@ package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
-import com.hancomins.cson.format.ArrayDataContainer;
-import com.hancomins.cson.format.DataIterator;
-import com.hancomins.cson.format.FormatType;
+import com.hancomins.cson.container.ArrayDataContainer;
+import com.hancomins.cson.container.DataIterator;
+import com.hancomins.cson.container.FormatType;
 
 public class CollectionContainer implements ArrayDataContainer {
     @Override

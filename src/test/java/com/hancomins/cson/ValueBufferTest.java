@@ -1,6 +1,6 @@
 package com.hancomins.cson;
 
-import com.hancomins.cson.format.json.ValueBuffer;
+import com.hancomins.cson.container.json.ValueBuffer;
 import com.hancomins.cson.options.ParsingOptions;
 import com.hancomins.cson.util.NullValue;
 import org.junit.jupiter.api.DisplayName;

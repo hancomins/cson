@@ -1,8 +1,9 @@
-package com.hancomins.cson.format.json;
+package com.hancomins.cson.container.json;
 
+import com.hancomins.cson.CSONParseException;
 import com.hancomins.cson.CommentPosition;
 import com.hancomins.cson.ExceptionMessages;
-import com.hancomins.cson.format.*;
+import com.hancomins.cson.container.*;
 import com.hancomins.cson.options.JsonParsingOptions;
 import com.hancomins.cson.util.ArrayStack;
 import com.hancomins.cson.util.CharacterBuffer;
@@ -11,7 +12,7 @@ import com.hancomins.cson.util.NullValue;
 import java.io.IOException;
 import java.io.Reader;
 
-import static com.hancomins.cson.format.json.ParsingState.Open;
+import static com.hancomins.cson.container.json.ParsingState.Open;
 
 
 public class JSON5Parser {

@@ -1,4 +1,4 @@
-package com.hancomins.cson.format.json;
+package com.hancomins.cson.container.json;
 
 import com.hancomins.cson.CSONException;
 import com.hancomins.cson.ExceptionMessages;
@@ -359,7 +359,7 @@ public class ValueBuffer {
                 }
             }
             if(onlyPrimitiveValue) {
-                //throw new NumberFormatException("Invalid number format VALUE: " + value);
+                //throw new NumberFormatException("Invalid number container VALUE: " + value);
             }
 
 
@@ -382,7 +382,7 @@ public class ValueBuffer {
         char[] chars = characterBuffer.getChars();
         int length = characterBuffer.length();
         if(length < 3) {
-            throw new NumberFormatException("Invalid hexadecimal number format");
+            throw new NumberFormatException("Invalid hexadecimal number container");
         }
         String resultString = new String(chars, 0, length);
         BigInteger bigInteger = new BigInteger(resultString, 16);
