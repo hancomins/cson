@@ -85,6 +85,11 @@ class SchemaObjectNode extends SchemaElementNode {
         return objectNode;
     }
 
+    @Override
+    public void setValue(Object parent, Object value) {
+
+    }
+
 
     void setComment(String comment) {
         this.comment = comment;

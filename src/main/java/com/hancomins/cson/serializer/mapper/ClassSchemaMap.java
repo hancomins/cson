@@ -23,7 +23,7 @@ class ClassSchemaMap {
 
 
 
-    ClassSchema getTypeInfo(Class<?> type) {
+    ClassSchema getClassSchema(Class<?> type) {
         if(type.isAnonymousClass()) {
             type =  TypeUtil.getSuperClassIfAnonymous(type);
         }

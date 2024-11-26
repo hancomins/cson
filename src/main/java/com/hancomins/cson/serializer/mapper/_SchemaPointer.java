@@ -3,14 +3,45 @@ package com.hancomins.cson.serializer.mapper;
 public class _SchemaPointer {
     public static final int NO_ID = 0;
 
+    private ISchemaNode typeSchema;
     private ISchemaNode schemaNode;
     private int id;
     private int parentId;
+    private boolean collectionItem;
 
-    _SchemaPointer(ISchemaNode schemaNode, int id, int parentId) {
-        this.schemaNode = schemaNode;
+
+    _SchemaPointer(ISchemaNode schemaValueAbs, int id, int parentId) {
+        this.schemaNode = schemaValueAbs;
+        this.typeSchema = null;
         this.id = id;
         this.parentId = parentId;
+    }
+
+
+    _SchemaPointer(SchemaValueAbs schemaValueAbs, int id, int parentId) {
+        this.schemaNode = schemaValueAbs;
+        this.typeSchema = schemaValueAbs.getClassSchema();
+        this.id = id;
+        this.parentId = parentId;
+    }
+
+    _SchemaPointer(ClassSchema classSchema, int id, int parentId) {
+        this.typeSchema = classSchema;
+        this.id = id;
+        this.parentId = parentId;
+    }
+
+    void setSchemaValue(SchemaValueAbs schemaValueAbs) {
+        this.schemaNode = schemaValueAbs;
+    }
+
+    void setTypeSchema(ClassSchema classSchema) {
+        this.typeSchema = classSchema;
+    }
+
+
+    ISchemaNode getTypeSchema() {
+        return typeSchema;
     }
 
     public <T extends ISchemaNode> T getSchema() {
@@ -18,6 +49,14 @@ public class _SchemaPointer {
         return (T)schemaNode;
     }
 
+
+    public boolean isCollectionItem() {
+        return collectionItem;
+    }
+
+    public void setCollectionItem(boolean collectionItem) {
+        this.collectionItem = collectionItem;
+    }
 
     public int getId() {
         return id;
@@ -35,5 +74,10 @@ public class _SchemaPointer {
 
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return "{id:" + id + ",parentId:" + parentId + ",schema:\"" + schemaNode + "\"}";
     }
 }

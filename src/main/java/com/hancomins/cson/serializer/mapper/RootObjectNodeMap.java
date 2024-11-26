@@ -50,7 +50,7 @@ class RootObjectNodeMap {
         }
         Class<?> finalType = type;
         return rootObjectNodeMap.computeIfAbsent(type, (key) -> {
-            ClassSchema typeSchema = ClassSchemaMap.getInstance().getTypeInfo(finalType);
+            ClassSchema typeSchema = ClassSchemaMap.getInstance().getClassSchema(finalType);
             return NodePath.makeNode(typeSchema, null, -1);
         });
     }

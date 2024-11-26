@@ -320,10 +320,10 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
     }
 
     @Override
-    Object onGetValue(Map<Integer, Object> parentMap) {
+    Object onGetValue(Object parentValue) {
         if(methodGetter == null) return null;
         Object parent = null;
-        if(!isStatic) parent = parentMap.get(parentID);
+        if(!isStatic) parent = parentValue;
         try {
             Object value = methodGetter.invoke(parent);
             if(isEnum && value != null) {
@@ -339,11 +339,12 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         }
     }
 
+
     @Override
-    void onSetValue(Map<Integer,Object> parentMap, Object value) {
+    void onSetValue(Object parentValue, Object value) {
         if(methodSetter == null) return;
         Object parent = null;
-        if(!isStatic) parent = parentMap.get(parentID);
+        if(!isStatic) parent = parentValue;
         try {
             if(isEnum) {
                 try {

@@ -149,7 +149,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
         if(this.type == SchemaType.Object || this.type == SchemaType.AbstractObject) {
             try {
-                this.objectTypeSchema = ClassSchemaMap.getInstance().getTypeInfo(valueTypeClass);
+                this.objectTypeSchema = ClassSchemaMap.getInstance().getClassSchema(valueTypeClass);
             } catch (CSONSerializerException e) {
                 throw new CSONSerializerException("A type that cannot be used as a serialization object : " + valueTypeClass.getName() + ". (path: " + parentsTypeSchema.getType().getName() + "." + path + ")", e);
             }
@@ -220,7 +220,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
     @Override
-    public Object getValue(Map<Integer, Object> parentMap) {
+    public Object getValue(Object parentMap) {
         Object value = null;
 
         int index = 0;
@@ -338,19 +338,19 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     }*/
 
     @Override
-    public void setValue(Map<Integer, Object> parentMap, Object value) {
-        allSchemaValueAbsList.forEach(schemaValueAbs -> schemaValueAbs.onSetValue(parentMap, value));
+    public void setValue(Object parent, Object value) {
+        //allSchemaValueAbsList.forEach(schemaValueAbs -> schemaValueAbs.onSetValue(parentMap, value));
 
 
-        //onSetValue(parent, value);
+        onSetValue(parent, value);
 
 
     }
 
 
-    abstract Object onGetValue(Map<Integer, Object> parentsMap);
+    abstract Object onGetValue(Object parentValue);
 
-    abstract void onSetValue(Map<Integer, Object> parentsMap, Object value);
+    abstract void onSetValue(Object parent, Object value);
 
 
 

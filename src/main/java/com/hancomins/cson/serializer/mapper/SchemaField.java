@@ -79,9 +79,9 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
 
     @Override
-    Object onGetValue(Map<Integer, Object> parentMap) {
+    Object onGetValue(Object parentValue) {
         Object parent = null;
-        if(!isStatic) parent = parentMap.get(parentID);
+        if(!isStatic) parent = parentValue;
         try {
             Object value = field.get(parent);
             if(isEnum && value != null) {
@@ -99,14 +99,9 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     @SuppressWarnings("unchecked")
     @Override
-    void onSetValue(Map<Integer, Object> parentMap, Object value) {
+    void onSetValue(Object parentValue, Object value) {
         Object parent = null;
-        if(!isStatic) {
-            parent = parentMap.get(parentID);
-            if(parent == null) {
-                return;
-            }
-        }
+        if(!isStatic) parent = parentValue;
 
         try {
             if(isEnum) {

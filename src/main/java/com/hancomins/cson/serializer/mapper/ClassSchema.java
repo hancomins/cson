@@ -275,4 +275,17 @@ class ClassSchema implements ISchemaNode {
     public ISchemaNode copyNode() {
         return null;
     }
+
+    @Override
+    public void setValue(Object parent, Object value) {
+
+    }
+
+
+    @Override
+    public String toString() {
+        return "ClassSchema{" +
+                "type=" + type.getName() +
+                '}';
+    }
 }

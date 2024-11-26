@@ -3,7 +3,6 @@ package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CSONException;
 import com.hancomins.cson.ErrorMessage;
-import com.hancomins.cson.ExceptionMessages;
 import com.hancomins.cson.util.ArrayMap;
 
 import java.util.*;
@@ -15,11 +14,14 @@ public class _ObjectNode {
     private _NodeType type = _NodeType.UNDEFINED;
     private _ObjectNode parent;
     private ArrayMap<_SchemaPointer> classSchemaPointerMap;
-    private ArrayList<_SchemaPointer> fileSchemedPointerList;
+    private ArrayList<_SchemaPointer> fieldSchemedPointerList;
     private String comment;
     private String afterComment;
     private String name;
     private boolean endPoint = false;
+
+    private int maxSchemaId = 0;
+
 
 
 
@@ -38,30 +40,64 @@ public class _ObjectNode {
         return this;
     }
 
-    void putClassSchema(ClassSchema classSchema, int id, int parentId) {
-        _SchemaPointer pointer = new _SchemaPointer(classSchema, id, parentId);
-        if(pointer.getId() != _SchemaPointer.NO_ID) {
+    _NodeType getNodeType() {
+        return type;
+    }
+
+
+    void selectCollectionItem() {
+        if(fieldSchemedPointerList != null) {
+            fieldSchemedPointerList.clear();
+        }
+        if(classSchemaPointerMap == null){
+            return;
+        }
+        for(_SchemaPointer pointer : classSchemaPointerMap.values()) {
+            pointer.setCollectionItem(true);
+        }
+    }
+
+    _SchemaPointer getNodeSchemaPointer(int id) {
+        if(classSchemaPointerMap == null) {
+            return null;
+        }
+        return classSchemaPointerMap.get(id);
+    }
+
+
+    void putNodeSchema(ISchemaNode iSchemaNode, int id, int parentId) {
+        _SchemaPointer pointer= null;
+        if(iSchemaNode instanceof ClassSchema) {
+            pointer = new _SchemaPointer((ClassSchema)iSchemaNode, id, parentId);
+        } else if(iSchemaNode instanceof SchemaValueAbs) {
+            pointer = new _SchemaPointer((SchemaValueAbs) iSchemaNode, id, parentId);
+        }
+
+        if(pointer != null && pointer.getId() != _SchemaPointer.NO_ID) {
             if(classSchemaPointerMap == null) {
                 classSchemaPointerMap = new ArrayMap<>();
             }
-            classSchemaPointerMap.put(classSchema.getId(), pointer);
+            classSchemaPointerMap.put(pointer.getId(), pointer);
         }
-        if(pointer.getParentId() != _SchemaPointer.NO_ID) {
-            if(fileSchemedPointerList == null) {
-                fileSchemedPointerList = new ArrayList<>();
+        /*if(pointer.getParentId() != _SchemaPointer.NO_ID) {
+            if(fieldSchemedPointerList == null) {
+                fieldSchemedPointerList = new ArrayList<>();
             }
-            fileSchemedPointerList.add(pointer);
-        }
+            if(iSchemaNode instanceof ClassSchema) {
+                System.out.println("ClassSchema");
+            }
+            fieldSchemedPointerList.add(pointer);
+        }*/
     }
 
     void putFieldSchema(ISchemaNode schema, int parentId) {
         _SchemaPointer pointer = new _SchemaPointer(schema, _SchemaPointer.NO_ID, parentId);
-        if(fileSchemedPointerList == null) {
-            fileSchemedPointerList = new ArrayList<>();
-        } else if(fileSchemedPointerList.contains(pointer)) {
+        if(fieldSchemedPointerList == null) {
+            fieldSchemedPointerList = new ArrayList<>();
+        } else if(fieldSchemedPointerList.contains(pointer)) {
                 return;
         }
-        fileSchemedPointerList.add(pointer);
+        fieldSchemedPointerList.add(pointer);
 
     }
 
@@ -99,7 +135,7 @@ public class _ObjectNode {
         return name;
     }
 
-    List<_SchemaPointer> getClassSchemaPointerList() {
+    List<_SchemaPointer> getNodeSchemaPointerList() {
         return classSchemaPointerMap == null ? null : (List<_SchemaPointer>) classSchemaPointerMap.values();
     }
 
@@ -111,15 +147,15 @@ public class _ObjectNode {
             }
             classSchemaPointerMap.putAll(node.classSchemaPointerMap);
         }
-        if(node.fileSchemedPointerList != null) {
-            if(fileSchemedPointerList == null) {
-                fileSchemedPointerList = new ArrayList<>();
+        if(node.fieldSchemedPointerList != null) {
+            if(fieldSchemedPointerList == null) {
+                fieldSchemedPointerList = new ArrayList<>();
             }
-            for(_SchemaPointer pointer : node.fileSchemedPointerList) {
-                if(fileSchemedPointerList.contains(pointer)) {
+            for(_SchemaPointer pointer : node.fieldSchemedPointerList) {
+                if(fieldSchemedPointerList.contains(pointer)) {
                     continue;
                 }
-                fileSchemedPointerList.add(pointer);
+                fieldSchemedPointerList.add(pointer);
             }
         }
     }
@@ -136,7 +172,7 @@ public class _ObjectNode {
     }*/
 
     void merge(_ObjectNode node) {
-        if((node.type != this.type) && (node.type == _NodeType.END_POINT || type == _NodeType.END_POINT)) {
+        if((node.type != this.type) && (node.type == _NodeType.VALUE || type == _NodeType.VALUE)) {
             throw new CSONException(ErrorMessage.CONFLICT_KEY_VALUE_TYPE.formatMessage(name));
         }
 
@@ -158,17 +194,72 @@ public class _ObjectNode {
 
     void setEndPoint() {
         this.endPoint = true;
-        this.type = _NodeType.END_POINT;
+        this.type = _NodeType.VALUE;
     }
 
     boolean isEndPoint() {
         return endPoint;
     }
 
-    List<_SchemaPointer> getFileSchemedPointerList() {
-        return fileSchemedPointerList;
+    List<_SchemaPointer> getFieldSchemedPointerList() {
+        return fieldSchemedPointerList;
     }
 
 
+    String toString(int indent) {
+        StringBuilder indentString = new StringBuilder();
+        for(int i = 0; i < indent; i++) {
+            indentString.append("\t");
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(indentString).append("{\n");
+        if(comment != null) {
+            sb.append(indentString).append("\tcomment:\"").append(comment).append("\"\n");
+        }
+        if(afterComment != null) {
+            sb.append(indentString).append("\tafterComment:\"").append(afterComment).append("\"\n");
+        }
+        if(fieldSchemedPointerList != null && !fieldSchemedPointerList.isEmpty()) {
+            sb.append(indentString).append("\tfileSchemedPointerList:[").append("\n");
+            for(_SchemaPointer pointer : fieldSchemedPointerList) {
+                sb.append(indentString).append("\t\t").append(pointer.toString()).append(",\n");
+            }
+            sb.append(indentString).append("\t],\n");
+        }
 
+        if(classSchemaPointerMap != null) {
+            sb.append(indentString).append("\tclassSchemaPointerMap:[").append("\n");
+            for(_SchemaPointer pointer : classSchemaPointerMap.values()) {
+                sb.append(indentString).append("\t\t").append(pointer.toString()).append(",\n");
+            }
+            sb.append(indentString).append("\t],\n");
+        }
+
+        sb.append(indentString).append("\tchildren:{\n");
+        if(children != null) {
+            for (Map.Entry<String, _ObjectNode> entry : children.entrySet()) {
+                sb.append(indentString).append("\t\t").append(entry.getKey()).append(":\n").append(entry.getValue().toString(indent + 2)).append(",\n");
+            }
+            sb.append(indentString).append("\t\t}");
+        } else {
+            sb.append(indentString).append("\t\t\t}\n");
+        }
+        sb.append(indentString).append("}\n");
+
+        return sb.toString();
+    }
+
+    _ObjectNode setMaxSchemaId(int maxSchemaId) {
+        this.maxSchemaId = maxSchemaId;
+        return this;
+    }
+
+    int getMaxSchemaId() {
+        return maxSchemaId;
+    }
+
+    @Override
+    public String toString() {
+        return toString(0);
+    }
 }

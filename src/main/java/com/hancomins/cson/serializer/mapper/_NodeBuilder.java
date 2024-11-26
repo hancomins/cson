@@ -13,30 +13,44 @@ import java.util.Objects;
 @SuppressWarnings("DuplicatedCode")
 public class _NodeBuilder {
 
-    private final _ObjectNode node;
+
     private int lastID = 1;
 
     protected _NodeBuilder(_ObjectNode Node) {
-        this.node = Node;
+
     }
+
+
+    protected _NodeBuilder() {
+    }
+
 
     _ObjectNode makeNode(ClassSchema targetTypeSchema) {
         return makeNode(targetTypeSchema, -1);
     }
 
-     _ObjectNode makeNode(ClassSchema targetTypeSchema, int parentID) {
-        List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType());
-        _ObjectNode rootNode = new _ObjectNode();
-        rootNode.setNodeType(_NodeType.OBJECT);
-        int id = lastID++;
-        rootNode.putClassSchema(targetTypeSchema, id, parentID);
-        for(SchemaValueAbs fieldRack : fieldRacks) {
-            String path = fieldRack.getPath();
-            makeSubTree(rootNode, path, fieldRack, id);
-            //rootNode.merge(elementNode);
-        }
+    private  _ObjectNode makeNode(SchemaValueAbs targetTypeSchema, int parentID) {
+        ClassSchema classSchema = targetTypeSchema.getClassSchema();
+        _ObjectNode rootObject = makeNode(classSchema, parentID);
+        _SchemaPointer schemaPointer = rootObject.getNodeSchemaPointerList().get(0);
+        schemaPointer.setSchemaValue(targetTypeSchema);
+        return rootObject;
+    }
 
-        return rootNode;
+     _ObjectNode makeNode(ClassSchema targetTypeSchema, int parentID) {
+         List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType());
+         _ObjectNode rootNode = new _ObjectNode();
+         rootNode.setNodeType(_NodeType.OBJECT);
+         int id = lastID++;
+         rootNode.putNodeSchema(targetTypeSchema, id, parentID);
+         for(SchemaValueAbs fieldRack : fieldRacks) {
+             String path = fieldRack.getPath();
+             makeSubTree(rootNode, path, fieldRack, id);
+             //rootNode.merge(elementNode);
+         }
+         rootNode.setMaxSchemaId(lastID);
+
+         return rootNode;
     }
 
 
@@ -187,23 +201,24 @@ public class _NodeBuilder {
             PathItem pathItem = list.get(i);
             String nodeName = pathItem.getName();
             _ObjectNode childNode = currentNode.getNode(nodeName);
+            // 노드가 존재하지 않으면 생성
             if(childNode == null) {
                 childNode = new _ObjectNode();
                 currentNode.putNode(nodeName, childNode);
+                // 부모 노드 설정.
                 childNode.setParent(currentNode);
-                currentNode = childNode;
-            } else {
-                currentNode = childNode;
             }
+            // 자식 노드를 선택 (현재 노드를 자식 노드로 변경)
+            currentNode = childNode;
             currentNode.setName(nodeName);
+
+            // 마지막 노드인 경우
              if(pathItem.isEndPoint()) {
                 // todo : Array 타입 구분.,
-                //putNode(endpointNode, pathItem, value);
                  ClassSchema objectTypeSchema = valueSchema.getClassSchema();
+                 // 마지막 노드가 클래스 타입인 경우 하위 노드 생성
                  if(objectTypeSchema != null) {
-                     _ObjectNode node  = makeNode(objectTypeSchema, parentID);
-                     currentNode.merge(node);
-                     currentNode.setNodeType(_NodeType.OBJECT);
+                     makeObjectNode(currentNode, valueSchema, parentID);
                  } else {
                      currentNode.putFieldSchema(valueSchema,parentID);
                      currentNode.setEndPoint();
@@ -211,9 +226,25 @@ public class _NodeBuilder {
                 break;
             } else {
                 currentNode.setNodeType(_NodeType.OBJECT);
-             }
+            }
 
         }
         return rootNode;
+    }
+
+    private void makeObjectNode(_ObjectNode currentNode, SchemaValueAbs valueSchema, int parentID) {
+        int parentIdOfObject = parentID;
+        boolean isCollection = valueSchema instanceof SchemaFieldArray;
+        if(isCollection) {
+            parentIdOfObject = lastID++;
+            SchemaFieldArray fieldArray = (SchemaFieldArray) valueSchema;
+            currentNode.putNodeSchema(fieldArray, parentIdOfObject, parentID);
+        }
+        _ObjectNode node = makeNode(valueSchema, parentIdOfObject);
+        if(isCollection) {
+            node.selectCollectionItem();
+        }
+        currentNode.merge(node);
+        currentNode.setNodeType(isCollection ? _NodeType.COLLECTION_OBJECT : _NodeType.OBJECT);
     }
 }

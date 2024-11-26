@@ -23,6 +23,9 @@ class ObjectSchemaContainerTest {
         @CSONValue("k")
         String a = "a";
 
+        @CSONValue("inner.k")
+        String k = "aaa";
+
     }
 
 
@@ -52,6 +55,21 @@ class ObjectSchemaContainerTest {
         
 
         Object valule2 = container.get("b");
+
+
+    }
+
+    @Test
+    void putTestDefault() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("k", "aaa");
+        csonObject.put("$.inner.k", "bbb");
+        CSONM csonm = new CSONM();
+        TestClassC testClassC = csonm.toObject(csonObject.toString(),new TestClassC());
+        assertEquals(testClassC.a, "aaa");
+        assertEquals(testClassC.k, "bbb");
+
+
 
 
     }

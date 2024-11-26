@@ -1,9 +1,10 @@
 package com.hancomins.cson.serializer.mapper;
 
 public enum _NodeType {
-    ARRAY,
+    COLLECTION_OBJECT,
+    COLLECTION_VALUE,
     OBJECT,
-    END_POINT,
+    VALUE,
     UNDEFINED
 
 

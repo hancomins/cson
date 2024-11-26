@@ -6,9 +6,9 @@ import java.util.Map;
 
 public interface ISchemaValue extends ISchemaNode {
 
-    Object getValue(Map<Integer, Object> parentMap);
+    Object getValue(Object parent);
 
-    void setValue(Map<Integer, Object>  parentMap, Object value);
+    void setValue(Object  parent, Object value);
 
     String getComment();
     String getAfterComment();

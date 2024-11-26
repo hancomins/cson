@@ -13,4 +13,5 @@ interface ISchemaNode {
 
     ISchemaNode copyNode();
 
+    void setValue(Object parent, Object value);
 }

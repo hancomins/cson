@@ -38,7 +38,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
         ValueType = valueType;
 
         if (ValueType == SchemaType.Object || valueType == SchemaType.AbstractObject ) {
-            setObjectTypeSchema(ClassSchemaMap.getInstance().getTypeInfo(valueClass));
+            setObjectTypeSchema(ClassSchemaMap.getInstance().getClassSchema(valueClass));
         } else {
             setObjectTypeSchema(null);
         }

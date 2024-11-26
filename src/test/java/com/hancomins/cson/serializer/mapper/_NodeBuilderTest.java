@@ -40,23 +40,23 @@ public class _NodeBuilderTest {
     void test() {
         _ObjectNode node = new _ObjectNode();
         nodeBuilder = new _NodeBuilder(null);
-        ClassSchema classSchema = ClassSchemaMap.getInstance().getTypeInfo(TestClass.class);
+        ClassSchema classSchema = ClassSchemaMap.getInstance().getClassSchema(TestClass.class);
         _ObjectNode rootObjectNode = nodeBuilder.makeNode(classSchema);
         assertNotNull(rootObjectNode);
         _ObjectNode aNode = rootObjectNode.getNode("a");
         assertNotNull(aNode);
         assertTrue(aNode.isEndPoint());
         _ObjectNode kNode = rootObjectNode.getNode("b").getNode("obj").getNode("k");
-        List<Integer> idList = kNode.getFileSchemedPointerList().stream().map(_SchemaPointer::getParentId).collect(Collectors.toList());
+        List<Integer> idList = kNode.getFieldSchemedPointerList().stream().map(_SchemaPointer::getParentId).collect(Collectors.toList());
         assertNotNull(kNode);
         assertTrue(kNode.isEndPoint());
-        assertEquals(2, kNode.getFileSchemedPointerList().size());
+        assertEquals(2, kNode.getFieldSchemedPointerList().size());
 
-        _SchemaPointer schemaPointer = rootObjectNode.getClassSchemaPointerList().get(0);
+        _SchemaPointer schemaPointer = rootObjectNode.getNodeSchemaPointerList().get(0);
         int rootID = schemaPointer.getId();
         _ObjectNode objNode = rootObjectNode.getNode("b").getNode("obj");
-        int objID = objNode.getClassSchemaPointerList().get(0).getId();
-        int parentID = objNode.getClassSchemaPointerList().get(0).getParentId();
+        int objID = objNode.getNodeSchemaPointerList().get(0).getId();
+        int parentID = objNode.getNodeSchemaPointerList().get(0).getParentId();
 
         List<Integer> classSchemaIDList = new ArrayList<>();
         classSchemaIDList.add(rootID);
@@ -85,7 +85,7 @@ public class _NodeBuilderTest {
         try {
             _ObjectNode node = new _ObjectNode();
             nodeBuilder = new _NodeBuilder(null);
-            ClassSchema classSchema = ClassSchemaMap.getInstance().getTypeInfo(ConflictParentClass.class);
+            ClassSchema classSchema = ClassSchemaMap.getInstance().getClassSchema(ConflictParentClass.class);
             _ObjectNode objectNode = nodeBuilder.makeNode(classSchema);
             fail();
         } catch (CSONException csonException) {
@@ -107,14 +107,19 @@ public class _NodeBuilderTest {
 
         List<Set<ItemClassTest>> list;
 
+        Set<String> stringSet;
+
     }
 
     @Test
     @DisplayName("컬렉션 노드 테스트")
     void testForCollectionNode() {
-        ClassSchema classSchema = ClassSchemaMap.getInstance().getTypeInfo(CollectionTestClass.class);
+        ClassSchema classSchema = ClassSchemaMap.getInstance().getClassSchema(CollectionTestClass.class);
         nodeBuilder = new _NodeBuilder(null);
         _ObjectNode objectNode = nodeBuilder.makeNode(classSchema);
+
+        objectNode.getNodeSchemaPointerList();
+
 
         System.out.println(objectNode);
     }

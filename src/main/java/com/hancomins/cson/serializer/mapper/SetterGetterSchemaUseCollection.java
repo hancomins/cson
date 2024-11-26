@@ -60,7 +60,7 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
         Class<?> valueClass = lastCollectionItems.getValueClass();
         endpointValueType = lastCollectionItems.isGeneric() ? SchemaType.GenericType : SchemaType.of(valueClass);
         if (endpointValueType == SchemaType.Object) {
-            setObjectTypeSchema(ClassSchemaMap.getInstance().getTypeInfo(valueClass));
+            setObjectTypeSchema(ClassSchemaMap.getInstance().getClassSchema(valueClass));
         } else {
             setObjectTypeSchema(null);
         }
