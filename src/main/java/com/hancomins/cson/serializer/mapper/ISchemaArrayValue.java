@@ -15,20 +15,20 @@ interface ISchemaArrayValue extends ISchemaValue {
 
 
 
-     List<CollectionItems> getCollectionItems();
+     List<CollectionItem> getCollectionItems();
 
 
 
      default boolean isGenericTypeValue() {
          int size = getCollectionItems().size();
-         CollectionItems collectionItems = getCollectionItems().get(size - 1);
-         return collectionItems.isGeneric();
+         CollectionItem collectionItem = getCollectionItems().get(size - 1);
+         return collectionItem.isGeneric();
      }
 
 
 
 
-     static boolean equalsCollectionTypes(List<CollectionItems> a, List<CollectionItems> b) {
+     static boolean equalsCollectionTypes(List<CollectionItem> a, List<CollectionItem> b) {
             if(a.size() != b.size()) {
                 return false;
             }
@@ -44,14 +44,14 @@ interface ISchemaArrayValue extends ISchemaValue {
      }
 
 
-    static List<CollectionItems> getGenericType(Type type, String path) {
+    static List<CollectionItem> getGenericType(Type type, String path) {
         if(type == null) {
             throw new CSONObjectException("Unknown collection or RAW type. Collections must use <generic> types. (path: " + path + ")");
         }
         Type genericFieldType = type;
-        ArrayList<CollectionItems> result = new ArrayList<>();
+        ArrayList<CollectionItem> result = new ArrayList<>();
         if (genericFieldType instanceof ParameterizedType) {
-            CollectionItems collectionBundle = new CollectionItems((ParameterizedType) genericFieldType);
+            CollectionItem collectionBundle = new CollectionItem((ParameterizedType) genericFieldType);
             result.add(collectionBundle);
             return getGenericType(result,(ParameterizedType)genericFieldType, path);
         } else  {
@@ -59,7 +59,7 @@ interface ISchemaArrayValue extends ISchemaValue {
         }
     }
 
-    static List<CollectionItems>  getGenericType(List<CollectionItems> collectionBundles, ParameterizedType parameterizedType, String path) {
+    static List<CollectionItem>  getGenericType(List<CollectionItem> collectionBundles, ParameterizedType parameterizedType, String path) {
         Type[] fieldArgTypes = parameterizedType.getActualTypeArguments();
         if(fieldArgTypes.length == 0) {
             throw new CSONObjectException("Collections must use <generic> types. (path: " + path + ")");
@@ -76,19 +76,19 @@ interface ISchemaArrayValue extends ISchemaValue {
                     throw new CSONObjectException("java.util.Map type cannot be directly used as an element of Collection. Please create a class that wraps your Map and use it as an element of the Collection. (path: " + path + ")");
                 }
                 ISchemaValue.assertValueType((Class<?>)rawType, path);
-                CollectionItems collectionItems = collectionBundles.get(collectionBundles.size() - 1);
-                collectionItems.setValueClass((Class<?>)rawType);
+                CollectionItem collectionItem = collectionBundles.get(collectionBundles.size() - 1);
+                collectionItem.setValueClass((Class<?>)rawType);
                 return collectionBundles;
             }
-            CollectionItems collectionBundle = new CollectionItems(parameterizedType);
+            CollectionItem collectionBundle = new CollectionItem(parameterizedType);
             collectionBundles.add(collectionBundle);
             return getGenericType(collectionBundles,parameterizedType, path);
         }
         else if(fieldArgTypes[0] instanceof TypeVariable) {
-            CollectionItems collectionItems = collectionBundles.get(collectionBundles.size() - 1);
-            collectionItems.setGenericTypeName(((TypeVariable) fieldArgTypes[0]).getName());
+            CollectionItem collectionItem = collectionBundles.get(collectionBundles.size() - 1);
+            collectionItem.setGenericTypeName(((TypeVariable) fieldArgTypes[0]).getName());
 
-            collectionItems.setValueClass(Object.class);
+            collectionItem.setValueClass(Object.class);
             return collectionBundles;
         }
         else {

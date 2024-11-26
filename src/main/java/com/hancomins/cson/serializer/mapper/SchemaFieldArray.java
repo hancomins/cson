@@ -8,7 +8,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     //private final Types valueType;
 
-    private final List<CollectionItems> collectionBundles;
+    private final List<CollectionItem> collectionBundles;
     protected final SchemaType ValueType;
     //private final ClassSchema objectValueTypeSchema;
     private final ObtainTypeValueInvoker obtainTypeValueInvoker;
@@ -23,16 +23,16 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
         obtainTypeValueInvoker = typeSchema.findObtainTypeValueInvoker(field.getName());
 
-        CollectionItems collectionItems = this.collectionBundles.get(collectionBundles.size() - 1);
-        Class<?> valueClass = collectionItems.getValueClass();
+        CollectionItem collectionItem = this.collectionBundles.get(collectionBundles.size() - 1);
+        Class<?> valueClass = collectionItem.getValueClass();
         SchemaType valueType = SchemaType.of(valueClass);
 
-        if(collectionItems.isGeneric()) {
-            if( !typeSchema.containsGenericType(collectionItems.getGenericTypeName())) {
+        if(collectionItem.isGeneric()) {
+            if( !typeSchema.containsGenericType(collectionItem.getGenericTypeName())) {
                 throw new CSONSerializerException("Collection generic type is already defined. (path: " + fieldPath + ")");
             }
             valueType = SchemaType.GenericType;
-        } else if(collectionItems.isAbstractType()) {
+        } else if(collectionItem.isAbstractType()) {
             valueType = SchemaType.AbstractObject;
         }
         ValueType = valueType;
@@ -48,7 +48,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
 
     @Override
-    public List<CollectionItems> getCollectionItems() {
+    public List<CollectionItem> getCollectionItems() {
         return collectionBundles;
     }
 

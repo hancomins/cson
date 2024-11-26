@@ -39,11 +39,11 @@ public class Utils {
 
 
     @SuppressWarnings({"rawtypes", "ReassignedVariable", "unchecked"})
-    static Object convertCollectionValue(Object origin, List<CollectionItems> resultCollectionItemsList, SchemaType returnType) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+    static Object convertCollectionValue(Object origin, List<CollectionItem> resultCollectionItemList, SchemaType returnType) throws InvocationTargetException, InstantiationException, IllegalAccessException {
         if(origin == null) {
             return null;
         }
-        Collection resultCollectionOfCurrent = resultCollectionItemsList.get(0).collectionConstructor.newInstance();
+        Collection resultCollectionOfCurrent = resultCollectionItemList.get(0).collectionConstructor.newInstance();
         Collection result = resultCollectionOfCurrent;
         ArrayDeque<Iterator> collectionIterators = new ArrayDeque<>();
         ArrayDeque<Collection> resultCollections = new ArrayDeque<>();
@@ -56,7 +56,7 @@ public class Utils {
             Object next = currentIterator.next();
             if(next instanceof Collection) {
                 ++collectionItemIndex;
-                Collection newCollection = resultCollectionItemsList.get(collectionItemIndex).collectionConstructor.newInstance();
+                Collection newCollection = resultCollectionItemList.get(collectionItemIndex).collectionConstructor.newInstance();
                 resultCollections.add(newCollection);
                 resultCollectionOfCurrent.add(newCollection);
                 resultCollectionOfCurrent = newCollection;
