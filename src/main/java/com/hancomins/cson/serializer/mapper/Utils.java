@@ -38,51 +38,6 @@ public class Utils {
     }
 
 
-    @SuppressWarnings({"rawtypes", "ReassignedVariable", "unchecked"})
-    static Object convertCollectionValue(Object origin, List<CollectionItem> resultCollectionItemList, SchemaType returnType) throws InvocationTargetException, InstantiationException, IllegalAccessException {
-        if(origin == null) {
-            return null;
-        }
-        Collection resultCollectionOfCurrent = resultCollectionItemList.get(0).collectionConstructor.newInstance();
-        Collection result = resultCollectionOfCurrent;
-        ArrayDeque<Iterator> collectionIterators = new ArrayDeque<>();
-        ArrayDeque<Collection> resultCollections = new ArrayDeque<>();
-        int collectionItemIndex = 0;
-
-        Iterator currentIterator = ((Collection<?>)origin).iterator();
-        resultCollections.add(resultCollectionOfCurrent);
-        collectionIterators.add(currentIterator);
-        while(currentIterator.hasNext()) {
-            Object next = currentIterator.next();
-            if(next instanceof Collection) {
-                ++collectionItemIndex;
-                Collection newCollection = resultCollectionItemList.get(collectionItemIndex).collectionConstructor.newInstance();
-                resultCollections.add(newCollection);
-                resultCollectionOfCurrent.add(newCollection);
-                resultCollectionOfCurrent = newCollection;
-                currentIterator = ((Collection<?>)next).iterator();
-                collectionIterators.add(currentIterator);
-            } else {
-                resultCollectionOfCurrent.add(convertValue(next,returnType));
-            }
-
-            while(!currentIterator.hasNext()) {
-                collectionIterators.removeLast();
-                if(collectionIterators.isEmpty()) {
-                    return result;
-                }
-                --collectionItemIndex;
-                resultCollections.removeLast();
-                resultCollectionOfCurrent =  resultCollections.getLast();
-                currentIterator = collectionIterators.getLast();
-            }
-
-        }
-
-        return result;
-
-    }
-
     static Object convertValue(Object origin, SchemaType returnType) {
         try {
             if(origin instanceof String) {

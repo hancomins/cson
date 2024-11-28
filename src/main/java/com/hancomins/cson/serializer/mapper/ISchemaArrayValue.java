@@ -33,12 +33,10 @@ interface ISchemaArrayValue extends ISchemaValue {
                 return false;
             }
             for(int i = 0; i < a.size(); i++) {
-                Constructor<?> aConstructor = a.get(i).collectionConstructor;
-                Constructor<?> bConstructor = b.get(i).collectionConstructor;
-
-                if(!aConstructor.equals(bConstructor)) {
+                if(!a.get(i).compatibleCollectionType(b.get(i))) {
                     return false;
                 }
+
             }
             return true;
      }

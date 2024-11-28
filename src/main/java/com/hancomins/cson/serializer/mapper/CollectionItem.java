@@ -1,9 +1,10 @@
 package com.hancomins.cson.serializer.mapper;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+
+import com.hancomins.cson.util.GenericTypeAnalyzer;
+import java.lang.reflect.Method;
+
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -14,22 +15,73 @@ class CollectionItem {
 
     // 중첩 순서 값
     private int nestedLevel = 0;
+    private final CollectionFactory collectionFactory;
+    protected final Class<?> collectionType;
+    private Class<?> valueClass;
+    private boolean isGeneric = false;
+    private boolean isAbstractObject = false;
+    private String genericTypeName;
 
-    private CollectionFactory collectionFactory;
+    private CollectionItem parent;
+    private CollectionItem child;
 
 
-    CollectionItem(ParameterizedType type) {
-        this.collectionType = (Class<?>) type.getRawType();
-        //noinspection unchecked
-        this.collectionConstructor = (Constructor<? extends Collection<?>>) collectionFactoryOfCollection(collectionType);
-        Type[] actualTypes =  type.getActualTypeArguments();
-        if(actualTypes.length > 0 && actualTypes[0] instanceof Class<?>) {
-            this.setValueClass((Class<?>) type.getActualTypeArguments()[0]);
-        } else {
-            this.valueClass = null;
-        }
-        this.genericTypeName = "";
+
+    static List<CollectionItem> buildCollectionItemsByField(Field field) {
+        List<Class<?>> genericTypes = GenericTypeAnalyzer.analyzeField(field);
+        String sourcePath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
+        return buildCollectionItems(genericTypes, sourcePath);
     }
+
+    List<CollectionItem> buildCollectionItemsByParameter(Method method, int parameterIndex) {
+        Parameter parameter = method.getParameters()[parameterIndex];
+        List<Class<?>> genericTypes = GenericTypeAnalyzer.analyzeParameter(parameter);
+        String sourcePath = method.getDeclaringClass().getName() + "." + method.getName()  + "(parameter index: " + parameterIndex  +  ") <type: " + parameter.getType().getName() + ">";
+        return buildCollectionItems(genericTypes, sourcePath);
+    }
+
+    List<CollectionItem> buildCollectionItemsByMethodReturn(Method method) {
+        List<Class<?>> genericTypes = GenericTypeAnalyzer.analyzeReturnType(method);
+        String sourcePath = method.getDeclaringClass().getName() + "." + method.getName() + "<type: " + method.getReturnType().getName() + ">";
+        return buildCollectionItems(genericTypes, sourcePath);
+    }
+
+
+    private static List<CollectionItem> buildCollectionItems(List<Class<?>> genericTypes, String sourcePath) {
+        Class<?> valueType = genericTypes.get(genericTypes.size() - 1);
+        if(Collection.class.isAssignableFrom(valueType)) {
+            throw new IllegalArgumentException("Raw Collection type is not allowed. Use generic type. (" + sourcePath+ ")");
+        }
+        CollectionItem prev;
+        List<CollectionItem> collectionItems = new ArrayList<>();
+        for(int i = 0, n = genericTypes.size() - 1; i < n; i++) {
+            Class<?> type = genericTypes.get(i);
+            CollectionItem collectionItem = new CollectionItem(type, valueType, i);
+            collectionItems.add(collectionItem);
+            if(i > 0) {
+                prev = collectionItems.get(i - 1);
+                prev.child = collectionItem;
+                collectionItem.parent = prev;
+            }
+
+        }
+        return collectionItems;
+    }
+
+
+
+
+    private CollectionItem(Class<?> collectionType, Class<?> valueClass,int nestedLevel) {
+        this.collectionType = collectionType;
+        this.valueClass = valueClass;
+        this.nestedLevel = nestedLevel;
+        this.collectionFactory = collectionFactoryOfCollection(collectionType);
+    }
+
+    public int getNestedLevel() {
+        return nestedLevel;
+    }
+
 
 
     public void setValueClass(Class<?> valueClass) {
@@ -41,14 +93,14 @@ class CollectionItem {
         return valueClass;
     }
 
+    public CollectionItem getParent() {
+        return parent;
+    }
 
+    public CollectionItem getChild() {
+        return child;
+    }
 
-    protected final Constructor<? extends Collection<?>> collectionConstructor;
-    protected final Class<?> collectionType;
-    private Class<?> valueClass;
-    private boolean isGeneric = false;
-    private boolean isAbstractObject = false;
-    private String genericTypeName;
 
 
     public boolean isGeneric() {
@@ -77,34 +129,67 @@ class CollectionItem {
 
 
     protected Collection<?> newInstance() {
-        try {
-            return collectionConstructor.newInstance();
-        } catch (Exception e) {
-            throw new CSONSerializerException("Collection field '" + collectionType.getName() + "' has no default constructor");
-        }
+        return collectionFactory.create();
     }
 
 
     private static CollectionFactory collectionFactoryOfCollection(Class<?> type) {
-        try {
-            if (type.isInterface() && SortedSet.class.isAssignableFrom(type)) {
-                return TreeSetFactory;
-            } else if (type.isInterface() && Set.class.isAssignableFrom(type)) {
-                return HashSetFactory;
-            } else if (type.isInterface() && (AbstractQueue.class.isAssignableFrom(type) || Deque.class.isAssignableFrom(type) || Queue.class.isAssignableFrom(type))) {
-                return ArrayDequeFactory;
-            } else if (type.isInterface() && (List.class.isAssignableFrom(type) || Collection.class.isAssignableFrom(type)) || type == Collection.class) {
-                return ArrayListFactory;
-            } else if (type.isInterface() && (NavigableSet.class.isAssignableFrom(type) || SortedSet.class.isAssignableFrom(type))) {
-                return TreeSetFactory;
-            }
-            return type.getConstructor();
-        } catch (NoSuchMethodException e) {
-            throw new CSONSerializerException("Collection field '" + type.getName() + "' has no default constructor");
+        boolean isInterface = type.isInterface();
+
+        if( (isInterface && (Collection.class.equals(type) || Iterable.class.equals(type) || List.class.equals(type)))  ||
+                ArrayList.class.equals(type) || AbstractList.class.equals(type)) {
+            return ArrayListFactory;
+        } else if ( Vector.class.equals(type)) {
+            return VectorFactory;
+        } else if ( LinkedList.class.equals(type)) {
+            return LinkedListFactory;
+        } else if ( CopyOnWriteArrayList.class.equals(type)) {
+            return CopyOnWriteArrayListFactory;
         }
+
+        else if ( (isInterface && Set.class.equals(type) ) || HashSet.class.equals(type) || AbstractSet.class.equals(type)) {
+            return HashSetFactory;
+        } else if ( LinkedHashSet.class.equals(type)) {
+            return LinkedHashSetFactory;
+        } else if ( TreeSet.class.equals(type) || (isInterface && SortedSet.class.equals(type))) {
+            return TreeSetFactory;
+        } else if ( CopyOnWriteArraySet.class.equals(type) ) {
+            return CopyOnWriteArraySetFactory;
+        }
+
+        else if ( (isInterface && Queue.class.equals(type) ) || ArrayDeque.class.equals(type) || AbstractQueue.class.equals(type)) {
+            return ArrayDequeFactory;
+        } else if ( PriorityQueue.class.equals(type)) {
+            return PriorityQueueFactory;
+        } else if ( ConcurrentLinkedQueue.class.equals(type)) {
+            return ConcurrentLinkedQueueFactory;
+        } else if ( ConcurrentLinkedDeque.class.equals(type)) {
+            return ConcurrentLinkedDequeFactory;
+        } else if ( Stack.class.equals(type)) {
+            return StackFactory;
+        }
+
+        return new CustomCollectionFactory(getDefualtCollectionConstructor(type));
     }
 
 
+    private static Constructor<? extends Collection<?>> getDefualtCollectionConstructor(Class<?> type) {
+        try {
+            Constructor<?> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            //noinspection unchecked
+            return (Constructor<? extends Collection<?>>) constructor;
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException("Collection field '" + type.getName() + "' has no default constructor");
+        }
+    }
+
+    /**
+     * 변환 가능한 Collection 타입인지 확인
+     */
+    public boolean compatibleCollectionType(CollectionItem other) {
+        return collectionFactory.equals(other.collectionFactory);
+    }
 
 
     // List implementations
@@ -112,6 +197,7 @@ class CollectionItem {
     private static final CollectionFactory LinkedListFactory = LinkedList::new;
     private static final CollectionFactory VectorFactory = Vector::new; // Legacy vector
     private static final CollectionFactory CopyOnWriteArrayListFactory = CopyOnWriteArrayList::new; // Thread-safe list
+
 
     // Set implementations
     private static final CollectionFactory HashSetFactory = HashSet::new;
@@ -148,7 +234,17 @@ class CollectionItem {
             }
         }
 
-
+        @Override
+        public boolean equals(Object obj) {
+            if(obj == this) {
+                return true;
+            }
+            if(obj == null || obj.getClass() != CustomCollectionFactory.class) {
+                return false;
+            }
+            CustomCollectionFactory other = (CustomCollectionFactory) obj;
+            return collectionConstructor.equals(other.collectionConstructor);
+        }
 
 
 
