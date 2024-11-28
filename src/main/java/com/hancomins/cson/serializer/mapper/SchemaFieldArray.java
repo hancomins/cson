@@ -18,7 +18,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     protected SchemaFieldArray(ClassSchema typeSchema, Field field, String path) {
         super(typeSchema, field, path);
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
-        this.collectionBundles = ISchemaArrayValue.getGenericType(field.getGenericType(), fieldPath);
+        this.collectionBundles = CollectionItem.buildCollectionItemsByField(field);
 
 
         obtainTypeValueInvoker = typeSchema.findObtainTypeValueInvoker(field.getName());
@@ -66,6 +66,11 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
     @Override
     public SchemaType getEndpointValueType() {
         return ValueType;
+    }
+
+    @Override
+    public Class<?> getEndpointValueTypeClass() {
+        return collectionBundles.get(collectionBundles.size() - 1).getValueClass();
     }
 
     @Override

@@ -21,7 +21,6 @@ class CollectionItem {
     private boolean isGeneric = false;
     private boolean isAbstractObject = false;
     private String genericTypeName;
-
     private CollectionItem parent;
     private CollectionItem child;
 
@@ -33,14 +32,14 @@ class CollectionItem {
         return buildCollectionItems(genericTypes, sourcePath);
     }
 
-    List<CollectionItem> buildCollectionItemsByParameter(Method method, int parameterIndex) {
+    static  List<CollectionItem> buildCollectionItemsByParameter(Method method, int parameterIndex) {
         Parameter parameter = method.getParameters()[parameterIndex];
         List<Class<?>> genericTypes = GenericTypeAnalyzer.analyzeParameter(parameter);
         String sourcePath = method.getDeclaringClass().getName() + "." + method.getName()  + "(parameter index: " + parameterIndex  +  ") <type: " + parameter.getType().getName() + ">";
         return buildCollectionItems(genericTypes, sourcePath);
     }
 
-    List<CollectionItem> buildCollectionItemsByMethodReturn(Method method) {
+    static List<CollectionItem> buildCollectionItemsByMethodReturn(Method method) {
         List<Class<?>> genericTypes = GenericTypeAnalyzer.analyzeReturnType(method);
         String sourcePath = method.getDeclaringClass().getName() + "." + method.getName() + "<type: " + method.getReturnType().getName() + ">";
         return buildCollectionItems(genericTypes, sourcePath);

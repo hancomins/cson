@@ -7,18 +7,16 @@ import com.hancomins.cson.util.ArrayMap;
 
 import java.util.*;
 
-public class _ObjectNode {
+public class _ObjectNode extends _AbsNode{
 
-    private Map<String, _ObjectNode> children;
+    private Map<String, _AbsNode> children;
 
-    private _NodeType type = _NodeType.UNDEFINED;
     private _ObjectNode parent;
     private ArrayMap<_SchemaPointer> classSchemaPointerMap;
     private ArrayList<_SchemaPointer> fieldSchemedPointerList;
     private String comment;
     private String afterComment;
     private String name;
-    private boolean endPoint = false;
 
     private int maxSchemaId = 0;
 
@@ -35,14 +33,19 @@ public class _ObjectNode {
     }
 
 
-    _ObjectNode setNodeType(_NodeType nodeType) {
-        this.type = nodeType;
-        return this;
+    _ObjectNode getObjectNode(String key) {
+        if(this.children == null) {
+            return null;
+        }
+        _AbsNode absNode = children.get(key);
+        if(!(absNode instanceof _ObjectNode)) {
+            return null;
+        }
+        return (_ObjectNode) absNode;
     }
 
-    _NodeType getNodeType() {
-        return type;
-    }
+
+
 
 
     void selectCollectionItem() {
@@ -110,23 +113,20 @@ public class _ObjectNode {
                 return;
         }
         fieldSchemedPointerList.add(pointer);
-
-
-
     }
 
 
 
 
 
-    void putNode(String key, _ObjectNode node) {
+    void putNode(String key, _AbsNode node) {
         if(children == null) {
             children = new HashMap<>();
         }
         children.put(key, node);
     }
 
-    _ObjectNode getNode(String key) {
+    _AbsNode getNode(String key) {
         if(this.children == null) {
             return null;
         }
@@ -185,10 +185,23 @@ public class _ObjectNode {
         return name  + "." + name;
     }*/
 
-    void merge(_ObjectNode node) {
-        if((node.type != this.type) && (node.type == _NodeType.VALUE || type == _NodeType.VALUE)) {
+    @Override
+    void merge(_AbsNode absNode) {
+
+        _NodeType inputNodeType = absNode.getType();
+        _NodeType thisType = getType();
+
+
+        if((inputNodeType != thisType) && (getType() == _NodeType.VALUE || inputNodeType == _NodeType.VALUE) ) {
             throw new CSONException(ErrorMessage.CONFLICT_KEY_VALUE_TYPE.formatMessage(name));
         }
+        if(absNode.isArrayType()) {
+            //todo: 에러 메시지
+            throw  new CSONException("Array ");
+        }
+
+        _ObjectNode node = (_ObjectNode) absNode;
+
 
         mergeSchemas(node);
         if(node.children == null) {
@@ -206,19 +219,15 @@ public class _ObjectNode {
         });
     }
 
-    void setEndPoint() {
-        this.endPoint = true;
-        this.type = _NodeType.VALUE;
-    }
 
-    boolean isEndPoint() {
-        return endPoint;
-    }
+
+
 
     List<_SchemaPointer> getFieldSchemedPointerList() {
         return fieldSchemedPointerList;
     }
 
+    /*
 
     String toString(int indent) {
         StringBuilder indentString = new StringBuilder();
@@ -261,7 +270,7 @@ public class _ObjectNode {
         sb.append(indentString).append("}\n");
 
         return sb.toString();
-    }
+    }*/
 
     _ObjectNode setMaxSchemaId(int maxSchemaId) {
         this.maxSchemaId = maxSchemaId;
@@ -272,8 +281,9 @@ public class _ObjectNode {
         return maxSchemaId;
     }
 
-    @Override
+    /*@Override
     public String toString() {
         return toString(0);
-    }
+    }*/
+
 }

@@ -5,7 +5,6 @@ import com.hancomins.cson.serializer.CSONValueGetter;
 import com.hancomins.cson.serializer.CSONValueSetter;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,10 +41,7 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
 
     SetterGetterSchemaUseCollection(ClassSchema parentsTypeSchema, Method method) {
         super(parentsTypeSchema, method);
-
-
         boolean isGetter = getMethodType() == MethodType.Getter;
-        Type genericFieldType = isGetter ? method.getGenericReturnType() : method.getGenericParameterTypes()[0];
         String methodPath = method.getDeclaringClass().getName() + "." + method.getName();
         if(isGetter) {
             methodPath += "() <return: " + method.getReturnType().getName() + ">";
@@ -54,8 +50,7 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
             methodPath += "(" + method.getParameterTypes()[0].getName() + ") <return: " + method.getReturnType().getName() + ">";
         }
 
-
-        this.collectionBundles = ISchemaArrayValue.getGenericType(genericFieldType, methodPath);
+        this.collectionBundles = isGetter ? CollectionItem.buildCollectionItemsByMethodReturn(method) : CollectionItem.buildCollectionItemsByParameter(method, 0);
         CollectionItem lastCollectionItem = this.collectionBundles.get(this.collectionBundles.size() - 1);
         Class<?> valueClass = lastCollectionItem.getValueClass();
         endpointValueType = lastCollectionItem.isGeneric() ? SchemaType.GenericType : SchemaType.of(valueClass);
@@ -72,6 +67,11 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
     @Override
     public SchemaType getEndpointValueType() {
         return this.endpointValueType;
+    }
+
+    @Override
+    public Class<?> getEndpointValueTypeClass() {
+        return collectionBundles.get(collectionBundles.size() - 1).getValueClass();
     }
 
 

@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class _NodeBuilderTest {
 
@@ -43,10 +42,10 @@ public class _NodeBuilderTest {
         ClassSchema classSchema = ClassSchemaMap.getInstance().getClassSchema(TestClass.class);
         _ObjectNode rootObjectNode = nodeBuilder.makeNode(classSchema);
         assertNotNull(rootObjectNode);
-        _ObjectNode aNode = rootObjectNode.getNode("a");
+        _ObjectNode aNode = (_ObjectNode) rootObjectNode.getNode("a");
         assertNotNull(aNode);
         assertTrue(aNode.isEndPoint());
-        _ObjectNode kNode = rootObjectNode.getNode("b").getNode("obj").getNode("k");
+        _ObjectNode kNode = rootObjectNode.getObjectNode("b").getObjectNode("obj").getObjectNode("k");
         List<Integer> idList = kNode.getFieldSchemedPointerList().stream().map(_SchemaPointer::getParentId).collect(Collectors.toList());
         assertNotNull(kNode);
         assertTrue(kNode.isEndPoint());
@@ -54,7 +53,7 @@ public class _NodeBuilderTest {
 
         _SchemaPointer schemaPointer = rootObjectNode.getNodeSchemaPointerList().get(0);
         int rootID = schemaPointer.getId();
-        _ObjectNode objNode = rootObjectNode.getNode("b").getNode("obj");
+        _ObjectNode objNode = rootObjectNode.getObjectNode("b").getObjectNode("obj");
         int objID = objNode.getNodeSchemaPointerList().get(0).getId();
         int parentID = objNode.getNodeSchemaPointerList().get(0).getParentId();
 
@@ -105,9 +104,14 @@ public class _NodeBuilderTest {
         //String zeroIndex = "zeroIndex";
 
 
-        List<Set<ItemClassTest>> list;
+        //List<Set<ItemClassTest>> list;
 
         Set<String> stringSet;
+
+
+
+        //@CSONValue("stringSet[0]")
+        //String value;
 
     }
 
@@ -118,11 +122,16 @@ public class _NodeBuilderTest {
         nodeBuilder = new _NodeBuilder(null);
         _ObjectNode objectNode = nodeBuilder.makeNode(classSchema);
 
-        objectNode.getNodeSchemaPointerList();
+        _CollectionNode collectionNode = (_CollectionNode) objectNode.getNode("stringSet");
+        assertNotNull(collectionNode);
+
 
 
         System.out.println(objectNode);
     }
+
+
+
 
 
 

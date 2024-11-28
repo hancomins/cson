@@ -10,7 +10,6 @@ import java.util.Set;
 
 public class ObjectSchemaContainer implements KeyValueDataContainer {
 
-    private Class<?> classType;
     private _ObjectNode objectNode;
     private Object rootObject;
 
@@ -46,14 +45,16 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
 
     @Override
     public void put(String key, Object value) {
-        _ObjectNode child = this.objectNode.getNode(key);
-        if(child == null) {
+        _AbsNode childNode = this.objectNode.getNode(key);
+        if(childNode == null) {
             return;
         }
-        _NodeType nodeType = child.getNodeType();
+        _NodeType nodeType = childNode.getType();
+        _ObjectNode childObjectNode;
         switch (nodeType) {
             case OBJECT:
-                List<_SchemaPointer> nodeSchemaPointers = child.getNodeSchemaPointerList();
+                childObjectNode = (_ObjectNode)childNode;
+                List<_SchemaPointer> nodeSchemaPointers = childObjectNode.getNodeSchemaPointerList();
                 if(nodeSchemaPointers != null) {
                     for(_SchemaPointer schemaPointer : nodeSchemaPointers) {
                         int id = schemaPointer.getId();
@@ -66,19 +67,34 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                             parentMap.put(id, object);
                             Object parent = parentMap.get(parentId);
                             schemaValue.setValue(parent, object);
-
                         }
                     }
                 }
                 if(value instanceof KeyValueDataContainerWrapper) {
                     KeyValueDataContainerWrapper wrapper = (KeyValueDataContainerWrapper) value;
-                    wrapper.setContainer(new ObjectSchemaContainer(parentMap, child));
+                    wrapper.setContainer(new ObjectSchemaContainer(parentMap, childObjectNode));
                 }
                 break;
+            case COLLECTION_OBJECT:
+                _CollectionNode collectionNode = (_CollectionNode)childNode;
+                if(!(value instanceof ArrayDataContainerWrapper)) {
+                    return;
+                }
+                ArrayDataContainerWrapper arrayDataContainerWrapper = (ArrayDataContainerWrapper)value;
+                CollectionMappingContainer collectionMappingContainer = new CollectionMappingContainer(collectionNode, parentMap);
+                arrayDataContainerWrapper.setContainer(collectionMappingContainer);
 
+                // 필드에 컬렉션 추가.
+
+
+
+
+
+                break;
             case VALUE:
-                child.getFieldSchemedPointerList();
-                List<_SchemaPointer> fieldSchemedPointerList = child.getFieldSchemedPointerList();
+                childObjectNode = (_ObjectNode)childNode;
+                childObjectNode.getFieldSchemedPointerList();
+                List<_SchemaPointer> fieldSchemedPointerList = childObjectNode.getFieldSchemedPointerList();
                 for(_SchemaPointer schemaPointer : fieldSchemedPointerList) {
                     int parentId = schemaPointer.getParentId();
                     Object parent = parentMap.get(parentId);
@@ -87,12 +103,7 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                     }
                     schemaPointer.getSchema().setValue(parent, value);
                 }
-
-
-
                 break;
-
-
             /*case NORMAL_FIELD:
 
                 assert iSchemaNode instanceof SchemaFieldNormal;
@@ -108,7 +119,6 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                         break;
                     }
                 }*/
-
                 //((SchemaFieldNormal)iSchemaNode).setValue(parentMap,value);
                 //break;
             default:

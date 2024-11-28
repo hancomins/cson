@@ -4,6 +4,8 @@ package com.hancomins.cson.serializer.mapper;
 import com.hancomins.cson.PathItem;
 import com.hancomins.cson.util.ReflectionUtils;
 
+
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -39,13 +41,15 @@ public class _NodeBuilder {
      _ObjectNode makeNode(ClassSchema targetTypeSchema, int parentID) {
          List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType());
          _ObjectNode rootNode = new _ObjectNode();
-         rootNode.setNodeType(_NodeType.OBJECT);
+         rootNode.setType(_NodeType.OBJECT);
          int id = lastID++;
          rootNode.putNodeSchema(targetTypeSchema, id, parentID);
          for(SchemaValueAbs fieldRack : fieldRacks) {
              String path = fieldRack.getPath();
+             SchemaType type = fieldRack.getType();
              makeSubTree(rootNode, path, fieldRack, id);
-             //rootNode.merge(elementNode);
+
+
          }
          rootNode.setMaxSchemaId(lastID);
 
@@ -186,7 +190,30 @@ public class _NodeBuilder {
 
 */
 
-    _ObjectNode makeSubTree(_ObjectNode rootNode, String path, SchemaValueAbs valueSchema, int parentID) {
+
+
+
+    private _CollectionNode makeCollectionNodeForValueInArray(List<PathItem> pathItems, SchemaValueAbs valueSchema, int parentID) {
+        _CollectionNode collectionNode = new _CollectionNode();
+        _ArraySchemePointer schemaPointer = new _ArraySchemePointer((ISchemaArrayValue) valueSchema,_SchemaPointer.NO_ID, parentID);
+        List<Integer> indexList = new ArrayList<>();
+        //for(PathItem pathItem : pathItems) {
+
+            //int index = pathItem.getIndex();
+            //indexList.add(index);
+            //if(pathItem.isEndPoint()) {
+        //schemaPointer.setIndexList(indexList);
+        collectionNode.addArraySchemaPointer(schemaPointer);
+        collectionNode.setEndPoint();
+            //}
+        //}
+
+        return collectionNode;
+    }
+
+
+
+    _AbsNode makeSubTree(_ObjectNode rootNode, String path, SchemaValueAbs valueSchema, int parentID) {
         List<PathItem> list = PathItem.parseMultiPath2(path);
 
         _ObjectNode currentNode = rootNode;
@@ -199,16 +226,41 @@ public class _NodeBuilder {
         for(int i = 0, n = list.size(); i < n; ++i) {
             PathItem pathItem = list.get(i);
             String nodeName = pathItem.getName();
-            _ObjectNode childNode = currentNode.getNode(nodeName);
+            _AbsNode childNode = currentNode.getNode(nodeName);
+
+
+            // todo: 첫 번째 v1.0.0 은 아래와 같은 기능 구현을 미룬다.
+            // @CSONValue 를 사용하여 그 값이 "[n] 와 같은 식으로 배열의 특정 인덱스를 가리키는 경우
+            /*if(pathItem.isArrayValue()) {
+                _CollectionNode collectionNode = makeCollectionNodeForValueInArray(list.subList(i + 1, n), valueSchema, parentID);
+                currentNode.putNode(nodeName, collectionNode);
+                continue;
+            }
+            // 필드가 Collection 타입인 경우
+            else */
+            if(pathItem.isEndPoint() && valueSchema.getType() == SchemaType.Collection) {
+                _CollectionNode collectionNode = makeCollectionNodeForValueInArray(list.subList(i, n), valueSchema, parentID);
+                _AbsNode alreadyNode = currentNode.getNode(nodeName);
+                if(alreadyNode != null) {
+                    alreadyNode.merge(collectionNode);
+                } else {
+                    currentNode.putNode(nodeName, collectionNode);
+                }
+                continue;
+            }
+
+            _ObjectNode childObjectNode = (_ObjectNode)childNode;
+
+
             // 노드가 존재하지 않으면 생성
-            if(childNode == null) {
-                childNode = new _ObjectNode();
-                currentNode.putNode(nodeName, childNode);
+            if(childObjectNode == null) {
+                childObjectNode = new _ObjectNode();
+                currentNode.putNode(nodeName, childObjectNode);
                 // 부모 노드 설정.
-                childNode.setParent(currentNode);
+                childObjectNode.setParent(currentNode);
             }
             // 자식 노드를 선택 (현재 노드를 자식 노드로 변경)
-            currentNode = childNode;
+            currentNode = childObjectNode;
             currentNode.setName(nodeName);
 
             // 마지막 노드인 경우
@@ -224,7 +276,7 @@ public class _NodeBuilder {
                  }
                 break;
             } else {
-                currentNode.setNodeType(_NodeType.OBJECT);
+                currentNode.setType(_NodeType.OBJECT);
             }
 
         }
@@ -244,6 +296,6 @@ public class _NodeBuilder {
             node.selectCollectionItem();
         }
         currentNode.merge(node);
-        currentNode.setNodeType(isCollection ? _NodeType.COLLECTION_OBJECT : _NodeType.OBJECT);
+        currentNode.setType(isCollection ? _NodeType.COLLECTION_OBJECT : _NodeType.OBJECT);
     }
 }

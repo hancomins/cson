@@ -1,5 +1,7 @@
 package com.hancomins.cson.serializer.mapper;
 
+import java.util.List;
+
 public class _SchemaPointer {
     public static final int NO_ID = 0;
 
@@ -7,6 +9,7 @@ public class _SchemaPointer {
     private ISchemaNode schemaNode;
     private int id;
     private int parentId;
+    private List<Integer> indexList;
     private boolean collectionItem;
 
 
@@ -33,6 +36,15 @@ public class _SchemaPointer {
 
     void setSchemaValue(SchemaValueAbs schemaValueAbs) {
         this.schemaNode = schemaValueAbs;
+    }
+
+
+    void setIndexList(List<Integer> indexList) {
+        this.indexList = indexList;
+    }
+
+    List<Integer> getIndexList() {
+        return indexList;
     }
 
     void setTypeSchema(ClassSchema classSchema) {

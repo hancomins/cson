@@ -13,6 +13,14 @@ public class ArrayDataContainerWrapper implements ArrayDataContainer {
     public ArrayDataContainerWrapper() {
     }
 
+    public void setContainer(ArrayDataContainer container) {
+        this.container = container;
+    }
+
+    public ArrayDataContainer getContainer() {
+        return container;
+    }
+
     @Override
     public void add(Object value) {
         if (container == null) {
