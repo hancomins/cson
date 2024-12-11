@@ -151,6 +151,8 @@ class ObjectSchemaContainerTest {
         csonObject.put("$.integerList[1][0][2]", "3");
         csonObject.put("$.integerList[1][1][0]", "4");
 
+        csonObject.put("$.emptyList[1][1][0]", "4");
+
 
 
 
@@ -219,15 +221,15 @@ class ObjectSchemaContainerTest {
         assertEquals(defaultCollectionClass.integerList.get(1).get(0).get(2), 3);
 
 
+    }
 
-
-
-
-
-
-
-
+    public static class ObjectInCollectionClass {
 
     }
+
+
+    // todo : 타입이 다른 경우 테스트 추가
+
+
 
 }
