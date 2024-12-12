@@ -32,7 +32,7 @@ public class NodePath {
             fieldRack.setParentId(parentFieldRack == null ? objectNodeId : parentFieldRack.getId());
             fieldRack.setParentFiled(parentFieldRack);
             String path = fieldRack.getPath();
-            if(fieldRack.getType() == SchemaType.Object) {
+            if(fieldRack.getSchemaType() == SchemaType.Object) {
                 ClassSchema typeSchema = ClassSchemaMap.getInstance().getClassSchema(fieldRack.getValueTypeClass());
                 SchemaObjectNode childTree = makeNode(typeSchema,fieldRack,objectNodeId);
                 childTree.setComment(fieldRack.getComment());

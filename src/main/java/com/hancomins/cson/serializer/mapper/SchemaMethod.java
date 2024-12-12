@@ -7,7 +7,6 @@ import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
 
 
 class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGetter {
@@ -219,7 +218,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         }
         this.methodPath = methodPath;
 
-        if(this.getType() != SchemaType.GenericType) {
+        if(this.getSchemaType() != SchemaType.GenericType) {
             ISchemaValue.assertValueType(getValueTypeClass(), method.getDeclaringClass().getName() + "." + method.getName());
         }
         if(methodType == MethodType.Getter) {
@@ -376,9 +375,6 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         return schemaValue.getClass() == SchemaMethod.class && (((SchemaMethod)schemaValue).getMethodType() == MethodType.Getter  || ((SchemaMethod)schemaValue).getMethodType() == MethodType.Both);
     }
 
-    @Override
-    public _SchemaType getNodeType() {
-        return _SchemaType.METHOD;
-    }
+
 
 }

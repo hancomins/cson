@@ -6,6 +6,7 @@ import com.hancomins.cson.container.*;
 import com.hancomins.cson.util.ArrayMap;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ObjectSchemaContainer implements KeyValueDataContainer {
@@ -104,7 +105,18 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                     if(parent == null) {
                         continue;
                     }
-                    schemaPointer.getSchema().setValue(parent, value);
+                    ISchemaNode schemaNode = schemaPointer.getSchema();
+                    if(schemaNode instanceof SchemaFieldMap && value instanceof KeyValueDataContainerWrapper) {
+                        SchemaFieldMap schemaFieldMap = (SchemaFieldMap)schemaNode;
+                        KeyValueDataContainerWrapper wrapper = (KeyValueDataContainerWrapper)value;
+                        StringMapKeyValueContainer stringMapKeyValueContainer = new StringMapKeyValueContainer();
+                        wrapper.setContainer(stringMapKeyValueContainer);
+                        Map<String, Object> map = stringMapKeyValueContainer.getMap();
+                        schemaFieldMap.setValue(parent, map);
+                    } else if(schemaNode instanceof SchemaFieldNormal) {
+                        SchemaFieldNormal schemaFieldNormal = (SchemaFieldNormal)schemaNode;
+                        schemaFieldNormal.setValue(parent, value);
+                    }
                 }
                 break;
             /*case NORMAL_FIELD:

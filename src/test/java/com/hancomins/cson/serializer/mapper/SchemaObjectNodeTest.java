@@ -49,7 +49,7 @@ class SchemaObjectNodeTest {
         assertNotNull(rootNode);
         ISchemaNode node = rootNode.get("a");
         assertNotNull(node);
-        _SchemaType nodeType = node.getNodeType();
+
 
 
 
@@ -59,7 +59,7 @@ class SchemaObjectNodeTest {
 
         assertNotEquals(schemaNodeB.toString(), schemaNodeB_1.toString());
 
-        assertEquals(schemaNodeB.getNodeType(), _SchemaType.OBJECT);
+
 
         SchemaFieldNormal normal = (SchemaFieldNormal) ((SchemaObjectNode) schemaNodeB).get("a");
 

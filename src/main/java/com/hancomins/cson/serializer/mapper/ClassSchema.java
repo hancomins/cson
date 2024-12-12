@@ -50,6 +50,9 @@ class ClassSchema implements ISchemaNode {
     private final Set<String> genericTypeNames = new HashSet<>();
 
 
+
+
+
     /*protected SchemaObjectNode getNode() {
         if(rootNode == null) {
             rootNode = NodePath.makeSchema(this,null, -1);
@@ -265,10 +268,9 @@ class ClassSchema implements ISchemaNode {
     }
 
     @Override
-    public _SchemaType getNodeType() {
-        return null;
+    public SchemaType getSchemaType() {
+        return SchemaType.Object;
     }
-
 
 
     @Override

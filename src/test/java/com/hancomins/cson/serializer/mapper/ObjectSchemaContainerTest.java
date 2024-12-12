@@ -9,6 +9,7 @@ import java.math.BigInteger;
 import java.time.DayOfWeek;
 import java.util.ArrayDeque;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -258,6 +259,31 @@ class ObjectSchemaContainerTest {
     }
 
 
+    public static class MapTestClass {
+        Map<String, String> stringsMap;
+    }
+
+    @Test
+    @DisplayName("맵 노드 생성 테스트")
+    public void mapTest() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("$.stringsMap.a", "aaa");
+        csonObject.put("$.stringsMap.b", "bbb");
+        csonObject.put("$.stringsMap.c", "ccc");
+
+        System.out.println(csonObject);
+
+        MapTestClass mapTestClass = new MapTestClass();
+        ObjectMapper ObjectMapper = new ObjectMapper();
+
+        ObjectMapper.toObject(csonObject.toString(), mapTestClass);
+
+        assertNotNull(mapTestClass.stringsMap);
+        assertEquals(mapTestClass.stringsMap.size(), 3);
+        assertEquals(mapTestClass.stringsMap.get("a"), "aaa");
+        assertEquals(mapTestClass.stringsMap.get("b"), "bbb");
+        assertEquals(mapTestClass.stringsMap.get("c"), "ccc");
+    }
 
 
 

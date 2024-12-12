@@ -7,7 +7,6 @@ import com.hancomins.cson.serializer.CSONValueGetter;
 import com.hancomins.cson.serializer.CSONValueSetter;
 
 import java.lang.reflect.*;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -182,7 +181,8 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
 
 
-    final SchemaType getType() {
+    @Override
+    public SchemaType getSchemaType() {
         return type;
     }
 
@@ -233,7 +233,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
             SchemaValueAbs duplicatedSchemaValueAbs = this.allSchemaValueAbsList.get(index);
 
             value = duplicatedSchemaValueAbs.onGetValue(parentMap);
-            if(value != null && duplicatedSchemaValueAbs.getType() == SchemaType.GenericType) {
+            if(value != null && duplicatedSchemaValueAbs.getSchemaType() == SchemaType.GenericType) {
                 SchemaType inType = SchemaType.of(value.getClass());
                 if(SchemaType.isSingleType(inType) || SchemaType.isCsonType(inType)) {
                     return value;

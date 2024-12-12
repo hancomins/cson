@@ -169,10 +169,7 @@ class SchemaObjectNode extends SchemaElementNode {
         return stringBuilder.toString();
     }
 
-    @Override
-    public _SchemaType getNodeType() {
-        return _SchemaType.OBJECT;
-    }
+
 
     @Override
     public int getId() {
@@ -187,6 +184,11 @@ class SchemaObjectNode extends SchemaElementNode {
     @Override
     public void setParentId(int parentId) {
         this.parentId = parentId;
+    }
+
+    @Override
+    public SchemaType getSchemaType() {
+        return SchemaType.Object;
     }
 
 }

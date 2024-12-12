@@ -5,7 +5,6 @@ import com.hancomins.cson.PathItem;
 import com.hancomins.cson.util.ReflectionUtils;
 
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -46,7 +45,7 @@ public class _NodeBuilder {
          rootNode.putNodeSchema(targetTypeSchema, id, parentID);
          for(SchemaValueAbs fieldRack : fieldRacks) {
              String path = fieldRack.getPath();
-             SchemaType type = fieldRack.getType();
+             SchemaType type = fieldRack.getSchemaType();
              makeSubTree(rootNode, path, fieldRack, id);
 
 
@@ -238,7 +237,7 @@ public class _NodeBuilder {
             }
             // 필드가 Collection 타입인 경우
             else */
-            if(pathItem.isEndPoint() && valueSchema.getType() == SchemaType.Collection) {
+            if(pathItem.isEndPoint() && valueSchema.getSchemaType() == SchemaType.Collection) {
                 _CollectionNode collectionNode = makeCollectionNodeForValueInArray(list.subList(i, n), valueSchema, parentID);
                 _AbsNode alreadyNode = currentNode.getNode(nodeName);
                 if(alreadyNode != null) {

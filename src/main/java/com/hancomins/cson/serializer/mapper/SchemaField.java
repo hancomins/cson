@@ -4,7 +4,6 @@ import com.hancomins.cson.serializer.CSONValue;
 import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.Field;
-import java.util.Map;
 
 public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeValueInvokerGetter {
 
@@ -36,7 +35,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
             String afterComment = csonValue.commentAfterKey();
             this.comment = comment.isEmpty() ? null : comment;
             this.afterComment = afterComment.isEmpty() ? null : afterComment;
-            ISchemaValue.assertValueType(field.getType(), this.getType(), field.getDeclaringClass().getName() + "." + field.getName() );
+            ISchemaValue.assertValueType(field.getType(), this.getSchemaType(), field.getDeclaringClass().getName() + "." + field.getName() );
         } else {
             this.comment = null;
             this.afterComment = null;
@@ -209,7 +208,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     @Override
     public String toString() {
-        return getId() + "<" + getType() + ">"; /*"FieldRack{" +
+        return getId() + "<" + getSchemaType() + ">"; /*"FieldRack{" +
                 "id=" + id +
                 ", field=" + field +
                 ", path='" + path + '\'' +

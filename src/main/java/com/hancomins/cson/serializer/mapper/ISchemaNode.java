@@ -9,7 +9,9 @@ interface ISchemaNode {
     int getId();
     int getParentId();
     void setParentId(int parentId);
-    _SchemaType getNodeType();
+
+
+    SchemaType getSchemaType();
 
     ISchemaNode copyNode();
 

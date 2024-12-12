@@ -123,9 +123,6 @@ class SetterGetterSchemaUseMap extends SchemaMethod implements ISchemaMapValue {
         return isAbstractValue;
     }
 
-    @Override
-    public _SchemaType getNodeType() {
-        return _SchemaType.METHOD_FOR_MAP;
-    }
+
 
 }

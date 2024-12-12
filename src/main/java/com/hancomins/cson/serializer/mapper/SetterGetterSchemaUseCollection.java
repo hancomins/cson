@@ -102,9 +102,6 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
         return super.equalsValueType(schemaValueAbs);
     }
 
-    @Override
-    public _SchemaType getNodeType() {
-        return _SchemaType.METHOD_FOR_ARRAY;
-    }
+
 
 }
