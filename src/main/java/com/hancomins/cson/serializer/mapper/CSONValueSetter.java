@@ -1,4 +1,4 @@
-package com.hancomins.cson.serializer;
+package com.hancomins.cson.serializer.mapper;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

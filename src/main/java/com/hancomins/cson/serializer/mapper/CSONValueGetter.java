@@ -1,5 +1,4 @@
-package com.hancomins.cson.serializer;
-
+package com.hancomins.cson.serializer.mapper;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,14 +7,12 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ObtainTypeValue {
-
-    String[] fieldNames() default  {};
-    String[] setterMethodNames() default  {};
+public @interface CSONValueGetter {
+    String value() default "";
+    String key() default "";
+    String comment() default "";
+    String commentAfterKey() default "";
 
     boolean ignoreError() default false;
-
-    boolean deserializeAfter() default true;
-
 
 }

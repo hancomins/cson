@@ -1,7 +1,6 @@
 package com.hancomins.cson;
 
 import com.hancomins.cson.options.JSON5WriterOption;
-import com.hancomins.cson.serializer.CSON;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

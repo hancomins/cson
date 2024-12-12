@@ -1,5 +1,7 @@
 package com.hancomins.cson.serializer;
 
+import com.hancomins.cson.serializer.mapper.CSON;
+import com.hancomins.cson.serializer.mapper.CSONValue;
 import org.junit.jupiter.api.Test;
 
 class ObjectTypeAnalyzerTest {
@@ -29,8 +31,6 @@ class ObjectTypeAnalyzerTest {
         user.weight = 70.5f;
 
         Class<?> clazz = User.class;
-        TypeSchema typeSchema = TypeSchemaMap.getInstance().getTypeInfo(clazz);
-        SchemaObjectNode schemaObjectNode = typeSchema.getSchemaObjectNode();
 
         CSONSerializer.toCSONObject(user);
 

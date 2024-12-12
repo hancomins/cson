@@ -1,8 +1,6 @@
 package com.hancomins.cson.serializer.mapper;
 
 
-import com.hancomins.cson.serializer.CSONValueGetter;
-import com.hancomins.cson.serializer.CSONValueSetter;
 import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.Method;
@@ -34,7 +32,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         }
         else if(csonValueGetter != null) {
             Class<?> returnType = method.getReturnType();
-            if(returnType == void.class || returnType == Void.class || returnType == null) {
+            if(returnType == void.class || returnType == Void.class) {
                 throw new CSONSerializerException("Getter method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must have return type");
             }
             if(types.length != 0) {

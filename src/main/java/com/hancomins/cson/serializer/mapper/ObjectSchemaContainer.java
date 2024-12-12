@@ -106,16 +106,14 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                         continue;
                     }
                     ISchemaNode schemaNode = schemaPointer.getSchema();
-                    if(schemaNode instanceof SchemaFieldMap && value instanceof KeyValueDataContainerWrapper) {
-                        SchemaFieldMap schemaFieldMap = (SchemaFieldMap)schemaNode;
-                        KeyValueDataContainerWrapper wrapper = (KeyValueDataContainerWrapper)value;
-                        StringMapKeyValueContainer stringMapKeyValueContainer = new StringMapKeyValueContainer();
-                        wrapper.setContainer(stringMapKeyValueContainer);
-                        Map<String, Object> map = stringMapKeyValueContainer.getMap();
-                        schemaFieldMap.setValue(parent, map);
-                    } else if(schemaNode instanceof SchemaFieldNormal) {
-                        SchemaFieldNormal schemaFieldNormal = (SchemaFieldNormal)schemaNode;
-                        schemaFieldNormal.setValue(parent, value);
+                    SchemaType schemaType = schemaNode.getSchemaType();
+                    switch (schemaType) {
+                        case Map:
+                            setMapField(parent, (SchemaFieldMap) schemaNode, (KeyValueDataContainerWrapper)value);
+                            break;
+                        default:
+                            SchemaFieldNormal schemaFieldNormal = (SchemaFieldNormal)schemaNode;
+                            schemaFieldNormal.setValue(parent, value);
                     }
                 }
                 break;
@@ -140,6 +138,14 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                 break;
         }
     }
+
+    private void setMapField(Object parent, SchemaFieldMap schemaNode, KeyValueDataContainerWrapper value) {
+        StringMapKeyValueContainer stringMapKeyValueContainer = new StringMapKeyValueContainer();
+        value.setContainer(stringMapKeyValueContainer);
+        Map<String, Object> map = stringMapKeyValueContainer.getMap();
+        schemaNode.setValue(parent, map);
+    }
+
 
     @Override
     public Object get(String key) {
