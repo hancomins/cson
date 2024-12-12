@@ -33,6 +33,9 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
     }
 
 
+    Object getRootObject() {
+        return rootObject;
+    }
 
 
     private ObjectSchemaContainer(ArrayMap<Object> parentMap, _ObjectNode objectNode) {

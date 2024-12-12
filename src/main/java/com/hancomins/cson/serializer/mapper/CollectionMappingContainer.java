@@ -2,10 +2,7 @@ package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
-import com.hancomins.cson.container.ArrayDataContainer;
-import com.hancomins.cson.container.ArrayDataContainerWrapper;
-import com.hancomins.cson.container.DataIterator;
-import com.hancomins.cson.container.FormatType;
+import com.hancomins.cson.container.*;
 import com.hancomins.cson.util.ArrayMap;
 import com.hancomins.cson.util.DataConverter;
 
@@ -77,8 +74,16 @@ public class CollectionMappingContainer implements ArrayDataContainer {
                     arrayDataContainerWrapper.setContainer(innerCollection);
                 }
             } else {
-                Object convertedValue = DataConverter.convertValue(collectionBundle.schemaArrayValue.getEndpointValueTypeClass(), value);
-                collectionBundle.collection.add(convertedValue);
+                Object endPointValue;
+                if(value instanceof KeyValueDataContainerWrapper) {
+                    ObjectSchemaContainer objectSchemaContainer = new ObjectSchemaContainer(collectionBundle.schemaArrayValue.getEndpointValueTypeClass());
+                    KeyValueDataContainerWrapper keyValueDataContainerWrapper = (KeyValueDataContainerWrapper)value;
+                    keyValueDataContainerWrapper.setContainer(objectSchemaContainer);
+                    endPointValue = objectSchemaContainer.getRootObject();
+                }  else {
+                    endPointValue = DataConverter.convertValue(collectionBundle.schemaArrayValue.getEndpointValueTypeClass(), value);
+                }
+                collectionBundle.collection.add(endPointValue);
             }
         }
 

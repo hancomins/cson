@@ -1,12 +1,12 @@
 package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.CSONObject;
-import com.hancomins.cson.serializer.CSON;
 import com.hancomins.cson.serializer.CSONValue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.time.DayOfWeek;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +14,8 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ObjectSchemaContainerTest {
+
+
 
     public static class TestClass {
         String a = "a";
@@ -25,6 +27,8 @@ class ObjectSchemaContainerTest {
 
         @CSONValue("b.ab")
         BigInteger d;
+
+        DayOfWeek dayOfWeek = DayOfWeek.MONDAY;
 
     }
 
@@ -48,16 +52,21 @@ class ObjectSchemaContainerTest {
         public String ab = "0";
     }
 
-
-
-
     @Test
-    void test() {
-        ObjectSchemaContainer container = new ObjectSchemaContainer(TestClass.class);
-        Object valule = container.get("a");
-        assertEquals(valule, "a");
-        Object valule2 = container.get("b");
+    @DisplayName("Enum test")
+    void enumTest() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("dayOfWeek", "TUESDAY");
+
+        TestClass testClass = new TestClass();
+        ObjectMapper ObjectMapper = new ObjectMapper();
+
+        ObjectMapper.toObject(csonObject.toString(), testClass);
+
+        assertEquals(testClass.dayOfWeek, DayOfWeek.TUESDAY);
     }
+
+
 
     @Test
     @DisplayName("기본 노드 생성 테스트")
@@ -65,13 +74,10 @@ class ObjectSchemaContainerTest {
         CSONObject csonObject = new CSONObject();
         csonObject.put("k", "aaa");
         csonObject.put("$.inner.k", "bbb");
-        CSONM csonm = new CSONM();
-        TestClassC testClassC = csonm.toObject(csonObject.toString(),new TestClassC());
+        ObjectMapper ObjectMapper = new ObjectMapper();
+        TestClassC testClassC = ObjectMapper.toObject(csonObject.toString(),new TestClassC());
         assertEquals(testClassC.a, "aaa");
         assertEquals(testClassC.k, "bbb");
-
-
-
 
     }
 
@@ -89,9 +95,9 @@ class ObjectSchemaContainerTest {
         System.out.println(csonObject);
 
         TestClass testClass = new TestClass();
-        CSONM csonm = new CSONM();
+        ObjectMapper ObjectMapper = new ObjectMapper();
 
-        csonm.toObject(csonObject.toString(), testClass);
+        ObjectMapper.toObject(csonObject.toString(), testClass);
 
 
         assertEquals(testClass.a, "aaa");
@@ -161,9 +167,9 @@ class ObjectSchemaContainerTest {
         System.out.println(csonObject);
 
         DefaultCollectionClass defaultCollectionClass = new DefaultCollectionClass();
-        CSONM csonm = new CSONM();
+        ObjectMapper ObjectMapper = new ObjectMapper();
 
-        csonm.toObject(csonObject.toString(), defaultCollectionClass);
+        ObjectMapper.toObject(csonObject.toString(), defaultCollectionClass);
 
         /*assertNotNull(defaultCollectionClass.stringList);
         assertEquals(defaultCollectionClass.stringList.size(), 3);
@@ -224,8 +230,37 @@ class ObjectSchemaContainerTest {
     }
 
     public static class ObjectInCollectionClass {
-
+        List<TestClassC> testClassCList;
     }
+
+    @Test
+    @DisplayName("컬렉션 내 객체 생성 테스트")
+    void putTestObjectInCollection() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("$.testClassCList[0].k", "aaa");
+        csonObject.put("$.testClassCList[0].inner.k", "bbb");
+        csonObject.put("$.testClassCList[1].k", "aaa1");
+        csonObject.put("$.testClassCList[1].inner.k", "bbb1");
+
+        System.out.println(csonObject);
+
+        ObjectInCollectionClass objectInCollectionClass = new ObjectInCollectionClass();
+        ObjectMapper ObjectMapper = new ObjectMapper();
+
+        ObjectMapper.toObject(csonObject.toString(), objectInCollectionClass);
+
+        assertNotNull(objectInCollectionClass.testClassCList);
+        assertEquals(objectInCollectionClass.testClassCList.size(), 2);
+        assertEquals(objectInCollectionClass.testClassCList.get(0).a, "aaa");
+        assertEquals(objectInCollectionClass.testClassCList.get(0).k, "bbb");
+        assertEquals(objectInCollectionClass.testClassCList.get(1).a, "aaa1");
+        assertEquals(objectInCollectionClass.testClassCList.get(1).k, "bbb1");
+    }
+
+
+
+
+
 
 
     // todo : 타입이 다른 경우 테스트 추가
