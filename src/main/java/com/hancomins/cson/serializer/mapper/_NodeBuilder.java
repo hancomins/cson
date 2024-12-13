@@ -38,9 +38,9 @@ public class _NodeBuilder {
         }
         SchemaType schemaType = targetTypeSchema.getSchemaType();
         if(schemaType == SchemaType.Map || schemaType == SchemaType.CSONObject) {
-            rootObject.setWildItem(true);
+            rootObject.putNodeSchema(targetTypeSchema, lastID++, parentID);
+            rootObject.setHasWildItem();
         }
-
         return rootObject;
     }
 

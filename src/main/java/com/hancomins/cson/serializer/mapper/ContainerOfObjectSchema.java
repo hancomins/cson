@@ -4,7 +4,9 @@ import com.hancomins.cson.CommentObject;
 import com.hancomins.cson.CommentPosition;
 import com.hancomins.cson.container.*;
 import com.hancomins.cson.util.ArrayMap;
+import com.hancomins.cson.util.DataConverter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,6 +15,8 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
 
     private _ObjectNode objectNode;
     private Object rootObject;
+
+    private List<Integer> whildObjectIdList = null;
 
     private ArrayMap<Object> parentMap = null;
 
@@ -45,18 +49,36 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
     }
 
 
-
-
     @Override
     public void put(String key, Object value) {
+        if(this.whildObjectIdList != null) {
+            for(int id : whildObjectIdList) {
+                Object object = parentMap.get(id);
+                _SchemaPointer schemaPointer = this.objectNode.getClassSchemaPointer(id);
+                if(schemaPointer == null) {
+                    continue;
+                }
+                SchemaValueAbs schemaValueAbs = schemaPointer.getSchema();
+
+                if(object instanceof Map) {
+                    Class<?> valueTypeClass = ((SchemaFieldMap)schemaValueAbs).getElementType();
+                    Object convertedValue = DataConverter.convertValue(valueTypeClass,value);
+                    //noinspection unchecked
+                    ((Map<String,Object>)object).put(key, convertedValue);
+                }
+
+            }
+        }
         _AbsNode childNode = this.objectNode.getNode(key);
         if(childNode == null) {
             return;
         }
         _NodeType nodeType = childNode.getType();
         _ObjectNode childObjectNode;
+
         switch (nodeType) {
             case OBJECT:
+                List<Integer> mapIdList = null;
                 childObjectNode = (_ObjectNode)childNode;
                 List<_SchemaPointer> nodeSchemaPointers = childObjectNode.getNodeSchemaPointerList();
                 if(nodeSchemaPointers != null) {
@@ -66,23 +88,30 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
                         Object object = parentMap.get(id);
                         if(object == null) {
                             SchemaValueAbs schemaValue = schemaPointer.getSchema();
-                            ClassSchema classSchema = schemaValue.getClassSchema();
-                            object = classSchema.newInstance();
+                            SchemaType schemaType = schemaValue.getSchemaType();
+                            if(schemaType == SchemaType.Map) {
+                                object = schemaValue.newInstance();
+                                if(mapIdList == null) {
+                                    mapIdList = new ArrayList<>();
+                                }
+                                mapIdList.add(id);
+                            } else {
+                                ClassSchema classSchema = schemaValue.getClassSchema();
+                                object = classSchema.newInstance();
+                            }
                             parentMap.put(id, object);
                             Object parent = parentMap.get(parentId);
                             schemaValue.setValue(parent, object);
                         }
                     }
                 }
-                if(childObjectNode.isWildItem()) {
-                    //todo : 와일드 아이템(Map, CSONObject) 처리
-                    System.out.println("와일드 아이템 처리");
-
-                }
-
                 if(value instanceof KeyValueDataContainerWrapper) {
                     KeyValueDataContainerWrapper wrapper = (KeyValueDataContainerWrapper) value;
-                    wrapper.setContainer(new ContainerOfObjectSchema(parentMap, childObjectNode));
+                    ContainerOfObjectSchema childContainer = new ContainerOfObjectSchema(parentMap, childObjectNode);
+                    wrapper.setContainer(childContainer);
+                    if(mapIdList != null) {
+                        childContainer.whildObjectIdList = mapIdList;
+                    }
                 }
                 break;
             case COLLECTION_OBJECT:

@@ -17,12 +17,13 @@ public class _ObjectNode extends _AbsNode{
     private String comment;
     private String afterComment;
     private String name;
+    private boolean hasWildItem = false;
 
     /**
      * Map 또는 CSONObject 타입의 필드면 true
      * 어떤 값이든 넣을 수 있다.
      */
-    private boolean isWildItem = false;
+
 
     private int maxSchemaId = 0;
 
@@ -100,6 +101,14 @@ public class _ObjectNode extends _AbsNode{
         }*/
     }
 
+
+    _SchemaPointer getClassSchemaPointer(int id) {
+        if(classSchemaPointerMap == null) {
+            return null;
+        }
+        return classSchemaPointerMap.get(id);
+    }
+
     void putFieldSchema(ISchemaNode schema, int parentId) {
         if(schema instanceof SchemaValueAbs) {
             SchemaValueAbs schemaValueAbs = (SchemaValueAbs) schema;
@@ -155,13 +164,6 @@ public class _ObjectNode extends _AbsNode{
         return name;
     }
 
-    void setWildItem(boolean isWildItem) {
-        this.isWildItem = isWildItem;
-    }
-
-    boolean isWildItem() {
-        return isWildItem;
-    }
 
     List<_SchemaPointer> getNodeSchemaPointerList() {
         return classSchemaPointerMap == null ? null : (List<_SchemaPointer>) classSchemaPointerMap.values();
@@ -223,7 +225,7 @@ public class _ObjectNode extends _AbsNode{
 
         _ObjectNode node = (_ObjectNode) absNode;
 
-        setWildItem(node.isWildItem());
+
 
 
         mergeSchemas(node);
@@ -304,6 +306,13 @@ public class _ObjectNode extends _AbsNode{
         return maxSchemaId;
     }
 
+    void setHasWildItem() {
+        this.hasWildItem = true;
+    }
+
+    boolean hasWildItem() {
+        return hasWildItem;
+    }
     /*@Override
     public String toString() {
         return toString(0);

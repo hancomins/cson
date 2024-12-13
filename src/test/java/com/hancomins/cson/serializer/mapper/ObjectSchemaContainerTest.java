@@ -266,8 +266,8 @@ class ObjectSchemaContainerTest {
 
         Map<String, String> stringsMap;
 
-        //@CSONValue("stringsMap")
-        //Map<String, Double> doubleMap;
+        @CSONValue("stringsMap")
+        Map<String, Double> doubleMap;
     }
 
     @Test
@@ -295,10 +295,10 @@ class ObjectSchemaContainerTest {
 
 
 
-        /*assertEquals(mapTestClass.doubleMap.size(), 3);
+        assertEquals(mapTestClass.doubleMap.size(), 3);
         assertEquals(mapTestClass.doubleMap.get("a"), Double.valueOf(1000));
         assertEquals(mapTestClass.doubleMap.get("b"), Double.valueOf(2000));
-        assertEquals(mapTestClass.doubleMap.get("c"), Double.valueOf(3000));*/
+        assertEquals(mapTestClass.doubleMap.get("c"), Double.valueOf(3000));
 
 
     }
