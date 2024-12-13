@@ -18,6 +18,9 @@ public class _SchemaPointer {
         this.typeSchema = null;
         this.id = id;
         this.parentId = parentId;
+        if(this.schemaNode == null) {
+            System.out.println("schemaNode is null");
+        }
     }
 
 
@@ -26,16 +29,25 @@ public class _SchemaPointer {
         this.typeSchema = schemaValueAbs.getClassSchema();
         this.id = id;
         this.parentId = parentId;
+        if(this.schemaNode == null) {
+            System.out.println("schemaNode is null");
+        }
     }
 
     _SchemaPointer(ClassSchema classSchema, int id, int parentId) {
         this.typeSchema = classSchema;
         this.id = id;
         this.parentId = parentId;
+        if(this.schemaNode == null) {
+            System.out.println("schemaNode is null");
+        }
     }
 
     void setSchemaValue(SchemaValueAbs schemaValueAbs) {
         this.schemaNode = schemaValueAbs;
+        if(this.schemaNode == null) {
+            System.out.println("schemaNode is null");
+        }
     }
 
 
@@ -57,7 +69,6 @@ public class _SchemaPointer {
     }
 
     public <T extends ISchemaNode> T getSchema() {
-        //noinspection unchecked
         return (T)schemaNode;
     }
 

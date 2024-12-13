@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 class ObjectTypeAnalyzerTest {
 
 
-     @CSON(explicit = true)
+    @CSON(explicit = true)
     public static class User {
         @CSONValue
         private String name;

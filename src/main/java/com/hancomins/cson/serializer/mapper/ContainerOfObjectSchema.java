@@ -20,6 +20,8 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
 
     private ArrayMap<Object> parentMap = null;
 
+    private List<Runnable> setValueExecutorList = new ArrayList<>();
+
     public ContainerOfObjectSchema(Class<?> classType) {
         ClassSchema classSchema = ClassSchemaMap.getInstance().getClassSchema(classType);
         initRootNode(classSchema, null);
@@ -48,9 +50,12 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
         this.objectNode = objectNode;
     }
 
+    // todo: Setter에서 문제가 발생할 수 있다.
+    // 빈 오브젝트나 비 컬렉션을 먼저 Setter로 넣고, 그 다음에 컬렉션을 넣으면 의미가 없음.
 
     @Override
     public void put(String key, Object value) {
+
         if(this.whildObjectIdList != null) {
             for(int id : whildObjectIdList) {
                 Object object = parentMap.get(id);
@@ -101,7 +106,8 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
                             }
                             parentMap.put(id, object);
                             Object parent = parentMap.get(parentId);
-                            schemaValue.setValue(parent, object);
+                            final Object finalObject = object;
+                            setValueExecutorList.add(() -> schemaValue.setValue(parent, finalObject));
                         }
                     }
                 }
@@ -147,7 +153,7 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
                             setMapField(parent, (SchemaFieldMap) schemaNode, (KeyValueDataContainerWrapper)value);
                             break;
                         default:
-                            SchemaFieldNormal schemaFieldNormal = (SchemaFieldNormal)schemaNode;
+                            SchemaValueAbs schemaFieldNormal = (SchemaValueAbs)schemaNode;
                             schemaFieldNormal.setValue(parent, value);
                     }
                 }
@@ -172,6 +178,11 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
             default:
                 break;
         }
+    }
+
+    @Override
+    public void end() {
+        setValueExecutorList.forEach(Runnable::run);
     }
 
     private void setMapField(Object parent, SchemaFieldMap schemaNode, KeyValueDataContainerWrapper value) {

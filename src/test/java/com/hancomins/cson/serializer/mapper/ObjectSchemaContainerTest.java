@@ -233,6 +233,9 @@ class ObjectSchemaContainerTest {
         List<TestClassC> testClassCList;
     }
 
+
+
+
     @Test
     @DisplayName("컬렉션 내 객체 생성 테스트")
     void putTestObjectInCollection() {
@@ -300,8 +303,48 @@ class ObjectSchemaContainerTest {
         assertEquals(mapTestClass.doubleMap.get("b"), Double.valueOf(2000));
         assertEquals(mapTestClass.doubleMap.get("c"), Double.valueOf(3000));
 
+    }
+
+    public static class GetterSetterTestClass {
+
+
+        String a;
+        int intA;
+
+        @CSONValueSetter("obj.a")
+        public void setA(String a) {
+            this.a = a;
+        }
+
+        @CSONValueSetter("obj.a")
+        public void setIntA(int a) {
+            this.intA = a;
+        }
 
     }
+
+    @Test
+    @DisplayName("Getter Setter 테스트")
+    public void getterSetterTest() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("$.obj.a", "1000");
+
+        GetterSetterTestClass getterSetterTestClass = new GetterSetterTestClass();
+        ObjectMapper ObjectMapper = new ObjectMapper();
+
+        ObjectMapper.toObject(csonObject.toString(), getterSetterTestClass);
+
+        assertEquals(getterSetterTestClass.a, "1000");
+        assertEquals(getterSetterTestClass.intA, 1000);
+    }
+
+
+
+    public static class ComplexMapTestClass {
+        Map<String, Map<String, String>> map;
+    }
+
+
 
 
 

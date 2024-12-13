@@ -12,4 +12,7 @@ public interface BaseDataContainer  {
     String getComment(CommentPosition commentPosition);
     DataIterator<?> iterator();
 
+    default void end() {
+    }
+
 }

@@ -119,6 +119,7 @@ public class BinaryCSONParser {
 			if(hasComment) {
 				readComments();
 			}
+			currentContainer.end();
 			containerStack.pop();
 			containerValueCountStack.pop();
 			currentContainer = containerStack.top();

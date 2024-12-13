@@ -550,6 +550,7 @@ public class JSON5Parser {
 
     private void closeBaseDataContainer() {
         commentParsingState = CommentParsingState.None;
+        currentContainer.end();
         if(currentContainer == rootContainer) {
             parsingState = ParsingState.Close;
         } else {
