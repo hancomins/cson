@@ -138,6 +138,14 @@ public class KeyValueDataContainerWrapper implements KeyValueDataContainer {
     }
 
 
+    @Override
+    public void end() {
+        if(container == null) {
+            return;
+        }
+        container.end();
+    }
+
     public static KeyValueDataContainerFactory newFactory(KeyValueDataContainer container) {
         return () -> new KeyValueDataContainerWrapper(container);
     }

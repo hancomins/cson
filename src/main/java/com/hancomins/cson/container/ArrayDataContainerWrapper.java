@@ -122,6 +122,14 @@ public class ArrayDataContainerWrapper implements ArrayDataContainer {
         return container.iterator();
     }
 
+    @Override
+    public void end() {
+        if (container == null) {
+            return;
+        }
+        container.end();
+    }
+
     public static ArrayDataContainerFactory newFactory(ArrayDataContainer container) {
         return () -> new ArrayDataContainerWrapper(container);
     }

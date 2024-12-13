@@ -108,6 +108,7 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
                             Object parent = parentMap.get(parentId);
                             final Object finalObject = object;
                             setValueExecutorList.add(() -> schemaValue.setValue(parent, finalObject));
+
                         }
                     }
                 }

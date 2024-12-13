@@ -99,19 +99,20 @@ class ObjectSchemaContainerTest {
 
         ObjectMapper.toObject(csonObject.toString(), testClass);
 
-
         assertEquals(testClass.a, "aaa");
         assertEquals(testClass.b.a, 10000);
         assertEquals(testClass.b.ab, "10000");
 
+
+        assertNotNull(testClass.d);
+        assertEquals(testClass.d.toString(), "10000");
 
         assertNotNull(testClass.c);
         assertEquals(testClass.b.k, "k");
         assertEquals("k", testClass.c.a);
 
 
-        assertNotNull(testClass.d);
-        assertEquals(testClass.d.toString(), "10000");
+
 
 
     }
@@ -288,13 +289,15 @@ class ObjectSchemaContainerTest {
 
         ObjectMapper.toObject(csonObject.toString(), mapTestClass);
 
-        assertEquals(mapTestClass.c, "3000");
 
         assertNotNull(mapTestClass.stringsMap);
-        assertEquals(mapTestClass.stringsMap.size(), 3);
-        assertEquals(mapTestClass.stringsMap.get("a"), "1000");
-        assertEquals(mapTestClass.stringsMap.get("b"), "2000");
-        assertEquals(mapTestClass.stringsMap.get("c"), "3000");
+        assertEquals(3, mapTestClass.stringsMap.size());
+        assertEquals("1000", mapTestClass.stringsMap.get("a"));
+        assertEquals("2000", mapTestClass.stringsMap.get("b"));
+        assertEquals("3000", mapTestClass.stringsMap.get("c"));
+
+        assertEquals("3000", mapTestClass.c);
+
 
 
 
@@ -321,6 +324,12 @@ class ObjectSchemaContainerTest {
             this.intA = a;
         }
 
+        @CSONValueSetter("obj.test")
+        public void setTestObject(TestClass testObject) {
+            assertEquals("2000", testObject.a);
+            assertEquals("dsafasdf", testObject.c.a);
+        }
+
     }
 
     @Test
@@ -328,14 +337,17 @@ class ObjectSchemaContainerTest {
     public void getterSetterTest() {
         CSONObject csonObject = new CSONObject();
         csonObject.put("$.obj.a", "1000");
+        csonObject.put("$.obj.test.a", "2000");
+        csonObject.put("$.obj.test.b.obj.k", "dsafasdf");
+
 
         GetterSetterTestClass getterSetterTestClass = new GetterSetterTestClass();
         ObjectMapper ObjectMapper = new ObjectMapper();
 
         ObjectMapper.toObject(csonObject.toString(), getterSetterTestClass);
 
-        assertEquals(getterSetterTestClass.a, "1000");
-        assertEquals(getterSetterTestClass.intA, 1000);
+        assertEquals("1000", getterSetterTestClass.a);
+        assertEquals(1000, getterSetterTestClass.intA);
     }
 
 

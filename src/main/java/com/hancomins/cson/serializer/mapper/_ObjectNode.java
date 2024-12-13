@@ -169,12 +169,14 @@ public class _ObjectNode extends _AbsNode{
         return classSchemaPointerMap == null ? null : (List<_SchemaPointer>) classSchemaPointerMap.values();
     }
 
-    _SchemaPointer getFirstSchemaPointer() {
-        if(classSchemaPointerMap == null || classSchemaPointerMap.isEmpty()) {
+    _SchemaPointer getFirstNodeSchemaPointer() {
+        List<_SchemaPointer> schemaPointers = getNodeSchemaPointerList();
+        if(schemaPointers == null || schemaPointers.isEmpty()) {
             return null;
         }
-        return classSchemaPointerMap.get(0);
+        return schemaPointers.get(0);
     }
+
 
 
     private void mergeSchemas(_ObjectNode node) {
