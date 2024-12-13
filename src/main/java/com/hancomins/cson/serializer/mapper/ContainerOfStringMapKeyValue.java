@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-public class StringMapKeyValueContainer implements KeyValueDataContainer {
+public class ContainerOfStringMapKeyValue implements KeyValueDataContainer {
 
 
     private final Map<String, Object> stringKeyValueMap = new HashMap<>();

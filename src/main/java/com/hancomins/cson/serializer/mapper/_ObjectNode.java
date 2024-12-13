@@ -12,13 +12,20 @@ public class _ObjectNode extends _AbsNode{
     private Map<String, _AbsNode> children;
 
     private _ObjectNode parent;
-    private ArrayMap<_SchemaPointer> classSchemaPointerMap;
-    private ArrayList<_SchemaPointer> fieldSchemedPointerList;
+    private ArrayMap<_SchemaPointer> classSchemaPointerMap = new ArrayMap<>();
+    private List<_SchemaPointer> fieldSchemedPointerList = new ArrayList<>();
     private String comment;
     private String afterComment;
     private String name;
 
+    /**
+     * Map 또는 CSONObject 타입의 필드면 true
+     * 어떤 값이든 넣을 수 있다.
+     */
+    private boolean isWildItem = false;
+
     private int maxSchemaId = 0;
+
 
 
 
@@ -105,7 +112,6 @@ public class _ObjectNode extends _AbsNode{
             }
         }
 
-
         _SchemaPointer pointer = new _SchemaPointer(schema, _SchemaPointer.NO_ID, parentId);
         if(fieldSchemedPointerList == null) {
             fieldSchemedPointerList = new ArrayList<>();
@@ -149,8 +155,23 @@ public class _ObjectNode extends _AbsNode{
         return name;
     }
 
+    void setWildItem(boolean isWildItem) {
+        this.isWildItem = isWildItem;
+    }
+
+    boolean isWildItem() {
+        return isWildItem;
+    }
+
     List<_SchemaPointer> getNodeSchemaPointerList() {
         return classSchemaPointerMap == null ? null : (List<_SchemaPointer>) classSchemaPointerMap.values();
+    }
+
+    _SchemaPointer getFirstSchemaPointer() {
+        if(classSchemaPointerMap == null || classSchemaPointerMap.isEmpty()) {
+            return null;
+        }
+        return classSchemaPointerMap.get(0);
     }
 
 
@@ -201,6 +222,8 @@ public class _ObjectNode extends _AbsNode{
         }
 
         _ObjectNode node = (_ObjectNode) absNode;
+
+        setWildItem(node.isWildItem());
 
 
         mergeSchemas(node);

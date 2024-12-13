@@ -32,23 +32,32 @@ public class _NodeBuilder {
     private  _ObjectNode makeNode(SchemaValueAbs targetTypeSchema, int parentID) {
         ClassSchema classSchema = targetTypeSchema.getClassSchema();
         _ObjectNode rootObject = makeNode(classSchema, parentID);
-        _SchemaPointer schemaPointer = rootObject.getNodeSchemaPointerList().get(0);
-        schemaPointer.setSchemaValue(targetTypeSchema);
+        _SchemaPointer schemaPointer = rootObject.getFirstSchemaPointer();
+        if(schemaPointer != null) {
+            schemaPointer.setSchemaValue(targetTypeSchema);
+        }
+        SchemaType schemaType = targetTypeSchema.getSchemaType();
+        if(schemaType == SchemaType.Map || schemaType == SchemaType.CSONObject) {
+            rootObject.setWildItem(true);
+        }
+
         return rootObject;
     }
 
      _ObjectNode makeNode(ClassSchema targetTypeSchema, int parentID) {
-         List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType());
+         List<SchemaValueAbs> fieldRacks = null;
+        if(targetTypeSchema != null) {
+            fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType());
+        }
          _ObjectNode rootNode = new _ObjectNode();
          rootNode.setType(_NodeType.OBJECT);
          int id = lastID++;
          rootNode.putNodeSchema(targetTypeSchema, id, parentID);
-         for(SchemaValueAbs fieldRack : fieldRacks) {
-             String path = fieldRack.getPath();
-             SchemaType type = fieldRack.getSchemaType();
-             makeSubTree(rootNode, path, fieldRack, id);
-
-
+         if(fieldRacks != null) {
+             for (SchemaValueAbs fieldRack : fieldRacks) {
+                 String path = fieldRack.getPath();
+                 makeSubTree(rootNode, path, fieldRack, id);
+             }
          }
          rootNode.setMaxSchemaId(lastID);
 
@@ -265,11 +274,13 @@ public class _NodeBuilder {
             // 마지막 노드인 경우
              if(pathItem.isEndPoint()) {
                 // todo : Array 타입 구분.,
+                 SchemaType schemaType = valueSchema.getSchemaType();
                  ClassSchema objectTypeSchema = valueSchema.getClassSchema();
                  // 마지막 노드가 클래스 타입인 경우 하위 노드 생성
-                 if(objectTypeSchema != null) {
+                 if(objectTypeSchema != null || schemaType == SchemaType.Map) {
                      makeObjectNode(currentNode, valueSchema, parentID);
-                 } else {
+                 }
+                 else {
                      currentNode.putFieldSchema(valueSchema,parentID);
                      currentNode.setEndPoint();
                  }
@@ -297,4 +308,7 @@ public class _NodeBuilder {
         currentNode.merge(node);
         currentNode.setType(isCollection ? _NodeType.COLLECTION_OBJECT : _NodeType.OBJECT);
     }
+
+
+
 }

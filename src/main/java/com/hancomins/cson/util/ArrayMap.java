@@ -5,6 +5,14 @@ import java.util.stream.Collectors;
 
 public class ArrayMap<E> implements Map<Integer, E> {
 
+    private static final ArrayMap<Object> EMPTY = new ArrayMap<>();
+
+    public static <T> ArrayMap<T> empty() {
+        //noinspection unchecked
+        return (ArrayMap<T>) EMPTY;
+    }
+
+
     private final ArrayList<NumberIndexEntry<E>> list = new ArrayList<>();
 
     private int size = 0;

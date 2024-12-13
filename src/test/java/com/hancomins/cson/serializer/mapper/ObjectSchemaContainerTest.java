@@ -259,16 +259,24 @@ class ObjectSchemaContainerTest {
 
 
     public static class MapTestClass {
+
+
+        @CSONValue("stringsMap.c")
+        String c = "";
+
         Map<String, String> stringsMap;
+
+        //@CSONValue("stringsMap")
+        //Map<String, Double> doubleMap;
     }
 
     @Test
     @DisplayName("맵 노드 생성 테스트")
     public void mapTest() {
         CSONObject csonObject = new CSONObject();
-        csonObject.put("$.stringsMap.a", "aaa");
-        csonObject.put("$.stringsMap.b", "bbb");
-        csonObject.put("$.stringsMap.c", "ccc");
+        csonObject.put("$.stringsMap.a", "1000");
+        csonObject.put("$.stringsMap.b", "2000");
+        csonObject.put("$.stringsMap.c", "3000");
 
         System.out.println(csonObject);
 
@@ -277,11 +285,22 @@ class ObjectSchemaContainerTest {
 
         ObjectMapper.toObject(csonObject.toString(), mapTestClass);
 
+        assertEquals(mapTestClass.c, "3000");
+
         assertNotNull(mapTestClass.stringsMap);
         assertEquals(mapTestClass.stringsMap.size(), 3);
-        assertEquals(mapTestClass.stringsMap.get("a"), "aaa");
-        assertEquals(mapTestClass.stringsMap.get("b"), "bbb");
-        assertEquals(mapTestClass.stringsMap.get("c"), "ccc");
+        assertEquals(mapTestClass.stringsMap.get("a"), "1000");
+        assertEquals(mapTestClass.stringsMap.get("b"), "2000");
+        assertEquals(mapTestClass.stringsMap.get("c"), "3000");
+
+
+
+        /*assertEquals(mapTestClass.doubleMap.size(), 3);
+        assertEquals(mapTestClass.doubleMap.get("a"), Double.valueOf(1000));
+        assertEquals(mapTestClass.doubleMap.get("b"), Double.valueOf(2000));
+        assertEquals(mapTestClass.doubleMap.get("c"), Double.valueOf(3000));*/
+
+
     }
 
 

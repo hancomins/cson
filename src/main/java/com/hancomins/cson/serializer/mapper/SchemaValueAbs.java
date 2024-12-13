@@ -11,8 +11,7 @@ import java.util.Map;
 
 abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
-    private final int id = LAST_ID.getAndIncrement();
-    protected int parentID = -1;
+
 
     final ClassSchema parentsTypeSchema;
     private ClassSchema objectTypeSchema;
@@ -108,9 +107,10 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
     @SuppressWarnings("unchecked")
     <T extends SchemaValueAbs> List<T> getAllSchemaValueList() {
-
         return (List<T>) this.allSchemaValueAbsList;
     }
+
+
 
     void setObjectTypeSchema(ClassSchema objectTypeSchema) {
         this.objectTypeSchema = objectTypeSchema;
@@ -183,20 +183,6 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         return type;
     }
 
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public int getParentId() {
-        return parentID;
-    }
-
-    @Override
-    public void setParentId(int parentId) {
-        this.parentID = parentId;
-    }
 
     final String getPath() {
         return path;
@@ -340,12 +326,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     @Override
     public void setValue(Object parent, Object value) {
         if(parent == null) return;
-        //allSchemaValueAbsList.forEach(schemaValueAbs -> schemaValueAbs.onSetValue(parentMap, value));
-
-
         onSetValue(parent, value);
-
-
     }
 
 
@@ -397,17 +378,13 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
     @Override
     public String toString() {
-        return id + ""; /*"FieldRack{" +
-                "id=" + id +
-                ", field=" + field +
-                ", path='" + path + '\'' +
-                ", isPrimitive=" + isPrimitive +
-                ", isByteArray=" + isByteArray +
-                ", typeElement=" + typeElement +
-                ", fieldType=" + fieldType +
+        return "SchemaValueAbs{" +
+                "path='" + path + '\'' +
                 ", type=" + type +
-                ", parentFieldRack=" + parentFieldRack +
-                '}';*/
+                ", isPrimitive=" + isPrimitive +
+                ", isEnum=" + isEnum +
+                ", valueTypeClass=" + valueTypeClass +
+                '}';
     }
 
 

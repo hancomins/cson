@@ -9,19 +9,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ObjectSchemaContainer implements KeyValueDataContainer {
+public class ContainerOfObjectSchema implements KeyValueDataContainer {
 
     private _ObjectNode objectNode;
     private Object rootObject;
 
     private ArrayMap<Object> parentMap = null;
 
-    public ObjectSchemaContainer(Class<?> classType) {
+    public ContainerOfObjectSchema(Class<?> classType) {
         ClassSchema classSchema = ClassSchemaMap.getInstance().getClassSchema(classType);
         initRootNode(classSchema, null);
     }
 
-    public ObjectSchemaContainer(Object rootValue) {
+    public ContainerOfObjectSchema(Object rootValue) {
         ClassSchema classSchema = ClassSchemaMap.getInstance().getClassSchema(rootValue.getClass());
         initRootNode(classSchema, rootValue);
     }
@@ -39,7 +39,7 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
     }
 
 
-    private ObjectSchemaContainer(ArrayMap<Object> parentMap, _ObjectNode objectNode) {
+    private ContainerOfObjectSchema(ArrayMap<Object> parentMap, _ObjectNode objectNode) {
         this.parentMap = parentMap;
         this.objectNode = objectNode;
     }
@@ -74,9 +74,15 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                         }
                     }
                 }
+                if(childObjectNode.isWildItem()) {
+                    //todo : 와일드 아이템(Map, CSONObject) 처리
+                    System.out.println("와일드 아이템 처리");
+
+                }
+
                 if(value instanceof KeyValueDataContainerWrapper) {
                     KeyValueDataContainerWrapper wrapper = (KeyValueDataContainerWrapper) value;
-                    wrapper.setContainer(new ObjectSchemaContainer(parentMap, childObjectNode));
+                    wrapper.setContainer(new ContainerOfObjectSchema(parentMap, childObjectNode));
                 }
                 break;
             case COLLECTION_OBJECT:
@@ -85,7 +91,7 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
                     return;
                 }
                 ArrayDataContainerWrapper arrayDataContainerWrapper = (ArrayDataContainerWrapper)value;
-                CollectionMappingContainer collectionMappingContainer = new CollectionMappingContainer(collectionNode, parentMap);
+                ContainerOfCollectionMapping collectionMappingContainer = new ContainerOfCollectionMapping(collectionNode, parentMap);
                 arrayDataContainerWrapper.setContainer(collectionMappingContainer);
 
                 // 필드에 컬렉션 추가.
@@ -140,7 +146,7 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
     }
 
     private void setMapField(Object parent, SchemaFieldMap schemaNode, KeyValueDataContainerWrapper value) {
-        StringMapKeyValueContainer stringMapKeyValueContainer = new StringMapKeyValueContainer();
+        ContainerOfStringMapKeyValue stringMapKeyValueContainer = new ContainerOfStringMapKeyValue();
         value.setContainer(stringMapKeyValueContainer);
         Map<String, Object> map = stringMapKeyValueContainer.getMap();
         schemaNode.setValue(parent, map);
@@ -225,7 +231,7 @@ public class ObjectSchemaContainer implements KeyValueDataContainer {
             if(refrenceObject != null) {
                 Object arg = refrenceObject;
                 refrenceObject = null;
-                return new ObjectSchemaContainer(arg);
+                return new ContainerOfObjectSchema(arg);
             }
             return new KeyValueDataContainerWrapper();
 

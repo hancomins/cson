@@ -10,9 +10,9 @@ public class ObjectMapper {
 
      public <T> T toObject(String json, T object) {
         NoSynchronizedStringReader reader =  new NoSynchronizedStringReader(json);
-        ObjectSchemaContainer.ObjectSchemaContainerFactory factory = new ObjectSchemaContainer.ObjectSchemaContainerFactory(object);
+        ContainerOfObjectSchema.ObjectSchemaContainerFactory factory = new ContainerOfObjectSchema.ObjectSchemaContainerFactory(object);
         ArrayDataContainerFactory arrayDataContainerFactory =  ArrayDataContainerWrapper.newFactory(null);
-        ObjectSchemaContainer container = (ObjectSchemaContainer) factory.create();
+        ContainerOfObjectSchema container = (ContainerOfObjectSchema) factory.create();
         JSON5Parser.parse(reader,   JsonParsingOptions.json5(), container, factory, arrayDataContainerFactory);
         return object;
     }

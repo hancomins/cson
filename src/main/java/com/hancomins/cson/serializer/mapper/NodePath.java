@@ -20,31 +20,28 @@ public class NodePath {
     }
 
 
-    static SchemaObjectNode makeNode(ClassSchema targetTypeSchema, SchemaValueAbs parentFieldRack, int parentID) {
-        List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType(), parentID);
+    static SchemaObjectNode makeNode(ClassSchema targetTypeSchema, SchemaValueAbs parentFieldRack) {
+        List<SchemaValueAbs> fieldRacks = searchAllFields(targetTypeSchema, targetTypeSchema.getType());
         SchemaObjectNode objectNode = new SchemaObjectNode()
                 .addSchemaField((SchemaFieldNormal) parentFieldRack)
                 .setObjectTypeSchema(targetTypeSchema).setBranchNode(false);
-        objectNode.setParentId(parentID);
 
-        int objectNodeId = objectNode.getId();
         for(SchemaValueAbs fieldRack : fieldRacks) {
-            fieldRack.setParentId(parentFieldRack == null ? objectNodeId : parentFieldRack.getId());
             fieldRack.setParentFiled(parentFieldRack);
             String path = fieldRack.getPath();
             if(fieldRack.getSchemaType() == SchemaType.Object) {
                 ClassSchema typeSchema = ClassSchemaMap.getInstance().getClassSchema(fieldRack.getValueTypeClass());
-                SchemaObjectNode childTree = makeNode(typeSchema,fieldRack,objectNodeId);
+                SchemaObjectNode childTree = makeNode(typeSchema,fieldRack);
                 childTree.setComment(fieldRack.getComment());
                 childTree.setAfterComment(fieldRack.getAfterComment());
                 childTree.addParentFieldRack(fieldRack);
                 childTree.setBranchNode(false);
-                SchemaElementNode elementNode = makeSubTree(path, childTree, childTree.getId());
+                SchemaElementNode elementNode = makeSubTree(path, childTree);
                 elementNode.setBranchNode(false);
                 objectNode.merge(elementNode);
                 continue;
             }
-            SchemaElementNode elementNode = makeSubTree(path, fieldRack, objectNodeId);
+            SchemaElementNode elementNode = makeSubTree(path, fieldRack);
             objectNode.merge(elementNode);
         }
         if(parentFieldRack == null) {
@@ -54,18 +51,18 @@ public class NodePath {
     }
 
 
-    private static List<SchemaValueAbs> searchAllFields(ClassSchema typeSchema, Class<?> clazz, int parentID) {
+    private static List<SchemaValueAbs> searchAllFields(ClassSchema typeSchema, Class<?> clazz) {
         //Set<String> fieldPaths = new HashSet<>();
         List<SchemaValueAbs> results = new ArrayList<>();
-        findSchemaByAncestors(typeSchema, results, clazz, parentID);
+        findSchemaByAncestors(typeSchema, results, clazz);
         Class<?>[] interfaces = clazz.getInterfaces();
         for (Class<?> interfaceClass : interfaces) {
-            findSchemaByAncestors(typeSchema, results, interfaceClass, parentID);
+            findSchemaByAncestors(typeSchema, results, interfaceClass);
         }
         return results;
     }
 
-    private static void findSchemaByAncestors(ClassSchema typeSchema, List<SchemaValueAbs> results, Class<?> currentClass, int parentID) {
+    private static void findSchemaByAncestors(ClassSchema typeSchema, List<SchemaValueAbs> results, Class<?> currentClass) {
         List<Field> fields = ReflectionUtils.getAllInheritedFields(currentClass);
         List<Method> methods = ReflectionUtils.getAllInheritedMethods(currentClass);
         TypeUtil.filterSupportedTypes(fields).stream().map(field -> SchemaValueAbs.of(typeSchema, field))
@@ -182,11 +179,10 @@ public class NodePath {
     }
 
 
-    public static SchemaElementNode makeSubTree(String path, ISchemaNode value, int parentId) {
+    public static SchemaElementNode makeSubTree(String path, ISchemaNode value) {
         List<PathItem> list = PathItem.parseMultiPath2(path);
         SchemaElementNode rootNode = new SchemaObjectNode();
         SchemaElementNode schemaNode = rootNode;
-        value.setParentId(parentId);
         //noinspection ForLoopReplaceableByForEach
         for(int i = 0, n = list.size(); i < n; ++i) {
             PathItem pathItem = list.get(i);

@@ -44,14 +44,6 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     }
 
     @Override
-    public void setParentId(int parentId) {
-        if(parentId == 11) {
-            System.out.println("SchemaField.setParentId");
-        }
-        super.setParentId(parentId);
-    }
-
-    @Override
     public ObtainTypeValueInvoker getObtainTypeValueInvoker() {
         return obtainTypeValueInvoker;
     }
@@ -207,17 +199,14 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     @Override
     public String toString() {
-        return getId() + "<" + getSchemaType() + ">"; /*"FieldRack{" +
-                "id=" + id +
-                ", field=" + field +
-                ", path='" + path + '\'' +
-                ", isPrimitive=" + isPrimitive +
-                ", isByteArray=" + isByteArray +
-                ", typeElement=" + typeElement +
-                ", fieldType=" + fieldType +
-                ", type=" + type +
-                ", parentFieldRack=" + parentFieldRack +
-                '}';*/
+        return "SchemaField{" +
+                "field=" + field +
+                ", fieldName='" + fieldName + '\'' +
+                ", comment='" + comment + '\'' +
+                ", afterComment='" + afterComment + '\'' +
+                ", isStatic=" + isStatic +
+                ", obtainTypeValueInvoker=" + obtainTypeValueInvoker +
+                '}';
     }
 
 

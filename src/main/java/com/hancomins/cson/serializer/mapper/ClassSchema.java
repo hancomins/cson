@@ -251,22 +251,6 @@ class ClassSchema implements ISchemaNode {
 
 
     @Override
-    public int getId() {
-        return 0;
-    }
-
-    @Override
-    public int getParentId() {
-        return 0;
-    }
-
-    @Override
-    public void setParentId(int parentId) {
-
-
-    }
-
-    @Override
     public SchemaType getSchemaType() {
         return SchemaType.Object;
     }

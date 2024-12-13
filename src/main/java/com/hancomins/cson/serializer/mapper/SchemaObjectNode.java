@@ -11,8 +11,6 @@ class SchemaObjectNode extends SchemaElementNode {
     private ClassSchema objectTypeSchema;
 
     private List<SchemaFieldNormal> schemaFieldList = new ArrayList<>();
-    private final int id = LAST_ID.getAndIncrement();
-    private int parentId = -1;
 
     private String comment;
     private String afterComment;
@@ -134,9 +132,11 @@ class SchemaObjectNode extends SchemaElementNode {
                 }
             }
             mergeComment(objectNode);
+
         }
         addParentFieldRackAll(schemaElementNode.getParentSchemaFieldList());
         setBranchNode(schemaElementNode.isBranchNode() || this.isBranchNode());
+
 
     }
 
@@ -171,20 +171,6 @@ class SchemaObjectNode extends SchemaElementNode {
 
 
 
-    @Override
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public int getParentId() {
-        return parentId;
-    }
-
-    @Override
-    public void setParentId(int parentId) {
-        this.parentId = parentId;
-    }
 
     @Override
     public SchemaType getSchemaType() {

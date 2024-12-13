@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class CollectionMappingContainer implements ArrayDataContainer {
+public class ContainerOfCollectionMapping implements ArrayDataContainer {
 
 
-    private CollectionMappingContainer parentContainer;
+    private ContainerOfCollectionMapping parentContainer;
     private _CollectionNode rootNode;
     @SuppressWarnings("rawtypes")
     private List<ValueBundle> values = new ArrayList<>();
@@ -24,7 +24,7 @@ public class CollectionMappingContainer implements ArrayDataContainer {
 
 
     @SuppressWarnings("unchecked")
-    CollectionMappingContainer(_CollectionNode rootNode, ArrayMap<Object> values) {
+    ContainerOfCollectionMapping(_CollectionNode rootNode, ArrayMap<Object> values) {
         this.rootNode = rootNode;
         List<_ArraySchemePointer> arraySchemePointerList =  rootNode.getArraySchemaPointers();
 
@@ -42,7 +42,7 @@ public class CollectionMappingContainer implements ArrayDataContainer {
     }
 
 
-    CollectionMappingContainer(CollectionMappingContainer parentContainer, _CollectionNode rootNode,int depth) {
+    ContainerOfCollectionMapping(ContainerOfCollectionMapping parentContainer, _CollectionNode rootNode, int depth) {
         this.values = new ArrayList<>();
         List<ValueBundle> parentValues = parentContainer.values;
         this.depth = depth;
@@ -70,13 +70,13 @@ public class CollectionMappingContainer implements ArrayDataContainer {
                 ArrayDataContainerWrapper arrayDataContainerWrapper = (ArrayDataContainerWrapper)value;
                 ArrayDataContainer collectionContainer = arrayDataContainerWrapper.getContainer();
                 if(collectionContainer == null) {
-                    CollectionMappingContainer innerCollection = new CollectionMappingContainer(this,rootNode,depth + 1);
+                    ContainerOfCollectionMapping innerCollection = new ContainerOfCollectionMapping(this,rootNode,depth + 1);
                     arrayDataContainerWrapper.setContainer(innerCollection);
                 }
             } else {
                 Object endPointValue;
                 if(value instanceof KeyValueDataContainerWrapper) {
-                    ObjectSchemaContainer objectSchemaContainer = new ObjectSchemaContainer(collectionBundle.schemaArrayValue.getEndpointValueTypeClass());
+                    ContainerOfObjectSchema objectSchemaContainer = new ContainerOfObjectSchema(collectionBundle.schemaArrayValue.getEndpointValueTypeClass());
                     KeyValueDataContainerWrapper keyValueDataContainerWrapper = (KeyValueDataContainerWrapper)value;
                     keyValueDataContainerWrapper.setContainer(objectSchemaContainer);
                     endPointValue = objectSchemaContainer.getRootObject();

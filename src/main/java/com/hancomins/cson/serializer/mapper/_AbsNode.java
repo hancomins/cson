@@ -9,6 +9,7 @@ public abstract class _AbsNode {
         return type;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     protected <T extends _AbsNode> T setType(_NodeType type) {
         this.type = type;
         //noinspection unchecked
@@ -32,4 +33,5 @@ public abstract class _AbsNode {
     boolean isEndPoint() {
         return endPoint;
     }
+
 }
