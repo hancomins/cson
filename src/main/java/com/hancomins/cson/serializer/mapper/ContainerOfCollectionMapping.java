@@ -19,7 +19,7 @@ public class ContainerOfCollectionMapping implements ArrayDataContainer {
     private List<ValueBundle> values = new ArrayList<>();
     int depth = 0;
 
-
+    private List<Runnable> setValueExecutorList = new ArrayList<>();
 
 
 
@@ -36,7 +36,7 @@ public class ContainerOfCollectionMapping implements ArrayDataContainer {
             }
             Collection<Object> collection = (Collection<Object>)collectionItem.newInstance();
             int parentID = arraySchemePointer.getParentId();
-            iSchemaArrayValue.setValue(values.get(parentID), collection);
+            setValueExecutorList.add(() -> iSchemaArrayValue.setValue(values.get(parentID), collection));
             this.values.add(new ValueBundle(collection,iSchemaArrayValue));
         }
     }
@@ -86,8 +86,9 @@ public class ContainerOfCollectionMapping implements ArrayDataContainer {
                 collectionBundle.collection.add(endPointValue);
             }
         }
-
     }
+
+
 
     @Override
     public Object get(int index) {
@@ -139,6 +140,12 @@ public class ContainerOfCollectionMapping implements ArrayDataContainer {
         return null;
     }
 
+    @Override
+    public void end() {
+        setValueExecutorList.forEach(Runnable::run);
+        setValueExecutorList.clear();
+
+    }
 
     private static class ValueBundle {
         static ValueBundle notAvailable() {
@@ -173,4 +180,5 @@ public class ContainerOfCollectionMapping implements ArrayDataContainer {
 
 
     }
+
 }

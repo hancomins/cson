@@ -6,10 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.time.DayOfWeek;
-import java.util.ArrayDeque;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -310,9 +307,9 @@ class ObjectSchemaContainerTest {
 
     public static class GetterSetterTestClass {
 
-
         String a;
         int intA;
+        Collection<Integer> collectionB;
 
         @CSONValueSetter("obj.a")
         public void setA(String a) {
@@ -323,6 +320,13 @@ class ObjectSchemaContainerTest {
         public void setIntA(int a) {
             this.intA = a;
         }
+
+        @CSONValueSetter("obj.b")
+        public void setCollectionB(Collection<Integer> collection) {
+            assertEquals(3, collection.size());
+            this.collectionB = collection;
+        }
+
 
         @CSONValueSetter("obj.test")
         public void setTestObject(TestClass testObject) {
@@ -340,6 +344,11 @@ class ObjectSchemaContainerTest {
         csonObject.put("$.obj.test.a", "2000");
         csonObject.put("$.obj.test.b.obj.k", "dsafasdf");
 
+        csonObject.put("$.obj.b[0]", "1000");
+        csonObject.put("$.obj.b[1]", "2000");
+        csonObject.put("$.obj.b[2]", "33333");
+
+
 
         GetterSetterTestClass getterSetterTestClass = new GetterSetterTestClass();
         ObjectMapper ObjectMapper = new ObjectMapper();
@@ -348,6 +357,13 @@ class ObjectSchemaContainerTest {
 
         assertEquals("1000", getterSetterTestClass.a);
         assertEquals(1000, getterSetterTestClass.intA);
+
+        assertNotNull(getterSetterTestClass.collectionB);
+        assertEquals(3, getterSetterTestClass.collectionB.size());
+        assertTrue(getterSetterTestClass.collectionB.contains(1000));
+        assertTrue(getterSetterTestClass.collectionB.contains(2000));
+        assertTrue(getterSetterTestClass.collectionB.contains(33333));
+
     }
 
 
