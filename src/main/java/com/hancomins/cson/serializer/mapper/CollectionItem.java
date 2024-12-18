@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 class CollectionItem {
 
     // 중첩 순서 값
-    private int nestedLevel = 0;
+    private int nestedLevel;
     private final CollectionFactory collectionFactory;
     protected final Class<?> collectionType;
     private Class<?> valueClass;
@@ -229,7 +229,7 @@ class CollectionItem {
                 //noinspection unchecked
                 return (Collection<D>) collectionConstructor.newInstance();
             } catch (Exception e) {
-                throw new CSONSerializerException("Collection field has no default constructor");
+                throw new CSONMapperException("Collection field has no default constructor");
             }
         }
 

@@ -40,7 +40,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
             if(csonValue == null) {
                 return null;
             }
-            throw new CSONSerializerException("@CSONValue field cannot be final. (path: " + typeSchema.getType().getName() + "." + field.getName() + ")");
+            throw new CSONMapperException("@CSONValue field cannot be final. (path: " + typeSchema.getType().getName() + "." + field.getName() + ")");
         }
         // 0.9.29 /////////
         String key = field.getName();
@@ -70,8 +70,8 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         CSONValueGetter getter = method.getAnnotation(CSONValueGetter.class);
         CSONValueSetter setter = method.getAnnotation(CSONValueSetter.class);
         if(setter == null && getter == null) return null;
-        if(SetterGetterSchemaUseCollection.isCollectionTypeParameterOrReturns(method)) {
-            return new SetterGetterSchemaUseCollection(typeSchema, method);
+        if(SchemaSetterGetterUseCollection.isCollectionTypeParameterOrReturns(method)) {
+            return new SchemaSetterGetterUseCollection(typeSchema, method);
         }
         else if(SetterGetterSchemaUseMap.isMapTypeParameterOrReturns(method)) {
             return new SetterGetterSchemaUseMap(typeSchema, method);
@@ -149,8 +149,8 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
         if(this.type == SchemaType.Object || this.type == SchemaType.AbstractObject) {
             try {
                 this.objectTypeSchema = ClassSchemaMap.getInstance().getClassSchema(valueTypeClass);
-            } catch (CSONSerializerException e) {
-                throw new CSONSerializerException("A type that cannot be used as a serialization object : " + valueTypeClass.getName() + ". (path: " + parentsTypeSchema.getType().getName() + "." + path + ")", e);
+            } catch (CSONMapperException e) {
+                throw new CSONMapperException("A type that cannot be used as a serialization object : " + valueTypeClass.getName() + ". (path: " + parentsTypeSchema.getType().getName() + "." + path + ")", e);
             }
         }
         else {
@@ -368,6 +368,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
     void onSetValue(Object parent, byte value) {
          onSetValue(parent,Byte.valueOf(value));
     }*/
+
 
 
     boolean equalsValueType(SchemaValueAbs schemaValueAbs) {

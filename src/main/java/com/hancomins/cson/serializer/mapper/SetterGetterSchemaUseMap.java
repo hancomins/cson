@@ -70,9 +70,9 @@ class SetterGetterSchemaUseMap extends SchemaMethod implements ISchemaMapValue {
 
         if(!String.class.isAssignableFrom(keyClass)) {
             if(isGetter) {
-                throw new CSONSerializerException("The key of Map, which is the return value of the method, is not of String type. Please use String key. (path: " + methodPath + ")");
+                throw new CSONMapperException("The key of Map, which is the return value of the method, is not of String type. Please use String key. (path: " + methodPath + ")");
             } else {
-                throw new CSONSerializerException("The key of Map, which is the parameter of the method, is not of String type. Please use String key. (path: " + methodPath + ")");
+                throw new CSONMapperException("The key of Map, which is the parameter of the method, is not of String type. Please use String key. (path: " + methodPath + ")");
             }
         }
         constructorMap = ISchemaMapValue.constructorOfMap(getValueTypeClass());
@@ -106,7 +106,7 @@ class SetterGetterSchemaUseMap extends SchemaMethod implements ISchemaMapValue {
         try {
             return constructorMap.newInstance();
         } catch (InstantiationException | IllegalAccessException | java.lang.reflect.InvocationTargetException e) {
-            throw new CSONSerializerException("Map type " + getValueTypeClass().getName() + " has no default constructor. (path: " + methodPath + ")", e);
+            throw new CSONMapperException("Map type " + getValueTypeClass().getName() + " has no default constructor. (path: " + methodPath + ")", e);
         }
     }
 

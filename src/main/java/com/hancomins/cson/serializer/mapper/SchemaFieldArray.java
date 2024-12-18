@@ -6,43 +6,69 @@ import java.util.List;
 
 class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
-    //private final Types valueType;
-
     private final List<CollectionItem> collectionBundles;
-    protected final SchemaType ValueType;
-    //private final ClassSchema objectValueTypeSchema;
+    protected final SchemaType valueType;
     private final ObtainTypeValueInvoker obtainTypeValueInvoker;
 
 
 
-    protected SchemaFieldArray(ClassSchema typeSchema, Field field, String path) {
-        super(typeSchema, field, path);
+    protected SchemaFieldArray(ClassSchema classSchema, Field field, String path) {
+        super(classSchema, field, path);
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
         this.collectionBundles = CollectionItem.buildCollectionItemsByField(field);
 
 
-        obtainTypeValueInvoker = typeSchema.findObtainTypeValueInvoker(field.getName());
+        obtainTypeValueInvoker = classSchema.findObtainTypeValueInvoker(field.getName());
 
-        CollectionItem collectionItem = this.collectionBundles.get(collectionBundles.size() - 1);
+        SchemaArrayInitializeResult result = initialize(collectionBundles, classSchema, fieldPath);
+        valueType = result.getValueType();
+        setObjectTypeSchema(result.getObjectTypeSchema());
+
+
+    }
+
+    static SchemaArrayInitializeResult initialize(List<CollectionItem> collectionBundles, ClassSchema classSchema, String path) {
+        CollectionItem collectionItem = collectionBundles.get(collectionBundles.size() - 1);
         Class<?> valueClass = collectionItem.getValueClass();
-        SchemaType valueType = SchemaType.of(valueClass);
+        SchemaType schemaValueType = SchemaType.of(valueClass);
 
         if(collectionItem.isGeneric()) {
-            if( !typeSchema.containsGenericType(collectionItem.getGenericTypeName())) {
-                throw new CSONSerializerException("Collection generic type is already defined. (path: " + fieldPath + ")");
+            if( !classSchema.containsGenericType(collectionItem.getGenericTypeName())) {
+                throw new CSONMapperException("Collection generic type is already defined. (path: " + path + ")");
             }
-            valueType = SchemaType.GenericType;
+            schemaValueType = SchemaType.GenericType;
         } else if(collectionItem.isAbstractType()) {
-            valueType = SchemaType.AbstractObject;
+            schemaValueType = SchemaType.AbstractObject;
         }
-        ValueType = valueType;
+        SchemaType valueType = schemaValueType;
+        ClassSchema objectTypeSchema = null;
 
-        if (ValueType == SchemaType.Object || valueType == SchemaType.AbstractObject ) {
-            setObjectTypeSchema(ClassSchemaMap.getInstance().getClassSchema(valueClass));
-        } else {
-            setObjectTypeSchema(null);
+
+
+        if (valueType == SchemaType.Object || schemaValueType == SchemaType.AbstractObject ) {
+            objectTypeSchema = ClassSchemaMap.getInstance().getClassSchema(valueClass);
         }
 
+        return new SchemaArrayInitializeResult(valueType, objectTypeSchema);
+
+    }
+
+    protected static class SchemaArrayInitializeResult  {
+        private final SchemaType valueType;
+        private final ClassSchema objectTypeSchema;
+
+        SchemaArrayInitializeResult(SchemaType valueType, ClassSchema objectTypeSchema) {
+            this.valueType = valueType;
+            this.objectTypeSchema = objectTypeSchema;
+        }
+
+        SchemaType getValueType() {
+            return valueType;
+        }
+
+        ClassSchema getObjectTypeSchema() {
+            return objectTypeSchema;
+        }
     }
 
 
@@ -54,7 +80,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public boolean isAbstractType() {
-        return ValueType == SchemaType.AbstractObject;
+        return valueType == SchemaType.AbstractObject;
     }
 
     @Override
@@ -65,7 +91,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public SchemaType getEndpointValueType() {
-        return ValueType;
+        return valueType;
     }
 
     @Override

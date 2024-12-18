@@ -306,11 +306,12 @@ class ObjectSchemaContainerTest {
     }
 
     public static class GetterSetterTestClass {
-        /*
+
         String a;
         int intA;
         Collection<Integer> collectionB;
         Map<String, String> map;
+        ArrayList<List<TestClass>> list;
 
         @CSONValueSetter("obj.a")
         public void setA(String a) {
@@ -326,21 +327,27 @@ class ObjectSchemaContainerTest {
         public void setCollectionB(Collection<Integer> collection) {
             assertEquals(3, collection.size());
             this.collectionB = collection;
-        }*/
+        }
 
         // 중첩 컬렉션
         @CSONValueSetter("array.b.c")
         public void setCollectionC(Collection<List<TestClass>> collection) {
-            assertEquals(2, collection.size());
-            assertEquals(2, collection.iterator().next().size());
-            assertEquals("1000", collection.iterator().next().get(0).a);
-            assertEquals("2000", collection.iterator().next().get(1).a);
-            assertEquals("dsafasdf", collection.iterator().next().get(1).c.a);
-            assertEquals("dsafasdf", collection.iterator().next().get(1).c.k);
-            assertEquals("dsafasdf", collection.iterator().next().get(1).c.k);
+            ArrayList<List<TestClass>> list = new ArrayList<>(collection);
+
+            assertEquals(2, list.size());
+            assertEquals(2, list.get(0).size());
+            assertEquals(2, list.get(1).size());
+            assertEquals("1000", list.get(0).get(0).a);
+            assertEquals("2000", list.get(0).get(1).a);
+            assertEquals("3000", list.get(1).get(0).a);
+            assertEquals("4000", list.get(1).get(1).a);
+            assertEquals("dsafasdf", list.get(0).get(0).c.a);
+            assertEquals("dsafasdf", list.get(0).get(0).c.k);
+            assertEquals("dsafasdf", list.get(0).get(0).c.k);
+            this.list = list;
         }
 
-        /*
+
         @CSONValueSetter("obj.test")
         public void setTestObject(TestClass testObject) {
             assertEquals("2000", testObject.a);
@@ -356,8 +363,6 @@ class ObjectSchemaContainerTest {
         }
 
 
-         */
-
     }
 
     @Test
@@ -365,7 +370,7 @@ class ObjectSchemaContainerTest {
     public void getterSetterTest() {
 
         CSONObject csonObject = new CSONObject();
-        /*csonObject.put("$.obj.a", "1000");
+        csonObject.put("$.obj.a", "1000");
         csonObject.put("$.obj.test.a", "2000");
         csonObject.put("$.obj.test.b.obj.k", "dsafasdf");
 
@@ -376,25 +381,21 @@ class ObjectSchemaContainerTest {
         csonObject.put("$.obj.test.map.a", "1000");
         csonObject.put("$.obj.test.map.b", "2000");
 
-
-        */csonObject.put("$.array.b.c[0][0].a", "1000");/*
+        csonObject.put("$.array.b.c[0][0].a", "1000");
         csonObject.put("$.array.b.c[0][1].a", "2000");
         csonObject.put("$.array.b.c[1][0].a", "3000");
         csonObject.put("$.array.b.c[1][1].a", "4000");
 
-        csonObject.put("$.array.b.c[0][0].c.a", "dsafasdf");
-        csonObject.put("$.array.b.c[0][0].c.k", "dsafasdf");
-        csonObject.put("$.array.b.c[1][1].c.a", "dsafasdf");
-        csonObject.put("$.array.b.c[1][1].c.k", "dsafasdf");
-
-*/
+        csonObject.put("$.array.b.c[0][0].b.obj.k", "dsafasdf");
+        csonObject.put("$.array.b.c[0][0].b.obj.inner.k", "dsafasdf");
+        csonObject.put("$.array.b.c[1][1].b.obj.k", "dsafasdf");
+        csonObject.put("$.array.b.c[1][1].b.obj.inner.k", "dsafasdf");
 
         GetterSetterTestClass getterSetterTestClass = new GetterSetterTestClass();
         ObjectMapper objectMapper = new ObjectMapper();
 
         objectMapper.toObject(csonObject.toString(), getterSetterTestClass);
 
-        /*
 
         assertEquals("1000", getterSetterTestClass.a);
         assertEquals(1000, getterSetterTestClass.intA);
@@ -406,7 +407,8 @@ class ObjectSchemaContainerTest {
         assertTrue(getterSetterTestClass.collectionB.contains(33333));
 
         assertNotNull(getterSetterTestClass.map);
-        */
+        assertNotNull(getterSetterTestClass.list);
+
 
     }
 
@@ -418,40 +420,6 @@ class ObjectSchemaContainerTest {
     }
 
 
-
-    public static class CollectionInCollectionTestClass {
-        @CSONValue("array.b.c")
-        Collection<List<TestClass>> collection;
-    }
-
-    @Test
-    @DisplayName("중첩 컬렉션 테스트")
-    public void collectionInCollectionTest() {
-        CSONObject csonObject = new CSONObject();
-        csonObject.put("$.array.b.c[0][0].a", "1000");
-        csonObject.put("$.array.b.c[0][1].a", "2000");
-        csonObject.put("$.array.b.c[1][0].a", "3000");
-        csonObject.put("$.array.b.c[1][1].a", "4000");
-
-        csonObject.put("$.array.b.c[0][0].b.obj.k", "dsafasdf");
-        csonObject.put("$.array.b.c[0][0].b.obj.inner.k", "dsafasdf");
-        csonObject.put("$.array.b.c[1][1].b.obj.k", "dsafasdf");
-        csonObject.put("$.array.b.c[1][1].b.obj.inner.k", "dsafasdf");
-
-        CollectionInCollectionTestClass collectionInCollectionTestClass = new CollectionInCollectionTestClass();
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        objectMapper.toObject(csonObject.toString(), collectionInCollectionTestClass);
-
-        assertNotNull(collectionInCollectionTestClass.collection);
-        assertEquals(2, collectionInCollectionTestClass.collection.size());
-        assertEquals(2, collectionInCollectionTestClass.collection.iterator().next().size());
-        assertEquals("1000", collectionInCollectionTestClass.collection.iterator().next().get(0).a);
-        assertEquals("2000", collectionInCollectionTestClass.collection.iterator().next().get(1).a);
-        assertEquals("dsafasdf", collectionInCollectionTestClass.collection.iterator().next().get(1).c.a);
-        assertEquals("dsafasdf", collectionInCollectionTestClass.collection.iterator().next().get(1).c.k);
-        assertEquals("dsafasdf", collectionInCollectionTestClass.collection.iterator().next().get(1).c.k);
-    }
 
 
 

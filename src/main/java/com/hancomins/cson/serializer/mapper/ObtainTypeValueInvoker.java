@@ -64,7 +64,7 @@ public class ObtainTypeValueInvoker {
 
                         String finalFieldName = fieldName;
                         if(allFields.stream().filter(field -> field.getAnnotation(CSONValue.class) != null).noneMatch(field -> field.getName().equals(finalFieldName))) {
-                            throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ".field with annotated @CSONValue '" + fieldName + "' not found in " + currentType.getName());
+                            throw new CSONMapperException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ".field with annotated @CSONValue '" + fieldName + "' not found in " + currentType.getName());
                         }
 
                         Class<?> returnType = verifyMethod(genericTypeNames, currentType, method);
@@ -83,7 +83,7 @@ public class ObtainTypeValueInvoker {
                         String finalMethodName = setterMethodName;
                         if(allMethods.stream().filter(methodObj -> methodObj.getAnnotation(
                                 CSONValueSetter.class) != null).noneMatch(methodObj -> methodObj.getName().equals(finalMethodName))) {
-                            throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ". Method '" + methodName + "' not found in " + currentType.getName());
+                            throw new CSONMapperException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ". Method '" + methodName + "' not found in " + currentType.getName());
                         }
 
                         Class<?> returnType = verifyMethod(genericTypeNames, currentType, method);
@@ -115,17 +115,17 @@ public class ObtainTypeValueInvoker {
         if(parameterCount > 0) {
             Class<?> parameterType = parameterTypes[0];
             if(!parameterType.isAssignableFrom(CSONObject.class)) {
-                throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ". Parameter type only can be CSONObject");
+                throw new CSONMapperException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ". Parameter type only can be CSONObject");
             }
         }
         if(parameterCount > 1) {
             Class<?> parameterType = parameterTypes[1];
             if(!parameterType.isAssignableFrom(CSONObject.class)) {
-                throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ". Parameter type only can be CSONObject");
+                throw new CSONMapperException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ". Parameter type only can be CSONObject");
             }
         }
         if(parameterCount > 2) {
-            throw new CSONSerializerException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ".  Parameter count must be zero or one of CSONElement or CSONObject or CSONArray");
+            throw new CSONMapperException("Invalid @ObtainTypeValue method of " + currentType.getName() + "." + method.getName() + ".  Parameter count must be zero or one of CSONElement or CSONObject or CSONArray");
         }
         return returnType;
     }
@@ -187,13 +187,13 @@ public class ObtainTypeValueInvoker {
             } else if(parameters.length == 2) {
                 return method.invoke(parents, item,all);
             } else {
-                throw new CSONSerializerException("Invalid @ObtainTypeValue method " + method.getName() + " of " + method.getDeclaringClass().getName() + ".  Parameter count must be zero or one of CSONElement or CSONObject or CSONArray");
+                throw new CSONMapperException("Invalid @ObtainTypeValue method " + method.getName() + " of " + method.getDeclaringClass().getName() + ".  Parameter count must be zero or one of CSONElement or CSONObject or CSONArray");
             }
         } catch (Exception e) {
             if(ignoreError) {
                 return null;
             }
-            throw new CSONSerializerException("Failed to invoke @ObtainTypeValue method " + method.getName() + " of " + method.getDeclaringClass().getName(), e);
+            throw new CSONMapperException("Failed to invoke @ObtainTypeValue method " + method.getName() + " of " + method.getDeclaringClass().getName(), e);
         }
     }
 

@@ -110,7 +110,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
             }
         } catch (IllegalAccessException e) {
             // todo: 상황에 따라서 예외처리를 다르게 해야할 수도 있음.
-            throw new CSONSerializerException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
+            throw new CSONMapperException("Failed to set value to field. " + field.getDeclaringClass().getName() + "." + field.getName(), e);
         }
     }
 

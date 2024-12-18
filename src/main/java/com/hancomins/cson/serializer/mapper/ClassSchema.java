@@ -74,7 +74,7 @@ class ClassSchema implements ISchemaNode {
                 if(interfaceClass.getAnnotation(CSON.class) != null) {
                     if(foundCsonInterface != null) {
                         String allInterfaceNames = Arrays.stream(interfaces).map(Class::getName).reduce((a, b) -> a + ", " + b).orElse("");
-                        throw new CSONSerializerException("Anonymous class " + type.getName() + "(implements  " + allInterfaceNames + "), implements multiple @CSON interfaces.  Only one @CSON interface is allowed.");
+                        throw new CSONMapperException("Anonymous class " + type.getName() + "(implements  " + allInterfaceNames + "), implements multiple @CSON interfaces.  Only one @CSON interface is allowed.");
                     }
                     foundCsonInterface = interfaceClass;
                 }
@@ -116,7 +116,7 @@ class ClassSchema implements ISchemaNode {
             }
             return constructor.newInstance();
         } catch (Exception e) {
-            throw new CSONSerializerException("Failed to create instance of " + type.getName(), e);
+            throw new CSONMapperException("Failed to create instance of " + type.getName(), e);
         }
     }
 
@@ -232,10 +232,10 @@ class ClassSchema implements ISchemaNode {
         try {
             constructor = type.getDeclaredConstructor();
             if(constructor == null) {
-                throw new CSONSerializerException("Type " + type.getName() + " has no default constructor");
+                throw new CSONMapperException("Type " + type.getName() + " has no default constructor");
             }
         } catch (NoSuchMethodException e) {
-            throw new CSONSerializerException("Type " + type.getName() + " has invalid default constructor");
+            throw new CSONMapperException("Type " + type.getName() + " has invalid default constructor");
         }
 
     }

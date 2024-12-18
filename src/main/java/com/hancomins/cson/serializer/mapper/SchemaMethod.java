@@ -3,6 +3,7 @@ package com.hancomins.cson.serializer.mapper;
 
 import com.hancomins.cson.util.DataConverter;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -19,30 +20,28 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
 
         Class<?>[] types =  method.getParameterTypes();
         if(csonValueSetter != null && csonValueGetter != null) {
-            throw new CSONSerializerException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must be annotated with @CSONValueGetter or @CSONValueSetter, not both");
+            throw new CSONMapperException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must be annotated with @CSONValueGetter or @CSONValueSetter, not both");
         }
-
-
 
         if(csonValueSetter != null) {
             if(types.length != 1) {
-                throw new CSONSerializerException("Setter method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must have only one parameter");
+                throw new CSONMapperException("Setter method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must have only one parameter");
             }
             return types[0];
         }
         else if(csonValueGetter != null) {
             Class<?> returnType = method.getReturnType();
             if(returnType == void.class || returnType == Void.class) {
-                throw new CSONSerializerException("Getter method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must have return type");
+                throw new CSONMapperException("Getter method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must have return type");
             }
             if(types.length != 0) {
-                throw new CSONSerializerException("Getter method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must have no parameter");
+                throw new CSONMapperException("Getter method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must have no parameter");
             }
 
             return returnType;
         }
         else {
-            throw new CSONSerializerException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must be annotated with @CSONValueGetter or @CSONValueSetter");
+            throw new CSONMapperException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must be annotated with @CSONValueGetter or @CSONValueSetter");
         }
     }
 
@@ -71,7 +70,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
             return path.trim();
         }
         else {
-            throw new CSONSerializerException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + " must be annotated with @CSONValueGetter or @CSONValueSetter");
+            throw new CSONMapperException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + " must be annotated with @CSONValueGetter or @CSONValueSetter");
         }
     }
 
@@ -98,7 +97,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
             return method.getGenericReturnType();
         }
         else {
-            throw new CSONSerializerException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must be annotated with @CSONValueGetter or @CSONValueSetter");
+            throw new CSONMapperException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + "(..) must be annotated with @CSONValueGetter or @CSONValueSetter");
         }
 
     }
@@ -177,7 +176,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
             return MethodType.Getter;
         }
         else {
-            throw new CSONSerializerException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + " must be annotated with @CSONValueGetter or @CSONValueSetter");
+            throw new CSONMapperException("Method " + method.getDeclaringClass().getName() + "." + method.getName() + " must be annotated with @CSONValueGetter or @CSONValueSetter");
         }
     }
 
@@ -227,6 +226,9 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
         }
     }
 
+    Method getMethod() {
+        return methodGetter != null ? methodGetter : methodSetter;
+    }
 
 
     private void setGetter(Method method) {
@@ -270,9 +272,9 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
                     !((SetterGetterSchemaUseMap) node).getElementType().equals(((SetterGetterSchemaUseMap) this).getElementType())
             ) {
                 return super.appendDuplicatedSchemaValue(node);
-            } else if(node instanceof SetterGetterSchemaUseCollection &&
-                    this instanceof SetterGetterSchemaUseCollection &&
-                    !((SetterGetterSchemaUseCollection) node).equalsValueType(this))
+            } else if(node instanceof SchemaSetterGetterUseCollection &&
+                    this instanceof SchemaSetterGetterUseCollection &&
+                    !((SchemaSetterGetterUseCollection) node).equalsValueType(this))
              {
                 return super.appendDuplicatedSchemaValue(node);
             }
@@ -332,7 +334,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
             if(ignoreError) {
                 return null;
             }
-            throw new CSONSerializerException("Failed to invoke method " + this.methodPath, e);
+            throw new CSONMapperException("Failed to invoke method " + this.methodPath, e);
         }
     }
 
@@ -357,11 +359,15 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
             } else {
                 methodSetter.invoke(parent, value);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             if(ignoreError) {
                 return;
             }
-            throw new CSONSerializerException("Failed to invoke method " + this.methodPath, e);
+            if(e instanceof InvocationTargetException) {
+                e = e.getCause();
+            }
+
+            throw new CSONMapperException("Failed to invoke method " + this.methodPath, e);
         }
     }
 

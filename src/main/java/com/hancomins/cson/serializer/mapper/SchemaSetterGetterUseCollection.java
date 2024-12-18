@@ -6,7 +6,12 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
-class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArrayValue {
+class SchemaSetterGetterUseCollection extends SchemaMethod implements ISchemaArrayValue {
+
+
+    private final List<CollectionItem> collectionBundles;
+    protected final SchemaType valueType;
+    private final ObtainTypeValueInvoker obtainTypeValueInvoker;
 
     @Override
     public SchemaType getSchemaType() {
@@ -27,20 +32,15 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
         if(setter != null && types.length == 1) {
             if(CSONArray.class.isAssignableFrom(types[0])) {
                 return false;
-            } else if(Collection.class.isAssignableFrom(types[0])) {
-                return true;
-            }
+            } else return Collection.class.isAssignableFrom(types[0]);
         }
         return false;
     }
 
-    private final List<CollectionItem> collectionBundles;
-    protected final SchemaType endpointValueType;
 
 
-
-    SetterGetterSchemaUseCollection(ClassSchema parentsTypeSchema, Method method) {
-        super(parentsTypeSchema, method);
+    SchemaSetterGetterUseCollection(ClassSchema classSchema, Method method) {
+        super(classSchema, method);
         boolean isGetter = getMethodType() == MethodType.Getter;
         String methodPath = method.getDeclaringClass().getName() + "." + method.getName();
         if(isGetter) {
@@ -51,28 +51,16 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
         }
 
         this.collectionBundles = isGetter ? CollectionItem.buildCollectionItemsByMethodReturn(method) : CollectionItem.buildCollectionItemsByParameter(method, 0);
-        CollectionItem lastCollectionItem = this.collectionBundles.get(this.collectionBundles.size() - 1);
-        Class<?> valueClass = lastCollectionItem.getValueClass();
-        endpointValueType = lastCollectionItem.isGeneric() ? SchemaType.GenericType : SchemaType.of(valueClass);
-        if (endpointValueType == SchemaType.Object) {
-            setObjectTypeSchema(ClassSchemaMap.getInstance().getClassSchema(valueClass));
-        } else {
-            setObjectTypeSchema(null);
-        }
+
+
+        obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(method.getName());
+        SchemaFieldArray.SchemaArrayInitializeResult result = SchemaFieldArray.initialize(collectionBundles, classSchema, methodPath);
+        valueType = result.getValueType();
+        setObjectTypeSchema(result.getObjectTypeSchema());
+
 
     }
 
-
-
-    @Override
-    public SchemaType getEndpointValueType() {
-        return this.endpointValueType;
-    }
-
-    @Override
-    public Class<?> getEndpointValueTypeClass() {
-        return collectionBundles.get(collectionBundles.size() - 1).getValueClass();
-    }
 
 
     @Override
@@ -80,11 +68,37 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
         return collectionBundles;
     }
 
-
     @Override
     public boolean isAbstractType() {
-        return endpointValueType == SchemaType.AbstractObject;
+        return valueType == SchemaType.AbstractObject;
     }
+
+    @Override
+    public ObtainTypeValueInvoker getObtainTypeValueInvoker() {
+        return obtainTypeValueInvoker;
+    }
+
+
+    @Override
+    public SchemaType getEndpointValueType() {
+        return valueType;
+    }
+
+    @Override
+    public Class<?> getEndpointValueTypeClass() {
+        return collectionBundles.get(collectionBundles.size() - 1).getValueClass();
+    }
+
+    @Override
+    public ISchemaNode copyNode() {
+        return new SchemaSetterGetterUseCollection(parentsTypeSchema, getMethod());
+    }
+
+    @Override
+    public Object newInstance() {
+        return collectionBundles.get(0).newInstance();
+    }
+
 
 
     @Override
@@ -96,7 +110,7 @@ class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArr
         if(!ISchemaArrayValue.equalsCollectionTypes(this.getCollectionItems(), ((ISchemaArrayValue)schemaValueAbs).getCollectionItems())) {
             return false;
         }
-        if(this.endpointValueType != ((ISchemaArrayValue)schemaValueAbs).getEndpointValueType()) {
+        if(this.valueType != ((ISchemaArrayValue)schemaValueAbs).getEndpointValueType()) {
             return false;
         }
         return super.equalsValueType(schemaValueAbs);

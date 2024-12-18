@@ -1,6 +1,5 @@
 package com.hancomins.cson.serializer.mapper;
 
-import com.hancomins.cson.CSONElement;
 import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.*;
@@ -14,7 +13,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     private final Class<?> elementClass;
     private final boolean isGenericTypeValue;
     private final boolean isAbstractValue;
-    private ObtainTypeValueInvoker obtainTypeValueInvoker;
+    private final ObtainTypeValueInvoker obtainTypeValueInvoker;
     SchemaFieldMap(ClassSchema parentsTypeSchema, Field field, String path) {
         super(parentsTypeSchema, field, path);
 
@@ -40,9 +39,9 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         ISchemaMapValue.assertCollectionOrMapValue(elementClass,fieldPath);
 
 
-        isAbstractValue = elementClass != null && elementClass.isInterface() || Modifier.isAbstract(elementClass.getModifiers());
+        isAbstractValue = elementClass != null && (elementClass.isInterface() ||  Modifier.isAbstract(elementClass.getModifiers()));
         if(!String.class.isAssignableFrom(keyClass)) {
-            throw new CSONSerializerException("Map field '" + fieldPath + "' is not String key. Please use String key.");
+            throw new CSONMapperException("Map field '" + fieldPath + "' is not String key. Please use String key.");
         }
         constructorMap = ISchemaMapValue.constructorOfMap(field.getType());
     }
@@ -73,7 +72,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         try {
             return constructorMap.newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new CSONSerializerException("Map type " + field.getDeclaringClass().getName() + "." + field.getType().getName() + " has no default constructor.", e);
+            throw new CSONMapperException("Map type " + field.getDeclaringClass().getName() + "." + field.getType().getName() + " has no default constructor.", e);
         }
     }
 
@@ -109,7 +108,7 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
         return obtainTypeValueInvoker != null && obtainTypeValueInvoker.isIgnoreError();
     }
 
-    @SuppressWarnings("unchecked")
+
 
 
 
