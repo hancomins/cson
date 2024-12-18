@@ -1,5 +1,6 @@
 package com.hancomins.cson.serializer.mapper;
 
+import com.hancomins.cson.CSONElement;
 import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.*;
@@ -84,6 +85,12 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
     @Override
     public boolean isAbstractType() {
         return isAbstractValue;
+    }
+
+    @Override
+    public Object convertValue(Object value) {
+        Class<?> elementType = getElementType();
+        return DataConverter.convertValue(elementType, value);
     }
 
     @Override

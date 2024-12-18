@@ -8,8 +8,10 @@ import java.util.List;
 
 class SetterGetterSchemaUseCollection extends SchemaMethod implements ISchemaArrayValue {
 
-
-
+    @Override
+    public SchemaType getSchemaType() {
+        return SchemaType.Collection;
+    }
 
     @SuppressWarnings("DuplicatedCode")
     static boolean isCollectionTypeParameterOrReturns(Method method) {

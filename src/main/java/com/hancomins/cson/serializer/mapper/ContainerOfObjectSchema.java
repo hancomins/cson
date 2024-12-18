@@ -66,10 +66,9 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
                 SchemaValueAbs schemaValueAbs = schemaPointer.getSchema();
 
                 if(object instanceof Map) {
-                    Class<?> valueTypeClass = ((SchemaFieldMap)schemaValueAbs).getElementType();
-                    Object convertedValue = DataConverter.convertValue(valueTypeClass,value);
-                    //noinspection unchecked
-                    ((Map<String,Object>)object).put(key, convertedValue);
+                        Object convertedValue = schemaValueAbs.convertValue(value);
+                        //noinspection unchecked
+                        ((Map<String, Object>) object).put(key, convertedValue);
                 }
 
             }

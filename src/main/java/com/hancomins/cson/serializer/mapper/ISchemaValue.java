@@ -15,6 +15,10 @@ public interface ISchemaValue extends ISchemaNode {
 
     boolean isAbstractType();
 
+    default Object convertValue(Object value) {
+        return value;
+    }
+
     static void assertValueType(Class<?> valueType, String parentPath) {
         assertValueType(valueType, SchemaType.of(valueType), parentPath);
     }
