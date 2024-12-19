@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 class CollectionItem {
 
     // 중첩 순서 값
-    private int nestedLevel;
+    private final int nestedLevel;
     private final CollectionFactory collectionFactory;
     protected final Class<?> collectionType;
     private Class<?> valueClass;

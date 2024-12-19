@@ -408,15 +408,37 @@ class ObjectSchemaContainerTest {
 
         assertNotNull(getterSetterTestClass.map);
         assertNotNull(getterSetterTestClass.list);
-
-
     }
-
-
-
 
     public static class ComplexMapTestClass {
         Map<String, Map<String, String>> map;
+    }
+
+
+    @Test
+    @DisplayName("복합 맵 테스트")
+    public void complexMapTest() {
+        CSONObject csonObject = new CSONObject();
+        csonObject.put("$.map.a.a", "1000");
+        csonObject.put("$.map.a.b", "2000");
+        csonObject.put("$.map.b.a", "3000");
+        csonObject.put("$.map.b.b", "4000");
+
+        ComplexMapTestClass complexMapTestClass = new ComplexMapTestClass();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        objectMapper.toObject(csonObject.toString(), complexMapTestClass);
+
+        assertNotNull(complexMapTestClass.map);
+        assertEquals(2, complexMapTestClass.map.size());
+        assertNotNull(complexMapTestClass.map.get("a"));
+        assertNotNull(complexMapTestClass.map.get("b"));
+        assertEquals(2, complexMapTestClass.map.get("a").size());
+        assertEquals(2, complexMapTestClass.map.get("b").size());
+        assertEquals("1000", complexMapTestClass.map.get("a").get("a"));
+        assertEquals("2000", complexMapTestClass.map.get("a").get("b"));
+        assertEquals("3000", complexMapTestClass.map.get("b").get("a"));
+        assertEquals("4000", complexMapTestClass.map.get("b").get("b"));
     }
 
 

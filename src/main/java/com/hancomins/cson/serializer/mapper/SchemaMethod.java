@@ -274,7 +274,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
                 return super.appendDuplicatedSchemaValue(node);
             } else if(node instanceof SchemaSetterGetterUseCollection &&
                     this instanceof SchemaSetterGetterUseCollection &&
-                    !((SchemaSetterGetterUseCollection) node).equalsValueType(this))
+                    !node.equalsValueType(this))
              {
                 return super.appendDuplicatedSchemaValue(node);
             }
@@ -364,6 +364,7 @@ class SchemaMethod extends SchemaValueAbs implements ObtainTypeValueInvokerGette
                 return;
             }
             if(e instanceof InvocationTargetException) {
+                //noinspection AssignmentToCatchBlockParameter
                 e = e.getCause();
             }
 
