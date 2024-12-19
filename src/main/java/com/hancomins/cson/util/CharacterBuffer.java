@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 public class CharacterBuffer implements CharSequence {
+
     private char[] chars;
 
     private int length = 0;
