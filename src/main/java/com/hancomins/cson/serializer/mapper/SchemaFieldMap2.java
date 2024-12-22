@@ -19,18 +19,20 @@ class SchemaFieldMap2 extends SchemaField implements ISchemaMapValue {
         this.mapBundles = MapItem.buildMapItemsByField(field);
 
         obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(field.getName());
-
+        SchemaFieldArray.SchemaArrayInitializeResult result = initialize(mapBundles, parentsTypeSchema, fieldPath);
+        valueType = result.getValueType();
+        setObjectTypeSchema(result.getObjectTypeSchema());
     }
 
 
-    static SchemaFieldArray.SchemaArrayInitializeResult initialize(List<MapItem> collectionBundles, ClassSchema classSchema, String path) {
-        CollectionItem collectionItem = collectionBundles.get(clectionBundles.size() - 1);
+    static SchemaFieldArray.SchemaArrayInitializeResult initialize(List<MapItem> mapBundles, ClassSchema classSchema, String path) {
+        MapItem collectionItem = mapBundles.get(mapBundles.size() - 1);
         Class<?> valueClass = collectionItem.getValueClass();
         SchemaType schemaValueType = SchemaType.of(valueClass);
 
         if(collectionItem.isGeneric()) {
             if( !classSchema.containsGenericType(collectionItem.getGenericTypeName())) {
-                throw new CSONMapperException("Collection generic type is already defined. (path: " + path + ")");
+                throw new CSONMapperException("Map generic type is already defined. (path: " + path + ")");
             }
             schemaValueType = SchemaType.GenericType;
         } else if(collectionItem.isAbstractType()) {
@@ -54,11 +56,13 @@ class SchemaFieldMap2 extends SchemaField implements ISchemaMapValue {
 
     @Override
     boolean equalsValueType(SchemaValueAbs schemaValueAbs) {
-        if(!(schemaValueAbs instanceof ISchemaMapValue)) {
+        if(!(schemaValueAbs instanceof ISchemaValue)) {
             return false;
         }
-        ISchemaMapValue mapValue = (ISchemaMapValue)schemaValueAbs;
-        if(elementClass != null && !elementClass.equals( mapValue.getElementType())) {
+        if(!ISchemaArrayValue.equalsCollectionTypes(this.getCollectionItems(), ((ISchemaArrayValue)schemaValueAbs).getCollectionItems())) {
+            return false;
+        }
+        if(this.getEndpointValueType() != ((ISchemaArrayValue)schemaValueAbs).getEndpointValueType()) {
             return false;
         }
         return super.equalsValueType(schemaValueAbs);

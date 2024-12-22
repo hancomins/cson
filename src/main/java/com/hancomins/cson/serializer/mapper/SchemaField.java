@@ -8,11 +8,9 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
 
     final Field field;
     final String fieldName;
-
     final String comment;
     final String afterComment;
     private final boolean isStatic;
-
     final ObtainTypeValueInvoker obtainTypeValueInvoker;
 
     //private final boolean isMapField;
@@ -26,7 +24,6 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
         this.isStatic = java.lang.reflect.Modifier.isStatic(field.getModifiers());
 
         obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(fieldName);
-
 
         CSONValue csonValue = field.getAnnotation(CSONValue.class);
         if(csonValue != null) {
