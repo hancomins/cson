@@ -1,3 +1,8 @@
+- **❗️ Currently CSON v1.0 is in development.**
+   - More efficient binary structure. 
+   - Default JSON5 usage and fast parsing and writing speed. 
+   - A more convenient object mapper.
+
 # cson introduction
   - JAVA 1.8 or higher environment is supported. 
   - API usage is similar to JSON-JAVA (https://github.com/stleary/JSON-java) 
