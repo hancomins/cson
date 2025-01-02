@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-class CollectionItem {
+class CollectionItem  implements GenericItem {
 
     // 중첩 순서 값
     private final int nestedLevel;
@@ -21,8 +21,9 @@ class CollectionItem {
     private boolean isGeneric = false;
     private boolean isAbstractObject = false;
     private String genericTypeName;
-    private CollectionItem parent;
-    private CollectionItem child;
+    private GenericItem parent;
+    private GenericItem child;
+
 
 
 
@@ -62,7 +63,6 @@ class CollectionItem {
                 prev.child = collectionItem;
                 collectionItem.parent = prev;
             }
-
         }
         return collectionItems;
     }
@@ -81,6 +81,10 @@ class CollectionItem {
         return nestedLevel;
     }
 
+    @Override
+    public void setParent(GenericItem parent) {
+        this.parent = (CollectionItem) parent;
+    }
 
 
     public void setValueClass(Class<?> valueClass) {
@@ -92,11 +96,16 @@ class CollectionItem {
         return valueClass;
     }
 
-    public CollectionItem getParent() {
+    public GenericItem getParent() {
         return parent;
     }
 
-    public CollectionItem getChild() {
+    @Override
+    public void setChild(GenericItem child) {
+
+    }
+
+    public GenericItem getChild() {
         return child;
     }
 
@@ -123,8 +132,10 @@ class CollectionItem {
         this.genericTypeName = name;
     }
 
-
-
+    @Override
+    public Class<?> getValueType() {
+        return valueClass;
+    }
 
 
     protected Collection<?> newInstance() {
