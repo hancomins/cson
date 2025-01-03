@@ -6,81 +6,34 @@ import java.util.List;
 
 class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
-    private final List<CollectionItem> collectionBundles;
-    protected final SchemaType valueType;
+    private final List<GenericItem> collections;
+    protected final SchemaType valueSchemaType;
     private final ObtainTypeValueInvoker obtainTypeValueInvoker;
-
-
+    private final Class<?> endpointValueTypeClass;
 
     protected SchemaFieldArray(ClassSchema classSchema, Field field, String path) {
         super(classSchema, field, path);
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
-        this.collectionBundles = CollectionItem.buildCollectionItemsByField(field);
-
-
+        this.collections = GenericItem.analyzeField(field);
         obtainTypeValueInvoker = classSchema.findObtainTypeValueInvoker(field.getName());
-
-        SchemaArrayInitializeResult result = initialize(collectionBundles, classSchema, fieldPath);
-        valueType = result.getValueType();
-        setObjectTypeSchema(result.getObjectTypeSchema());
-
-
-    }
-
-    static SchemaArrayInitializeResult initialize(List<CollectionItem> collectionBundles, ClassSchema classSchema, String path) {
-        CollectionItem collectionItem = collectionBundles.get(collectionBundles.size() - 1);
-        Class<?> valueClass = collectionItem.getValueClass();
-        SchemaType schemaValueType = SchemaType.of(valueClass);
-
-        if(collectionItem.isGeneric()) {
-            if( !classSchema.containsGenericType(collectionItem.getGenericTypeName())) {
-                throw new CSONMapperException("Collection generic type is already defined. (path: " + path + ")");
-            }
-            schemaValueType = SchemaType.GenericType;
-        } else if(collectionItem.isAbstractType()) {
-            schemaValueType = SchemaType.AbstractObject;
-        }
-        SchemaType valueType = schemaValueType;
-        ClassSchema objectTypeSchema = null;
-
-
-
-        if (valueType == SchemaType.Object || schemaValueType == SchemaType.AbstractObject ) {
-            objectTypeSchema = ClassSchemaMap.getInstance().getClassSchema(valueClass);
-        }
-
-        return new SchemaArrayInitializeResult(valueType, objectTypeSchema);
-
-    }
-
-    protected static class SchemaArrayInitializeResult  {
-        private final SchemaType valueType;
-        private final ClassSchema objectTypeSchema;
-
-        SchemaArrayInitializeResult(SchemaType valueType, ClassSchema objectTypeSchema) {
-            this.valueType = valueType;
-            this.objectTypeSchema = objectTypeSchema;
-        }
-
-        SchemaType getValueType() {
-            return valueType;
-        }
-
-        ClassSchema getObjectTypeSchema() {
-            return objectTypeSchema;
+        endpointValueTypeClass = this.collections.get(this.collections.size() - 1).getValueType();
+        valueSchemaType = SchemaType.of(endpointValueTypeClass);
+        if (valueSchemaType == SchemaType.Object || valueSchemaType == SchemaType.AbstractObject ) {
+            ClassSchema valueClassSchema = ClassSchemaMap.getInstance().getClassSchema(endpointValueTypeClass);
+            setObjectTypeSchema(valueClassSchema);
         }
     }
 
 
 
     @Override
-    public List<CollectionItem> getCollectionItems() {
-        return collectionBundles;
+    public List<GenericItem> getCollectionItems() {
+        return collections;
     }
 
     @Override
     public boolean isAbstractType() {
-        return valueType == SchemaType.AbstractObject;
+        return valueSchemaType == SchemaType.AbstractObject;
     }
 
     @Override
@@ -91,12 +44,12 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public SchemaType getEndpointValueType() {
-        return valueType;
+        return valueSchemaType;
     }
 
     @Override
     public Class<?> getEndpointValueTypeClass() {
-        return collectionBundles.get(collectionBundles.size() - 1).getValueClass();
+        return endpointValueTypeClass;
     }
 
     @Override
@@ -106,7 +59,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public Object newInstance() {
-        return collectionBundles.get(0).newInstance();
+        return collections.get(0).newInstance();
     }
 
 

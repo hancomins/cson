@@ -433,6 +433,7 @@ class ObjectSchemaContainerTest {
         assertEquals(2, complexMapTestClass.map.size());
         assertNotNull(complexMapTestClass.map.get("a"));
         assertNotNull(complexMapTestClass.map.get("b"));
+        Object obj =  complexMapTestClass.map.get("a");
         assertEquals(2, complexMapTestClass.map.get("a").size());
         assertEquals(2, complexMapTestClass.map.get("b").size());
         assertEquals("1000", complexMapTestClass.map.get("a").get("a"));

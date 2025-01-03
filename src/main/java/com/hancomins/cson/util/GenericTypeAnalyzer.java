@@ -3,27 +3,31 @@ package com.hancomins.cson.util;
 import java.lang.reflect.*;
 import java.util.*;
 
-
 public class GenericTypeAnalyzer {
 
-    // 분석 결과를 추출하는 공통 메서드 (재귀적 처리)
     private static List<GenericTypes> extractGenericTypes(Type type) {
-        List<GenericTypes> result = new ArrayList<>();
-        GenericTypes genericTypes = null;
-        Class<?> nestClass = null;
+        ArrayDeque<GenericTypes> result = new ArrayDeque<>();
         if (type instanceof ParameterizedType) {
-
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Type rawType = parameterizedType.getRawType();
             if (rawType instanceof Class<?>) {
-                result.add((Class<?>) rawType);
+                List<Class<?>> types = new ArrayList<>();
+                for (Type actualTypeArgument : parameterizedType.getActualTypeArguments()) {
+                    if (actualTypeArgument instanceof Class<?>) {
+                        types.add((Class<?>) actualTypeArgument);
+                    } else if(actualTypeArgument instanceof WildcardType) {
+                        analyzeWildcardType((WildcardType) actualTypeArgument, types, result);
+                    } else {
+                        List<GenericTypes> subTypes = extractGenericTypes(actualTypeArgument);
+                        result.addAll(subTypes);
+                        types.add(subTypes.get(0).getNestClass());
+                    }
+                }
+                result.addFirst(new GenericTypes((Class<?>) rawType, types));
             }
-            for (Type actualTypeArgument : parameterizedType.getActualTypeArguments()) {
-                result.addAll(extractGenericTypes(actualTypeArgument));
-            }
-        } else if (type instanceof Class<?>) {
-            result.add((Class<?>) type);
-        } else if (type instanceof GenericArrayType) {
+        }
+        // todo GenericArrayType 과 TypeVariable 처리
+        else if (type instanceof GenericArrayType) {
             GenericArrayType genericArrayType = (GenericArrayType) type;
             result.addAll(extractGenericTypes(genericArrayType.getGenericComponentType()));
         } else if (type instanceof TypeVariable<?>) {
@@ -31,18 +35,25 @@ public class GenericTypeAnalyzer {
             for (Type bound : typeVariable.getBounds()) {
                 result.addAll(extractGenericTypes(bound));
             }
-        } else if (type instanceof WildcardType) {
-            WildcardType wildcardType = (WildcardType) type;
-            for (Type upperBound : wildcardType.getUpperBounds()) {
-                result.addAll(extractGenericTypes(upperBound));
-            }
-            for (Type lowerBound : wildcardType.getLowerBounds()) {
-                result.addAll(extractGenericTypes(lowerBound));
-            }
         }
-
-        return result;
+        return new ArrayList<>(result);
     }
+
+
+    private static void analyzeWildcardType(WildcardType wildcardType, List<Class<?>> values, ArrayDeque<GenericTypes> genericTypes) {
+        Type[] upperBounds = wildcardType.getUpperBounds();
+        Type[] lowerBounds = wildcardType.getLowerBounds();
+        Type bound = upperBounds.length > 0 ? upperBounds[0] : lowerBounds[0];
+        if (bound instanceof Class<?>) {
+            values.add((Class<?>) bound);
+        } else {
+            List<GenericTypes> subTypes = extractGenericTypes(bound);
+            values.add(subTypes.get(0).getNestClass());
+            genericTypes.addAll(subTypes);
+        }
+    }
+
+
 
     /**
      * 주어진 Field의 제네릭 타입을 분석합니다.
@@ -54,6 +65,9 @@ public class GenericTypeAnalyzer {
             return Collections.emptyList();
         }
         Type genericType = field.getGenericType();
+        if(genericType instanceof Class<?>) {
+            throw new IllegalArgumentException("Field type is Raw Type. (" + field.getDeclaringClass().getName() + "." + field.getName() + ")");
+        }
         return extractGenericTypes(genericType);
     }
 
@@ -67,6 +81,9 @@ public class GenericTypeAnalyzer {
             return Collections.emptyList();
         }
         Type returnType = method.getGenericReturnType();
+        if(returnType instanceof Class<?>) {
+            throw new IllegalArgumentException("Return type is Raw Type. (" + method.getDeclaringClass().getName() + "." + method.getName() + ")");
+        }
         return extractGenericTypes(returnType);
     }
 
@@ -80,8 +97,13 @@ public class GenericTypeAnalyzer {
             return Collections.emptyList();
         }
         Type parameterType = parameter.getParameterizedType();
+        if(parameterType instanceof Class<?>) {
+            throw new IllegalArgumentException("Parameter type is Raw Type. (" + parameter.getName() + ")");
+        }
         return extractGenericTypes(parameterType);
     }
+
+
 
 
     public static class GenericTypes {
@@ -92,7 +114,7 @@ public class GenericTypeAnalyzer {
         private final Class<?> nestClass;
         private List<Class<?>> types;
         private byte nestType = NEST_TYPE_NORMAL;
-        private boolean isRawOrEmpty = false;
+        private final boolean isRawOrEmpty;
 
         GenericTypes(Class<?> nestClass, List<Class<?>> types) {
             this.types = types;
@@ -121,6 +143,10 @@ public class GenericTypeAnalyzer {
         public Class<?> getValueType() {
             if(isRawOrEmpty) return null;
             return types.get(types.size() - 1);
+        }
+
+        public List<Class<?>> getTypes() {
+            return types;
         }
 
 

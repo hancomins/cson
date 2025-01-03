@@ -9,17 +9,17 @@ interface ISchemaArrayValue extends ISchemaValue {
      Class<?> getEndpointValueTypeClass();
 
 
-     List<CollectionItem> getCollectionItems();
+     List<GenericItem> getCollectionItems();
 
-     default CollectionItem getCollectionItem() {
+     default GenericItem getCollectionItem() {
          if(getCollectionItems().isEmpty()) {
              return null;
          }
             return getCollectionItems().get(0);
      }
 
-    default CollectionItem getCollectionItem(int index) {
-        List<CollectionItem> collectionItems = getCollectionItems();
+    default GenericItem getCollectionItem(int index) {
+        List<GenericItem> collectionItems = getCollectionItems();
         if(index < 0 || index >= collectionItems.size()) {
             return null;
         }
@@ -31,16 +31,8 @@ interface ISchemaArrayValue extends ISchemaValue {
 
 
 
-     default boolean isGenericTypeValue() {
-         int size = getCollectionItems().size();
-         CollectionItem collectionItem = getCollectionItems().get(size - 1);
-         return collectionItem.isGeneric();
-     }
 
-
-
-
-     static boolean equalsCollectionTypes(List<CollectionItem> a, List<CollectionItem> b) {
+     static boolean equalsCollectionTypes(List<GenericItem> a, List<GenericItem> b) {
             if(a.size() != b.size()) {
                 return false;
             }

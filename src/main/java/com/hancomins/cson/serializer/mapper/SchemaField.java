@@ -13,6 +13,7 @@ public abstract class SchemaField extends SchemaValueAbs implements ObtainTypeVa
     private final boolean isStatic;
     final ObtainTypeValueInvoker obtainTypeValueInvoker;
 
+
     //private final boolean isMapField;
 
 

@@ -7,6 +7,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class GenericTypeAnalyzerTest {
@@ -17,6 +19,8 @@ public class GenericTypeAnalyzerTest {
         public List<String> stringList;
         public Map<String, Integer> stringIntegerMap;
         public List<Map<String, List<Double>>> nestedGeneric;
+        public AtomicReference<AtomicReference<AtomicReference<String>>> atomicReference;
+        public List<? extends List<String>> wildcardList;
 
         @SuppressWarnings("rawtypes")
         public List rawList;
@@ -36,33 +40,100 @@ public class GenericTypeAnalyzerTest {
     }
 
 
+    @Test
+    public void testAnalyzeFieldForNonGenericFields() throws NoSuchFieldException {
+        // 필드 가져오기
+        Field wildcardListField = TestClass.class.getDeclaredField("wildcardList");
+        Field rawListField = TestClass.class.getDeclaredField("rawList");
+
+        List<GenericTypeAnalyzer.GenericTypes> genericTypes = GenericTypeAnalyzer.analyzeField(wildcardListField);
+        // 필드 분석 및 검증
+        assertEquals(
+                List.class,
+                genericTypes.get(0).getNestClass()
+        );
 
 
+        assertEquals(
+                listOf(List.class, String.class),
+                genericTypes.stream().flatMap(it -> it.getTypes().stream()).collect(Collectors.toList())
+        );
+
+
+
+        try {
+            genericTypes = GenericTypeAnalyzer.analyzeField(rawListField);
+            fail();
+        } catch (IllegalArgumentException e) {
+
+        }
+
+    }
+
+
+
+
+    @SuppressWarnings("unchecked")
     @Test
     public void testAnalyzeFieldForFields() throws NoSuchFieldException {
         // 필드 가져오기
         Field stringListField = TestClass.class.getDeclaredField("stringList");
         Field stringIntegerMapField = TestClass.class.getDeclaredField("stringIntegerMap");
         Field nestedGenericField = TestClass.class.getDeclaredField("nestedGeneric");
+        Field atomicReferenceField = TestClass.class.getDeclaredField("atomicReference");
+
+        List<GenericTypeAnalyzer.GenericTypes> genericTypes;
 
         // 필드 분석 및 검증
         assertEquals(
-                listOf(List.class, String.class),
-                GenericTypeAnalyzer.analyzeField(stringListField),
+                listOf(String.class),
+                GenericTypeAnalyzer.analyzeField(stringListField).stream().map(GenericTypeAnalyzer.GenericTypes::getValueType).collect(Collectors.toList()),
                 "Field 'stringList' generic types do not match."
         );
 
+
+        assertEquals(List.class, GenericTypeAnalyzer.analyzeField(stringListField).get(0).getNestClass());
+
         assertEquals(
-                listOf(Map.class, String.class, Integer.class),
-                GenericTypeAnalyzer.analyzeField(stringIntegerMapField),
+                listOf(String.class, Integer.class),
+                GenericTypeAnalyzer.analyzeField(stringIntegerMapField).stream().flatMap(it -> it.getTypes().stream()).collect(Collectors.toList()),
                 "Field 'stringIntegerMap' generic types do not match."
         );
 
+        assertEquals(Map.class, GenericTypeAnalyzer.analyzeField(stringIntegerMapField).get(0).getNestClass());
+
+
+        genericTypes = GenericTypeAnalyzer.analyzeField(nestedGenericField);
         assertEquals(
-                listOf(List.class, Map.class, String.class, List.class, Double.class),
-                GenericTypeAnalyzer.analyzeField(nestedGenericField),
+                List.class
+                ,genericTypes.get(0).getNestClass()
+        );
+
+        assertEquals(
+                Map.class,
+                genericTypes.get(1).getNestClass()
+        );
+
+        assertEquals(
+                List.class
+                ,genericTypes.get(0).getNestClass()
+        );
+
+
+
+        assertEquals(
+                listOf(Map.class, String.class, List.class, Double.class),
+                GenericTypeAnalyzer.analyzeField(nestedGenericField).stream().flatMap(it -> it.getTypes().stream()).collect(Collectors.toList()),
                 "Field 'nestedGeneric' generic types do not match."
         );
+
+        genericTypes = GenericTypeAnalyzer.analyzeField(atomicReferenceField);
+        assertEquals(
+                AtomicReference.class,
+                genericTypes.get(0).getNestClass()
+        );
+
+        assertEquals(listOf(AtomicReference.class,AtomicReference.class,String.class),genericTypes.stream().flatMap(it -> it.getTypes().stream()).collect(Collectors.toList()));
     }
 
     @Test
@@ -70,11 +141,13 @@ public class GenericTypeAnalyzerTest {
         // 메서드 가져오기
         Method getStringListMethod = TestClass.class.getDeclaredMethod("getStringList");
 
+        assertEquals(List.class, GenericTypeAnalyzer.analyzeReturnType(getStringListMethod).get(0).getNestClass());
+
         // 메서드 리턴 타입 분석 및 검증
         assertEquals(
 
-                listOf(List.class, String.class),
-                GenericTypeAnalyzer.analyzeReturnType(getStringListMethod),
+                listOf(String.class),
+                GenericTypeAnalyzer.analyzeReturnType(getStringListMethod).get(0).getTypes(),
                 "Return type of 'getStringList' generic types do not match."
         );
     }
@@ -89,16 +162,24 @@ public class GenericTypeAnalyzerTest {
         Parameter mapParameter = setStringIntegerMapMethod.getParameters()[0];
         Parameter genericParameter = processGenericListMethod.getParameters()[0];
 
-        // 검증
+        List<GenericTypeAnalyzer.GenericTypes> genericTypes = GenericTypeAnalyzer.analyzeParameter(mapParameter);
+
+        assertEquals(Map.class, genericTypes.get(0).getNestClass());
+
+
         assertEquals(
-                listOf(Map.class, String.class,List.class, Integer.class),
-                GenericTypeAnalyzer.analyzeParameter(mapParameter),
+                listOf(String.class, List.class, Integer.class),
+                genericTypes.stream().flatMap(it -> it.getTypes().stream()).collect(Collectors.toList()),
                 "Parameter type of 'setStringIntegerMap' generic types do not match."
         );
 
+        genericTypes = GenericTypeAnalyzer.analyzeParameter(genericParameter);
+        assertEquals(List.class, genericTypes.get(0).getNestClass());
+
+
         assertEquals(
-                listOf(List.class,Collection.class,Set.class, Number.class),
-                GenericTypeAnalyzer.analyzeParameter(genericParameter),
+                listOf(Collection.class,Set.class, Number.class),
+                genericTypes.stream().flatMap(it -> it.getTypes().stream()).collect(Collectors.toList()),
                 "Parameter type of 'processGenericList' generic types do not match."
         );
     }

@@ -8,10 +8,10 @@ import java.util.List;
 
 class SchemaSetterGetterUseCollection extends SchemaMethod implements ISchemaArrayValue {
 
-
-    private final List<CollectionItem> collectionBundles;
-    protected final SchemaType valueType;
+    private final List<GenericItem> collectionBundles;
+    protected final SchemaType schemaValueType;
     private final ObtainTypeValueInvoker obtainTypeValueInvoker;
+    private final Class<?> endpointClass;
 
     @Override
     public SchemaType getSchemaType() {
@@ -49,28 +49,26 @@ class SchemaSetterGetterUseCollection extends SchemaMethod implements ISchemaArr
         else {
             methodPath += "(" + method.getParameterTypes()[0].getName() + ") <return: " + method.getReturnType().getName() + ">";
         }
-
-        this.collectionBundles = isGetter ? CollectionItem.buildCollectionItemsByMethodReturn(method) : CollectionItem.buildCollectionItemsByParameter(method, 0);
-
-
+        this.collectionBundles = isGetter ? GenericItem.analyzeMethodReturn(method) : GenericItem.analyzeParameter(method, 0);
         obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(method.getName());
-        SchemaFieldArray.SchemaArrayInitializeResult result = SchemaFieldArray.initialize(collectionBundles, classSchema, methodPath);
-        valueType = result.getValueType();
-        setObjectTypeSchema(result.getObjectTypeSchema());
-
-
+        endpointClass = collectionBundles.get(collectionBundles.size() - 1).getValueType();
+        schemaValueType = SchemaType.of(endpointClass);
+        if(schemaValueType == SchemaType.Object || schemaValueType == SchemaType.AbstractObject) {
+            ClassSchema result = ClassSchemaMap.getInstance().getClassSchema(endpointClass);
+            setObjectTypeSchema(result);
+        }
     }
 
 
 
     @Override
-    public List<CollectionItem> getCollectionItems() {
+    public List<GenericItem> getCollectionItems() {
         return collectionBundles;
     }
 
     @Override
     public boolean isAbstractType() {
-        return valueType == SchemaType.AbstractObject;
+        return schemaValueType == SchemaType.AbstractObject;
     }
 
     @Override
@@ -81,12 +79,12 @@ class SchemaSetterGetterUseCollection extends SchemaMethod implements ISchemaArr
 
     @Override
     public SchemaType getEndpointValueType() {
-        return valueType;
+        return schemaValueType;
     }
 
     @Override
     public Class<?> getEndpointValueTypeClass() {
-        return collectionBundles.get(collectionBundles.size() - 1).getValueClass();
+        return endpointClass;
     }
 
     @Override
@@ -106,11 +104,10 @@ class SchemaSetterGetterUseCollection extends SchemaMethod implements ISchemaArr
         if(!(schemaValueAbs instanceof ISchemaArrayValue)) {
             return false;
         }
-
         if(!ISchemaArrayValue.equalsCollectionTypes(this.getCollectionItems(), ((ISchemaArrayValue)schemaValueAbs).getCollectionItems())) {
             return false;
         }
-        if(this.valueType != ((ISchemaArrayValue)schemaValueAbs).getEndpointValueType()) {
+        if(this.schemaValueType != ((ISchemaArrayValue)schemaValueAbs).getEndpointValueType()) {
             return false;
         }
         return super.equalsValueType(schemaValueAbs);

@@ -43,11 +43,13 @@ public interface ISchemaMapValue {
 
     static void assertCollectionOrMapValue(Class<?> type, String path) {
         if(type == null) return;
-        if(Map.class.isAssignableFrom(type)) {
+
+        // todo: 이 메서드 자체를 제거할 것. (리미트 해제)
+        /*if(Map.class.isAssignableFrom(type)) {
             throw new CSONObjectException("The java.util.Map type cannot be directly used as a value element of a Map. Please create a class that wraps your Map and use it as a value element of the Map. (path: " + path + ")");
         } else if(Collection.class.isAssignableFrom(type)) {
             throw new CSONObjectException("The java.util.Map type cannot be directly used as a value element of a java.util.Map. Please create a class that wraps your Collection and use it as a value element of the Map  of field. (path: " + path + ")");
-        }
+        }*/
     }
 
 
