@@ -26,7 +26,6 @@ class SetterGetterSchemaUseMap extends SchemaMethod implements ISchemaMapValue {
 
     private final Constructor<?> constructorMap;
     private final Class<?> elementClass;
-    private final boolean isGenericTypeValue;
     private final boolean isAbstractValue;
 
     private final String methodPath;
@@ -59,7 +58,6 @@ class SetterGetterSchemaUseMap extends SchemaMethod implements ISchemaMapValue {
         } else {
             this.elementClass = null;
         }
-        isGenericTypeValue = isGenericValue;
 
         if(elementClass != null && !isGenericValue) {
             ISchemaValue.assertValueType(elementClass, methodPath);
@@ -90,14 +88,14 @@ class SetterGetterSchemaUseMap extends SchemaMethod implements ISchemaMapValue {
             return false;
         }
         ISchemaMapValue mapValue = (ISchemaMapValue)schemaValueAbs;
-        if(elementClass != null && !elementClass.equals( mapValue.getElementType())) {
+        if(elementClass != null && !elementClass.equals( mapValue.getEndpointValueType())) {
             return false;
         }
         return super.equalsValueType(schemaValueAbs);
     }
 
     @Override
-    public Class<?> getElementType() {
+    public Class<?> getEndpointValueType() {
         return elementClass;
     }
 
@@ -110,10 +108,6 @@ class SetterGetterSchemaUseMap extends SchemaMethod implements ISchemaMapValue {
         }
     }
 
-    @Override
-    public boolean isGenericValue() {
-        return isGenericTypeValue;
-    }
 
     @Override
     public boolean isAbstractType() {

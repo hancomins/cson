@@ -64,11 +64,18 @@ public class ContainerOfObjectSchema implements KeyValueDataContainer {
                     continue;
                 }
                 SchemaValueAbs schemaValueAbs = schemaPointer.getSchema();
-
                 if(object instanceof Map) {
+                    if(!(value instanceof BaseDataContainer)) {
                         Object convertedValue = schemaValueAbs.convertValue(value);
                         //noinspection unchecked
                         ((Map<String, Object>) object).put(key, convertedValue);
+                    } else if(value instanceof KeyValueDataContainerWrapper) {
+                        if (((KeyValueDataContainerWrapper) value).hasContainer()) {
+                            ContainerOfObjectSchema childContainer = new ContainerOfObjectSchema(parentMap, childObjectNode);
+
+                        }
+                        ContainerOfObjectSchema childContainer = keyValueDataContainerWrapper.getContainer();
+                    }
                 }
 
             }

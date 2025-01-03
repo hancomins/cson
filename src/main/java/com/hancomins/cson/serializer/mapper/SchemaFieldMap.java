@@ -4,46 +4,30 @@ import com.hancomins.cson.util.DataConverter;
 
 import java.lang.reflect.*;
 
-import java.util.Map;
+import java.util.List;
 
 
 class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
 
-    private final Constructor<?> constructorMap;
-    private final Class<?> elementClass;
-    private final boolean isGenericTypeValue;
-    private final boolean isAbstractValue;
+
+    private final List<GenericItem> genericItems;
+    protected final SchemaType valueSchemaType;
+    private final Class<?> endpointValueTypeClass;
     private final ObtainTypeValueInvoker obtainTypeValueInvoker;
+
+
+
     SchemaFieldMap(ClassSchema parentsTypeSchema, Field field, String path) {
         super(parentsTypeSchema, field, path);
-
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
-        Type genericType = field.getGenericType();
-        Map.Entry<Class<?>, Type> entry = ISchemaMapValue.readKeyValueGenericType(genericType, fieldPath);
-        Class<?> keyClass = entry.getKey();
-        Type valueType = entry.getValue();
-        boolean isGenericValue = false;
-        if(valueType instanceof Class<?>) {
-            this.elementClass = (Class<?>)valueType;
-        } else if(valueType instanceof TypeVariable) {
-            this.elementClass = Object.class;
-            isGenericValue = true;
-        } else {
-            this.elementClass = null;
-        }
+        this.genericItems = GenericItem.analyzeField(field);
         obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(field.getName());
-        isGenericTypeValue = isGenericValue;
-        if(elementClass != null && !isGenericValue) {
-            ISchemaValue.assertValueType(elementClass, fieldPath);
+        endpointValueTypeClass = this.genericItems.get(this.genericItems.size() - 1).getValueType();
+        valueSchemaType = SchemaType.of(endpointValueTypeClass);
+        if (valueSchemaType == SchemaType.Object || valueSchemaType == SchemaType.AbstractObject ) {
+            ClassSchema valueClassSchema = ClassSchemaMap.getInstance().getClassSchema(endpointValueTypeClass);
+            setObjectTypeSchema(valueClassSchema);
         }
-        ISchemaMapValue.assertCollectionOrMapValue(elementClass,fieldPath);
-
-
-        isAbstractValue = elementClass != null && (elementClass.isInterface() ||  Modifier.isAbstract(elementClass.getModifiers()));
-        if(!String.class.isAssignableFrom(keyClass)) {
-            throw new CSONMapperException("Map field '" + fieldPath + "' is not String key. Please use String key.");
-        }
-        constructorMap = ISchemaMapValue.constructorOfMap(field.getType());
     }
 
 
@@ -54,41 +38,31 @@ class SchemaFieldMap extends SchemaField implements ISchemaMapValue {
             return false;
         }
         ISchemaMapValue mapValue = (ISchemaMapValue)schemaValueAbs;
-        if(elementClass != null && !elementClass.equals( mapValue.getElementType())) {
+        if(this.getEndpointValueType() != ((ISchemaMapValue)schemaValueAbs).getEndpointValueType()) {
             return false;
         }
         return super.equalsValueType(schemaValueAbs);
     }
 
 
-
     @Override
-    public Class<?> getElementType() {
-        return elementClass;
+    public Class<?> getEndpointValueType() {
+        return endpointValueTypeClass;
     }
 
     @Override
     public Object newInstance() {
-        try {
-            return constructorMap.newInstance();
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            throw new CSONMapperException("Map type " + field.getDeclaringClass().getName() + "." + field.getType().getName() + " has no default constructor.", e);
-        }
-    }
-
-    @Override
-    public boolean isGenericValue() {
-        return isGenericTypeValue;
+        return genericItems.get(0).newInstance();
     }
 
     @Override
     public boolean isAbstractType() {
-        return isAbstractValue;
+        return false;
     }
 
     @Override
     public Object convertValue(Object value) {
-        Class<?> elementType = getElementType();
+        Class<?> elementType = getEndpointValueType();
         return DataConverter.convertValue(elementType, value);
     }
 

@@ -4,19 +4,19 @@ package com.hancomins.cson.serializer.mapper;
 import java.lang.reflect.Field;
 import java.util.List;
 
-class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
+class SchemaFieldCollection extends SchemaField implements ISchemaArrayValue {
 
-    private final List<GenericItem> collections;
+    private final List<GenericItem> genericItems;
     protected final SchemaType valueSchemaType;
     private final ObtainTypeValueInvoker obtainTypeValueInvoker;
     private final Class<?> endpointValueTypeClass;
 
-    protected SchemaFieldArray(ClassSchema classSchema, Field field, String path) {
-        super(classSchema, field, path);
+    protected SchemaFieldCollection(ClassSchema parentsTypeSchema, Field field, String path) {
+        super(parentsTypeSchema, field, path);
         String fieldPath = field.getDeclaringClass().getName() + "." + field.getName() + "<type: " + field.getType().getName() + ">";
-        this.collections = GenericItem.analyzeField(field);
-        obtainTypeValueInvoker = classSchema.findObtainTypeValueInvoker(field.getName());
-        endpointValueTypeClass = this.collections.get(this.collections.size() - 1).getValueType();
+        this.genericItems = GenericItem.analyzeField(field);
+        obtainTypeValueInvoker = parentsTypeSchema.findObtainTypeValueInvoker(field.getName());
+        endpointValueTypeClass = this.genericItems.get(this.genericItems.size() - 1).getValueType();
         valueSchemaType = SchemaType.of(endpointValueTypeClass);
         if (valueSchemaType == SchemaType.Object || valueSchemaType == SchemaType.AbstractObject ) {
             ClassSchema valueClassSchema = ClassSchemaMap.getInstance().getClassSchema(endpointValueTypeClass);
@@ -28,7 +28,7 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public List<GenericItem> getCollectionItems() {
-        return collections;
+        return genericItems;
     }
 
     @Override
@@ -54,12 +54,12 @@ class SchemaFieldArray extends SchemaField implements ISchemaArrayValue {
 
     @Override
     public ISchemaNode copyNode() {
-        return new SchemaFieldArray(parentsTypeSchema, field, path);
+        return new SchemaFieldCollection(parentsTypeSchema, field, path);
     }
 
     @Override
     public Object newInstance() {
-        return collections.get(0).newInstance();
+        return genericItems.get(0).newInstance();
     }
 
 

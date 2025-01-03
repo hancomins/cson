@@ -55,7 +55,7 @@ abstract class SchemaValueAbs implements ISchemaNode, ISchemaValue {
 
         SchemaValueAbs schemaValue;
         if(Collection.class.isAssignableFrom(field.getType())) {
-            schemaValue = new SchemaFieldArray(typeSchema, field, key);
+            schemaValue = new SchemaFieldCollection(typeSchema, field, key);
         } else if(Map.class.isAssignableFrom(field.getType())) {
             schemaValue = new SchemaFieldMap(typeSchema, field, key);
         }

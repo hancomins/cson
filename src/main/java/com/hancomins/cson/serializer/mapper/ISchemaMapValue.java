@@ -12,12 +12,11 @@ public interface ISchemaMapValue {
 
 
 
-    Class<?> getElementType();
+    Class<?> getEndpointValueType();
 
     Object newInstance();
 
-    boolean isGenericValue();
-    boolean isAbstractType();
+
     ObtainTypeValueInvoker getObtainTypeValueInvoker();
 
 

@@ -305,10 +305,10 @@ public class _NodeBuilder {
 
     private void makeObjectNode(_ObjectNode currentNode, SchemaValueAbs valueSchema, int parentID) {
         int parentIdOfObject = parentID;
-        boolean isCollection = valueSchema instanceof SchemaFieldArray;
+        boolean isCollection = valueSchema instanceof SchemaFieldCollection;
         if(isCollection) {
             parentIdOfObject = lastID++;
-            SchemaFieldArray fieldArray = (SchemaFieldArray) valueSchema;
+            SchemaFieldCollection fieldArray = (SchemaFieldCollection) valueSchema;
             currentNode.putNodeSchema(fieldArray, parentIdOfObject, parentID);
         }
         _ObjectNode node = makeNode(valueSchema, parentIdOfObject);
